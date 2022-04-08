@@ -40,23 +40,24 @@ public:
 	}
 	glm::mat4 process(double ftime)
 	{
-		float speed = 0;
+		float speedZ = 0;
+        float speedX = 0;
 		if (w == 1)
 		{
-			speed = 10*ftime;
+			speedZ = 10*ftime;
 		}
 		else if (s == 1)
 		{
-			speed = -10*ftime;
+			speedZ = -10*ftime;
 		}
 		float yangle=0;
 		if (a == 1)
-			yangle = -3*ftime;
+			speedX = 10*ftime;
 		else if(d==1)
-			yangle = 3*ftime;
+			speedX = -10*ftime;
 		rot.y += yangle;
 		glm::mat4 R = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
-		glm::vec4 dir = glm::vec4(0, 0, speed,1);
+		glm::vec4 dir = glm::vec4(speedX, 0, speedZ,1);
 		dir = dir*R;
 		pos += glm::vec3(dir.x, dir.y, dir.z);
 		glm::mat4 T = glm::translate(glm::mat4(1), pos);
@@ -142,6 +143,9 @@ public:
 			//THIS IS BROKEN< YOU GET TO FIX IT - yay!
 			newPt[0] = 0;
 			newPt[1] = 0;
+            
+            mycam.rot.y += 0.4;
+            
 
 			std::cout << "converted:" << newPt[0] << " " << newPt[1] << std::endl;
 			glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
@@ -392,7 +396,6 @@ public:
 		glm::mat4 SSky = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f, 0.8f, 0.8f));
 
 		M = TransSky * RotateXSky * SSky;
-
 
 		psky->bind();		
 		glUniformMatrix4fv(psky->getUniform("P"), 1, GL_FALSE, &P[0][0]);
