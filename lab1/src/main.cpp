@@ -152,6 +152,13 @@ public:
         float xpos = static_cast<float>(posX);
         float ypos = static_cast<float>(posY);
         
+        if (firstMouse)
+        {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
+        
         float xoff = xpos - lastX;
         float yoff = lastY - ypos;
         
