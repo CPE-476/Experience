@@ -3,6 +3,7 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 */
 
 #include <iostream>
+#include <random>
 #include <glad/glad.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -19,6 +20,14 @@ using namespace std;
 using namespace glm;
 shared_ptr<Shape> shape;
 shared_ptr<Shape> shape2;
+
+float gen_rand(){
+    srand(time(0));
+    float bound;
+    bound = -1 + rand() % 3;
+    while (bound == 0) bound = -1 + rand() % 3;
+    return bound;
+}
 
 
 double get_last_elapsed_time()
@@ -395,6 +404,9 @@ public:
 	will actually issue the commands to draw any geometry you have set up to
 	draw
 	********/
+    
+    double randX = gen_rand(); // set velocity of banana (should be random)
+    double randZ = gen_rand();
 	void render()
 	{
 		glEnable(GL_BLEND);
@@ -481,21 +493,25 @@ public:
         
         papp->bind();
 
-        
         //send the matrices to the shaders
         glUniformMatrix4fv(papp->getUniform("P"), 1, GL_FALSE, &P[0][0]);
         glUniformMatrix4fv(papp->getUniform("V"), 1, GL_FALSE, &V[0][0]);
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
-        static float randX, randZ;
-        randX += 0.1 * frametime;
-        randZ += 0.1 * frametime;
+        static double xVel, zVel;
+        xVel += randX * frametime;
+        zVel += randZ * frametime;
         M = glm::mat4(1);
-        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(randX, 0.0f, randZ));
-        M = T;
+        glm::vec2 velVector = glm::normalize(glm::vec2(randX, randZ));
+        angle = dot(velVector, glm::vec2(0, 1));
+        if(randX <0)
+            angle = -angle + 3.141592653589;
+        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(xVel, 0.0f, zVel));
+        glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        M = T * R;
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-        shape2->draw(papp, false);
+        shape2->draw(papp, false); //Draw Banana
         
         papp->unbind();
 		
