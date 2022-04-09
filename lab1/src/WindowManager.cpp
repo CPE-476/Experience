@@ -73,6 +73,7 @@ bool WindowManager::init(int const width, int const height)
 //	glfwSetMouseButtonCallback(windowHandle, mouse_callback);
     glfwSetCursorPosCallback(windowHandle, cur_callback);
 	glfwSetFramebufferSizeCallback(windowHandle, resize_callback);
+    glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	return true;
 }
