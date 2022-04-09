@@ -20,6 +20,9 @@ using namespace glm;
 shared_ptr<Shape> shape;
 shared_ptr<Shape> shape2;
 
+float lastX = 1920 / 2.0f;
+float lastY = 1080 / 2.0f;
+bool firstMouse = true;
 
 double get_last_elapsed_time()
 {
@@ -51,18 +54,17 @@ public:
 		{
 			speedZ = -10*ftime;
 		}
-		float yangle=0;
 		if (a == 1)
 			speedX = 10*ftime;
 		else if(d==1)
 			speedX = -10*ftime;
-		rot.y += yangle;
-		glm::mat4 R = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
+		glm::mat4 Ry = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
+        glm::mat4 Rx = glm::rotate(glm::mat4(1), rot.x, glm::vec3(-1, 0, 0));
 		glm::vec4 dir = glm::vec4(speedX, 0, speedZ,1);
-		dir = dir*R;
+		dir = dir*Rx*Ry;
 		pos += glm::vec3(dir.x, dir.y, dir.z);
 		glm::mat4 T = glm::translate(glm::mat4(1), pos);
-		return R*T;
+		return Rx*Ry*T;
 	}
 };
 
@@ -131,28 +133,25 @@ public:
 
 	// callback for the mouse when clicked move the triangle when helper functions
 	// written
-	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
+	void curCallback(GLFWwindow *window, double posX, double posY)
 	{
-		double posX, posY;
-		float newPt[2];
-		if (action == GLFW_PRESS)
-		{
-			glfwGetCursorPos(window, &posX, &posY);
-			std::cout << "Pos X " << posX <<  " Pos Y " << posY << std::endl;
-
-			//change this to be the points converted to WORLD
-			//THIS IS BROKEN< YOU GET TO FIX IT - yay!
-			newPt[0] = 0;
-			newPt[1] = 0;
-            
-            mycam.rot.y += 0.4;
-
-			std::cout << "converted:" << newPt[0] << " " << newPt[1] << std::endl;
-			glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
-			//update the vertex array with the updated points
-			glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*6, sizeof(float)*2, newPt);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
+        
+        glfwGetCursorPos(window, &posX, &posY);
+        
+        float xpos = static_cast<float>(posX);
+        float ypos = static_cast<float>(posY);
+        
+        float xoff = xpos - lastX;
+        float yoff = lastY - ypos;
+        
+        lastX = xpos;
+        lastY = ypos;
+        
+        cout << "X Off: " << xoff << "Y Off: " << yoff << endl;
+        
+        mycam.rot.y += xoff *0.01;
+        mycam.rot.x += yoff *0.01;
+        
 	}
 
 	//if the window is resized, capture the new size and reset the viewport
@@ -513,7 +512,7 @@ int main(int argc, char **argv)
 		resourceDir = argv[1];
 	}
 
-	Application *application = new Application();
+    Application *application = new Application();
 
 	/* your main will always include a similar set up to establish your window
 		and GL context, etc. */
