@@ -1,0 +1,7 @@
+Target dependency graph (3 targets)
+ZERO_CHECK in lab3, no dependencies
+lab3 in lab3, depends on:
+ZERO_CHECK in lab3 (explicit)
+ALL_BUILD in lab3, depends on:
+lab3 in lab3 (explicit)
+ZERO_CHECK in lab3 (explicit)

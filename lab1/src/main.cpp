@@ -4,6 +4,7 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 
 #include <iostream>
 #include <random>
+#include <time.h>
 #include <glad/glad.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -23,10 +24,7 @@ shared_ptr<Shape> shape2;
 
 
 float gen_rand(){
-    srand(time(0));
-    float bound;
-    bound = -1 + rand() % 3;
-    while (bound == 0) bound = -1 + rand() % 3;
+    float bound = ((float) rand()/RAND_MAX) - 0.5;
     return bound;
 }
 
@@ -43,6 +41,7 @@ double get_last_elapsed_time()
 	lasttime = actualtime;
 	return difference;
 }
+
 class camera
 {
 public:
@@ -508,13 +507,14 @@ public:
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
         static double xVel, zVel;
-        xVel += randX * frametime;
-        zVel += randZ * frametime;
+        xVel += randX * frametime * 5;
+        zVel += randZ * frametime * 5;
         M = glm::mat4(1);
-        glm::vec2 velVector = glm::normalize(glm::vec2(randX, randZ));
-        angle = dot(velVector, glm::vec2(0, 1));
-        if(randX <0)
-            angle = -angle + 3.141592653589;
+
+        float dot = randX*0 + randZ*-1; //Mesh Orientation
+        float det = randX*-1 - randZ*0;
+        angle = atan2(det, dot);
+        
         glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(xVel, 0.0f, zVel));
         glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
         M = T * R;
@@ -531,6 +531,7 @@ public:
 //******************************************************************************************
 int main(int argc, char **argv)
 {
+    srand (static_cast <unsigned> (time(0)));
 	std::string resourceDir = "../../resources"; // Where the resources are loaded from
 	if (argc >= 2)
 	{
