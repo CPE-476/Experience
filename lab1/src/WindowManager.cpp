@@ -70,7 +70,8 @@ bool WindowManager::init(int const width, int const height)
 	glfwSwapInterval(1);
 
 	glfwSetKeyCallback(windowHandle, key_callback);
-	glfwSetMouseButtonCallback(windowHandle, mouse_callback);
+//	glfwSetMouseButtonCallback(windowHandle, mouse_callback);
+    glfwSetCursorPosCallback(windowHandle, cur_callback);
 	glfwSetFramebufferSizeCallback(windowHandle, resize_callback);
 
 	return true;
@@ -100,12 +101,21 @@ void WindowManager::key_callback(GLFWwindow * window, int key, int scancode, int
 	}
 }
 
-void WindowManager::mouse_callback(GLFWwindow * window, int button, int action, int mods)
+//void WindowManager::mouse_callback(GLFWwindow * window, int button, int action, int mods)
+//{
+//	if (instance && instance->callbacks)
+//	{
+//		instance->callbacks->mouseCallback(window, button, action, mods);
+//	}
+//}
+
+
+void WindowManager::cur_callback(GLFWwindow * window, double xpos, double ypos)
 {
-	if (instance && instance->callbacks)
-	{
-		instance->callbacks->mouseCallback(window, button, action, mods);
-	}
+    if (instance && instance->callbacks)
+    {
+        instance->callbacks->curCallback(window, xpos, ypos);
+    }
 }
 
 void WindowManager::resize_callback(GLFWwindow * window, int in_width, int in_height)
