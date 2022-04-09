@@ -18,6 +18,7 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 using namespace std;
 using namespace glm;
 shared_ptr<Shape> shape;
+shared_ptr<Shape> shape2;
 
 
 double get_last_elapsed_time()
@@ -75,7 +76,7 @@ public:
 	WindowManager * windowManager = nullptr;
 
 	// Our shader program
-	std::shared_ptr<Program> prog,psky;
+	std::shared_ptr<Program> prog,psky,papp;
 
 	// Contains vertex information for OpenGL
 	GLuint VertexArrayID;
@@ -145,7 +146,6 @@ public:
 			newPt[1] = 0;
             
             mycam.rot.y += 0.4;
-            
 
 			std::cout << "converted:" << newPt[0] << " " << newPt[1] << std::endl;
 			glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
@@ -247,6 +247,11 @@ public:
 		shape->loadMesh(resourceDirectory + "/sphere.obj");
 		shape->resize();
 		shape->init();
+        
+        shape2 = make_shared<Shape>();
+        shape2->loadMesh(resourceDirectory + "/Banana.obj");
+        shape2->resize();
+        shape2->init();
 
 		int width, height, channels;
 		char filepath[1000];
@@ -266,7 +271,7 @@ public:
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 		//texture Night
-		str = resourceDirectory + "/night.jpg";
+		str = resourceDirectory + "/banana.png";
 		strcpy(filepath, str.c_str());
 		data = stbi_load(filepath, &width, &height, &channels, 4);
 		glGenTextures(1, &TextureN);
@@ -312,6 +317,13 @@ public:
 		glUseProgram(psky->pid);
 		glUniform1i(Tex1Location, 0);
 		glUniform1i(Tex2Location, 1);
+        
+        Tex1Location = glGetUniformLocation(papp->pid, "tex");//tex, tex2... sampler in the fragment shader
+        Tex2Location = glGetUniformLocation(papp->pid, "tex2");
+        // Then bind the uniform samplers to texture units:
+        glUseProgram(papp->pid);
+        glUniform1i(Tex1Location, 0);
+        glUniform1i(Tex2Location, 1);
 
 	}
 
@@ -359,6 +371,22 @@ public:
 		psky->addAttribute("vertPos");
 		psky->addAttribute("vertNor");
 		psky->addAttribute("vertTex");
+        
+        papp = std::make_shared<Program>();
+        papp->setVerbose(true);
+        papp->setShaderNames(resourceDirectory + "/applevertex.glsl", resourceDirectory + "/applefrag.glsl");
+        if (!papp->init())
+        {
+            std::cerr << "One or more shaders failed to compile... exiting!" << std::endl;
+            exit(1);
+        }
+        papp->addUniform("P");
+        papp->addUniform("V");
+        papp->addUniform("M");
+        papp->addUniform("campos");
+        papp->addAttribute("vertPos");
+        papp->addAttribute("vertNor");
+        papp->addAttribute("vertTex");
 	}
 
 
@@ -448,8 +476,30 @@ public:
 		glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);		
 		glBindVertexArray(0);
+        
+        prog->unbind();
+        
+        papp->bind();
+
+        
+        //send the matrices to the shaders
+        glUniformMatrix4fv(papp->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+        glUniformMatrix4fv(papp->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+        glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+        glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
+        
+        static float randX, randZ;
+        randX += 0.1 * frametime;
+        randZ += 0.1 * frametime;
+        M = glm::mat4(1);
+        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(randX, 0.0f, randZ));
+        M = T;
+        glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+        shape2->draw(papp, false);
+        
+        papp->unbind();
 		
-		prog->unbind();
+		
 
 	}
 
