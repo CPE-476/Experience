@@ -513,7 +513,7 @@ public:
 
         float dot = randX*0 + randZ*-1; //Mesh Orientation
         float det = randX*-1 - randZ*0;
-        angle = atan2(det, dot);
+        angle = atan2(det, dot) + 3.141592653589;
         
         glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(xVel, 0.0f, zVel));
         glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
