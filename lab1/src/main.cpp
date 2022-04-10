@@ -30,6 +30,7 @@ float gen_rand(){
 
 float lastX = 1920 / 2.0f;
 float lastY = 1080 / 2.0f;
+float dimension = 20.0f;
 bool firstMouse = true;
 
 
@@ -46,10 +47,10 @@ class camera
 {
 public:
 	glm::vec3 pos, rot;
-	int w, a, s, d;
+	int w, a, s, d, shift, control;
 	camera()
 	{
-		w = a = s = d = 0;
+		w = a = s = d = shift = control = 0;
 		pos = rot = glm::vec3(0, 0, 0);
 	}
 	glm::mat4 process(double ftime)
@@ -68,11 +69,26 @@ public:
 			speedX = 10*ftime;
 		else if(d==1)
 			speedX = -10*ftime;
+        if (shift == 1){
+            speedX *= 2;
+            speedZ *= 2;
+        }
+        if (control == 1){
+            speedX /= 2;
+            speedZ /= 2;
+        }
+        
 		glm::mat4 Ry = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
         glm::mat4 Rx = glm::rotate(glm::mat4(1), rot.x, glm::vec3(-1, 0, 0));
 		glm::vec4 dir = glm::vec4(speedX, 0, speedZ,1);
 		dir = dir*Rx*Ry;
-		pos += glm::vec3(dir.x, dir.y, dir.z);
+		pos += glm::vec3(dir.x, 0.0f, dir.z);
+        if (pos.x > dimension/2 || pos.x < -dimension/2) {
+            pos.x -= dir.x;
+        }
+        if (pos.z > dimension/2 || pos.z < -dimension/2) {
+            pos.z -= dir.z;
+        }
 		glm::mat4 T = glm::translate(glm::mat4(1), pos);
 		return Rx*Ry*T;
 	}
@@ -139,6 +155,22 @@ public:
 		{
 			mycam.d = 0;
 		}
+        if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
+        {
+            mycam.shift = 1;
+        }
+        if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE)
+        {
+            mycam.shift = 0;
+        }
+        if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS)
+        {
+            mycam.control = 1;
+        }
+        if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_RELEASE)
+        {
+            mycam.control = 0;
+        }
 	}
 
 	// callback for the mouse when clicked move the triangle when helper functions
@@ -164,10 +196,8 @@ public:
         lastX = xpos;
         lastY = ypos;
         
-        cout << "X Off: " << xoff << "Y Off: " << yoff << endl;
-        
-        mycam.rot.y += xoff *0.01;
-        mycam.rot.x += yoff *0.01;
+        mycam.rot.y += xoff *0.005;
+        mycam.rot.x += yoff *0.005;
         
 	}
 
@@ -423,7 +453,7 @@ public:
 		// Get current frame buffer size.
 		int width, height;
 		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
-		float aspect = width/(float)height;
+//		float aspect = width/(float)height;
 		glViewport(0, 0, width, height);
 
 		// Clear framebuffer.
@@ -486,8 +516,9 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		
-		TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.3f, -17));
-		S = glm::scale(glm::mat4(1.0f), glm::vec3(100.f, 100.f, 0.f));
+        
+		TransZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.8f, 0.0f));
+		S = glm::scale(glm::mat4(1.0f), glm::vec3(dimension, dimension, 0.f));
 		float angle = 3.1415926 / 2.0f;
 		RotateX = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -514,6 +545,15 @@ public:
         float dot = randX*0 + randZ*-1; //Mesh Orientation
         float det = randX*-1 - randZ*0;
         angle = atan2(det, dot) + 3.141592653589;
+        
+//        cout << "xVel: " << xVel << " zVel: " << zVel << endl;
+        
+        if (xVel > dimension/2 || xVel < -dimension/2) {
+            randX = -randX;
+        }
+        if (zVel > dimension/2 || zVel < -dimension/2) {
+            randZ = -randZ;
+        }
         
         glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(xVel, 0.0f, zVel));
         glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
