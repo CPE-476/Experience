@@ -43,6 +43,14 @@ double get_last_elapsed_time()
 	return difference;
 }
 
+class entity
+{
+public:
+    double velX, velZ, velX, velZ;
+    glm::vec3 pos, rot;
+    
+};
+
 class camera
 {
 public:
@@ -442,8 +450,8 @@ public:
 	draw
 	********/
     
-    double randX = gen_rand(); // set velocity of banana (should be random)
-    double randZ = gen_rand();
+    double velX = gen_rand(); // set velocity of banana (should be random)
+    double velZ = gen_rand();
 	void render()
 	{
 		glEnable(GL_BLEND);
@@ -537,25 +545,25 @@ public:
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
-        static double xVel, zVel;
-        xVel += randX * frametime * 5;
-        zVel += randZ * frametime * 5;
+        static double posX, posZ;
+        posX += velX * frametime * 5;
+        posZ += velZ * frametime * 5;
         M = glm::mat4(1);
 
-        float dot = randX*0 + randZ*-1; //Mesh Orientation
-        float det = randX*-1 - randZ*0;
+        float dot = velX*0 + velZ*-1; //Mesh Orientation
+        float det = velX*-1 - velZ*0;
         angle = atan2(det, dot) + 3.141592653589;
         
-//        cout << "xVel: " << xVel << " zVel: " << zVel << endl;
+//        cout << "posX: " << posX << " posZ: " << posZ << endl;
         
-        if (xVel > dimension/2 || xVel < -dimension/2) {
-            randX = -randX;
+        if (posX > dimension/2 || posX < -dimension/2) {
+            velX = -velX;
         }
-        if (zVel > dimension/2 || zVel < -dimension/2) {
-            randZ = -randZ;
+        if (posZ > dimension/2 || posZ < -dimension/2) {
+            velZ = -velZ;
         }
         
-        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(xVel, 0.0f, zVel));
+        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(posX, 0.0f, posZ));
         glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
         M = T * R;
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
