@@ -22,7 +22,6 @@ using namespace glm;
 shared_ptr<Shape> shape;
 shared_ptr<Shape> shape2;
 
-
 float gen_rand(){
     float bound = ((float) rand()/RAND_MAX) - 0.5;
     return bound;
@@ -46,10 +45,10 @@ double get_last_elapsed_time()
 class entity
 {
 public:
-    double velX, velZ, velX, velZ;
-    glm::vec3 pos, rot;
-    
+    double posX, posZ, velX, velZ;
+    bool state = 0;
 };
+entity objects[50];
 
 class camera
 {
@@ -454,6 +453,8 @@ public:
     double velZ = gen_rand();
 	void render()
 	{
+        static int renderNum;
+        renderNum += 1;
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		double frametime = get_last_elapsed_time();
@@ -545,29 +546,55 @@ public:
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
-        static double posX, posZ;
-        posX += velX * frametime * 5;
-        posZ += velZ * frametime * 5;
-        M = glm::mat4(1);
-
-        float dot = velX*0 + velZ*-1; //Mesh Orientation
-        float det = velX*-1 - velZ*0;
-        angle = atan2(det, dot) + 3.141592653589;
+        if(renderNum % 200 == 1)
+        {
+            for (int i=0; i<50;i++)
+            {
+                if(objects[i].state == 0)
+                {
+                    objects[i].state = 1;
+                    objects[i].velX = gen_rand();
+                    objects[i].velZ = gen_rand();
+                    objects[i].posX = 0;
+                    objects[i].posZ = 0;
+                    break;
+                }
+            }
+        }
         
+        for (int i=0;i<50;i++)
+        {
+            cout << i << " :Outside " << objects << endl;
+           if(objects[i].state == 1)
+           {
+               cout << i << " :Inside " << objects << endl;
+               objects[i].posX += objects[i].velX * frametime * 5;
+               objects[i].posZ += objects[i].velZ * frametime * 5;
+               
+               float dot = objects[i].velX*0 + objects[i].velZ*-1; //Mesh Orientation
+               float det = objects[i].velX*-1 - objects[i].velZ*0;
+               angle = atan2(det, dot) + 3.141592653589;
+               
+               if (objects[i].posX > dimension/2 || objects[i].posX < -dimension/2) {
+                   objects[i].velX = -objects[i].velX;
+               }
+               if (objects[i].posZ > dimension/2 || objects[i].posZ < -dimension/2) {
+                   objects[i].velZ = -objects[i].velZ;
+               }
+               
+               glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(objects[i].posX, 0.0f, objects[i].posZ));
+               glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+               M = T * R;
+               glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+               shape2->draw(papp, false); //Draw Banana
+           }
+               
+        }
 //        cout << "posX: " << posX << " posZ: " << posZ << endl;
         
-        if (posX > dimension/2 || posX < -dimension/2) {
-            velX = -velX;
-        }
-        if (posZ > dimension/2 || posZ < -dimension/2) {
-            velZ = -velZ;
-        }
         
-        glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(posX, 0.0f, posZ));
-        glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-        M = T * R;
-        glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-        shape2->draw(papp, false); //Draw Banana
+        
+        
         
         papp->unbind();
 		
