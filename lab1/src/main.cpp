@@ -46,7 +46,9 @@ class entity
 {
 public:
     double posX, posZ, velX, velZ;
+    float scale = 1;
     bool state = 0;
+    bool dying = 0;
 };
 entity objects[50];
 
@@ -58,7 +60,8 @@ public:
 	camera()
 	{
 		w = a = s = d = shift = control = 0;
-		pos = rot = glm::vec3(0, 0, 0);
+		rot = glm::vec3(0, 2.4, 0);
+        pos = glm::vec3(10, 0, 10);
 	}
 	glm::mat4 process(double ftime)
 	{
@@ -451,6 +454,7 @@ public:
     
     double velX = gen_rand(); // set velocity of banana (should be random)
     double velZ = gen_rand();
+    float scale = 1;
 	void render()
 	{
         static int renderNum;
@@ -546,13 +550,14 @@ public:
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
-        if(renderNum % 200 == 1)
+        if(renderNum % 100 == 1)
         {
             for (int i=0; i<50;i++)
             {
                 if(objects[i].state == 0)
                 {
                     objects[i].state = 1;
+                    objects[i].scale = 1;
                     objects[i].velX = gen_rand();
                     objects[i].velZ = gen_rand();
                     objects[i].posX = 0;
@@ -564,10 +569,8 @@ public:
         
         for (int i=0;i<50;i++)
         {
-            cout << i << " :Outside " << objects << endl;
            if(objects[i].state == 1)
            {
-               cout << i << " :Inside " << objects << endl;
                objects[i].posX += objects[i].velX * frametime * 5;
                objects[i].posZ += objects[i].velZ * frametime * 5;
                
@@ -582,9 +585,44 @@ public:
                    objects[i].velZ = -objects[i].velZ;
                }
                
+               if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), -mycam.pos) < 1)
+               {
+                   objects[i].velX = 0;
+                   objects[i].velZ = 0;
+                   objects[i].dying = 1;
+               }
+               
+               for(int j = 0;j<50;j++)
+               {
+                   if(objects[j].state == 1 && j != i)
+                   {
+                       if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), glm::vec3(objects[j].posX, 0, objects[j].posZ)) < 1)
+                       {
+                           objects[i].velX = 0;
+                           objects[i].velZ = 0;
+                           objects[j].velX = 0;
+                           objects[j].velZ = 0;
+                           objects[i].dying = 1;
+                           objects[j].dying = 1;
+                       }
+                   }
+               }
+               if(objects[i].dying == 1 && (renderNum % 200) == 1)
+               {
+                   objects[i].state = 0;
+                   objects[i].dying = 0;
+               }
+               if(objects[i].dying == 1)
+               {
+                   angle += (renderNum % 150)/5;
+                   objects[i].scale -= 0.45 * frametime;
+               }
+               
+               
                glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(objects[i].posX, 0.0f, objects[i].posZ));
                glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
-               M = T * R;
+               glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(objects[i].scale, objects[i].scale, objects[i].scale));
+               M = T * R * S;
                glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
                shape2->draw(papp, false); //Draw Banana
            }
