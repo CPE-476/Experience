@@ -47,8 +47,8 @@ class entity
 public:
     double posX, posZ, velX, velZ;
     float scale = 1;
-    bool state = 0;
-    bool dying = 0;
+    float bob = 0;
+    bool state, dying = 0;
 };
 entity objects[50];
 
@@ -550,6 +550,9 @@ public:
         glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
         glUniform3fv(papp->getUniform("campos"), 1, &mycam.pos[0]);
         
+        static float inc = 0;
+        inc += frametime;
+        
         if(renderNum % 100 == 1)
         {
             for (int i=0; i<50;i++)
@@ -558,6 +561,7 @@ public:
                 {
                     objects[i].state = 1;
                     objects[i].scale = 1;
+                    objects[i].bob = 0;;
                     objects[i].velX = gen_rand();
                     objects[i].velZ = gen_rand();
                     objects[i].posX = 0;
@@ -577,6 +581,8 @@ public:
                float dot = objects[i].velX*0 + objects[i].velZ*-1; //Mesh Orientation
                float det = objects[i].velX*-1 - objects[i].velZ*0;
                angle = atan2(det, dot) + 3.141592653589;
+               
+               objects[i].bob = sin(inc*4)/3;
                
                if (objects[i].posX > dimension/2 || objects[i].posX < -dimension/2) {
                    objects[i].velX = -objects[i].velX;
@@ -614,15 +620,17 @@ public:
                }
                if(objects[i].dying == 1)
                {
+                   objects[i].bob = 0;
                    angle += (renderNum % 150)/5;
-                   objects[i].scale -= 0.45 * frametime;
+                   objects[i].scale -= 0.44 * frametime;
                }
                
                
                glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(objects[i].posX, 0.0f, objects[i].posZ));
                glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f));
+               glm::mat4 Rx = glm::rotate(glm::mat4(1.0f), objects[i].bob, glm::vec3(1.0f, 0.0f, 0.0f));
                glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(objects[i].scale, objects[i].scale, objects[i].scale));
-               M = T * R * S;
+               M = T  * R * Rx * S;
                glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
                shape2->draw(papp, false); //Draw Banana
            }

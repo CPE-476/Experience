@@ -13,5 +13,5 @@ void main()
 {
 vec4 tcol = texture(tex, vertex_tex);
 vec4 tcoln = texture(tex2, vertex_tex);
-color = tcoln;
+    color = tcoln;//*0.5 + 0.5 * vec4(vertex_pos, 1);
 }
