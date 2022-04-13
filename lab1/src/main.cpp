@@ -49,6 +49,7 @@ public:
     float scale = 1;
     float bob = 0;
     bool state, dying = 0;
+    glm::vec3 color = glm::vec3(0, 2.4, 0);
 };
 entity objects[50];
 
@@ -440,6 +441,7 @@ public:
         papp->addUniform("V");
         papp->addUniform("M");
         papp->addUniform("campos");
+        papp->addUniform("objColor");
         papp->addAttribute("vertPos");
         papp->addAttribute("vertNor");
         papp->addAttribute("vertTex");
@@ -561,11 +563,12 @@ public:
                 {
                     objects[i].state = 1;
                     objects[i].scale = 1;
-                    objects[i].bob = 0;;
+                    objects[i].bob = 0;
                     objects[i].velX = gen_rand();
                     objects[i].velZ = gen_rand();
                     objects[i].posX = 0;
                     objects[i].posZ = 0;
+                    objects[i].color = glm::vec3(0, 0, 0);
                     break;
                 }
             }
@@ -582,7 +585,7 @@ public:
                float det = objects[i].velX*-1 - objects[i].velZ*0;
                angle = atan2(det, dot) + 3.141592653589;
                
-               objects[i].bob = sin(inc*4)/3;
+               objects[i].bob = sin(inc*7*(abs(objects[i].velX) + abs(objects[i].velZ)))/3;
                
                if (objects[i].posX > dimension/2 || objects[i].posX < -dimension/2) {
                    objects[i].velX = -objects[i].velX;
@@ -621,6 +624,9 @@ public:
                if(objects[i].dying == 1)
                {
                    objects[i].bob = 0;
+                   objects[i].color.x = sin(inc*5);
+                   objects[i].color.y = cos(inc*6);
+                   objects[i].color.z = sin(inc*4);
                    angle += (renderNum % 150)/5;
                    objects[i].scale -= 0.44 * frametime;
                }
@@ -632,6 +638,7 @@ public:
                glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(objects[i].scale, objects[i].scale, objects[i].scale));
                M = T  * R * Rx * S;
                glUniformMatrix4fv(papp->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+               glUniform3fv(papp->getUniform("objColor"), 1, &objects[i].color[0]);
                shape2->draw(papp, false); //Draw Banana
            }
                
