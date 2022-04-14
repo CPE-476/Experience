@@ -17,10 +17,17 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 using namespace std;
 using namespace glm;
 shared_ptr<Shape> shape;
 shared_ptr<Shape> shape2;
+ma_engine engine;
+ma_result result = ma_engine_init(NULL, &engine);
+
 
 float gen_rand(){
     float bound = ((float) rand()/RAND_MAX) - 0.5;
@@ -624,6 +631,7 @@ public:
                    objects[i].state = 0;
                    objects[i].dying = 0;
                    death++;
+                   ma_engine_play_sound(&engine, "../../resources/eat.wav", NULL);
                    cout << "Living banana: " << live << " | Collided banana: " << death << endl;
                }
                if(objects[i].dying == 1)
