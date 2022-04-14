@@ -604,18 +604,19 @@ public:
                    objects[i].velZ = -objects[i].velZ;
                }
                
-               if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), -mycam.pos) < 1)
+               if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), -mycam.pos) < 1 &&  objects[i].dying == 0)
                {
                    objects[i].velX = 0;
                    objects[i].velZ = 0;
                    objects[i].dying = 1;
+                   ma_engine_play_sound(&engine, "../../resources/eat.wav", NULL);
                }
                
                for(int j = 0;j<50;j++)
                {
                    if(objects[j].state == 1 && j != i)
                    {
-                       if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), glm::vec3(objects[j].posX, 0, objects[j].posZ)) < 1)
+                       if(distance(glm::vec3(objects[i].posX, 0, objects[i].posZ), glm::vec3(objects[j].posX, 0, objects[j].posZ)) < 1 && objects[i].dying == 0 && objects[j].dying == 0)
                        {
                            objects[i].velX = 0;
                            objects[i].velZ = 0;
@@ -623,6 +624,7 @@ public:
                            objects[j].velZ = 0;
                            objects[i].dying = 1;
                            objects[j].dying = 1;
+                           ma_engine_play_sound(&engine, "../../resources/splat.wav", NULL);
                        }
                    }
                }
@@ -631,7 +633,6 @@ public:
                    objects[i].state = 0;
                    objects[i].dying = 0;
                    death++;
-                   ma_engine_play_sound(&engine, "../../resources/eat.wav", NULL);
                    cout << "Living banana: " << live << " | Collided banana: " << death << endl;
                }
                if(objects[i].dying == 1)
