@@ -31,6 +31,8 @@ float lastX = 1920 / 2.0f;
 float lastY = 1080 / 2.0f;
 float dimension = 20.0f;
 bool firstMouse = true;
+int death = 0;
+int live = 0;
 
 
 double get_last_elapsed_time()
@@ -566,8 +568,8 @@ public:
                     objects[i].bob = 0;
                     objects[i].velX = gen_rand();
                     objects[i].velZ = gen_rand();
-                    objects[i].posX = 0;
-                    objects[i].posZ = 0;
+                    objects[i].posX = gen_rand() * 15;
+                    objects[i].posZ = gen_rand() * 15;
                     objects[i].color = glm::vec3(0, 0, 0);
                     break;
                 }
@@ -578,6 +580,7 @@ public:
         {
            if(objects[i].state == 1)
            {
+               live++;
                objects[i].posX += objects[i].velX * frametime * 5;
                objects[i].posZ += objects[i].velZ * frametime * 5;
                
@@ -620,6 +623,8 @@ public:
                {
                    objects[i].state = 0;
                    objects[i].dying = 0;
+                   death++;
+                   cout << "Living banana: " << live << " | Collided banana: " << death << endl;
                }
                if(objects[i].dying == 1)
                {
@@ -643,7 +648,8 @@ public:
            }
                
         }
-//        cout << "posX: " << posX << " posZ: " << posZ << endl;
+        
+        live = 0;
         
         
         
