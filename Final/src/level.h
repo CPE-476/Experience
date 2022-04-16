@@ -1,3 +1,4 @@
+
 // Author: Alex Hartford
 // Program: Emblem
 // File: Level Loader
@@ -17,6 +18,7 @@
 #include "shader.h"
 #include "model.h"
 #include "camera.h"
+#include "object.h"
 
 using namespace std;
 using namespace glm;
@@ -25,12 +27,14 @@ class level {
     public:
         vector<Object> Objects;
         Camera camera;
-        String terrain;
-}
+        string terrain;
 
-void LoadLevel(std::string Filename)
+    vector<pair<string, Model>> modelList;
+    // Adding new Models
+    modelList.push_back("TREE", new Model("../resources/22-trees_9_obj/trees9.obj"));
+
+    void LoadLevel(std::string Filename)
 {
-    std::shared_ptr<Unit> Current;
 
     string Line;
     string Type;
@@ -58,20 +62,19 @@ void LoadLevel(std::string Filename)
                 Type = Line.substr(0, 3);
                 Cont = Line.substr(4);
 
-                switch (Type)
-                {
-                case 'OBJ':
+                if (Type == "OBJ"){
                     
-                    break;
-                case 'POV':
-                    /* code */
-                    break;
-                case 'COM':
-                    /* code */
-                    break;
-                default:
-                    break;
                 }
+                else if (Type == "POV"){
+
+                }
+                else if (Type == "POV"){
+
+                }
+                else{
+                    cout << "LoadLevel ERROR\n";
+                }
+                
             }
         }
     }
@@ -80,17 +83,6 @@ void LoadLevel(std::string Filename)
         cout << "LoadLevel ERROR\n";
     }
 
-    for(std::shared_ptr<Unit> unt : CurrentLevel.Units)
-    {
-        CurrentLevel.Tiles[unt->Position.x][unt->Position.y].Occupant = unt;
-        CurrentLevel.Tiles[unt->Position.x][unt->Position.y].Occupied = true;
-    }
-    for(std::shared_ptr<Unit> unt : CurrentLevel.Enemies)
-    {
-        CurrentLevel.Tiles[unt->Position.x][unt->Position.y].Occupant = unt;
-        CurrentLevel.Tiles[unt->Position.x][unt->Position.y].Occupied = true;
-    }
-
     fp.close();
-}
-
+    }
+};

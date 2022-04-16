@@ -9,7 +9,7 @@
 #include "model.h"
 using namespace std;
 
-class object {
+class Object {
 
 public:
     Model *model;
@@ -22,7 +22,7 @@ public:
     float height_radius;
     float width_radius;
 
-    object (Model *mod, Shader *sdr, vec3 pos, float agl, vec3 rot, vec3 vel, float rad_h, float rad_w, vec3 scl)
+    Object (Model *mod, Shader *sdr, vec3 pos, float agl, vec3 rot, vec3 vel, float rad_h, float rad_w, vec3 scl)
     {
         this->model = mod;
         this->shader = sdr;
