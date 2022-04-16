@@ -56,6 +56,7 @@ const unsigned int SCREEN_HEIGHT = 800;
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
+#include "object.h"
 #include "light.h"
 #include "text.h"
 #include "skybox.h"
@@ -173,6 +174,11 @@ int main(void)
 
     Model skullModel("../resources/skull.obj");
 
+    /* Object List */
+    vector<Object> objects;
+    objects.push_back(new Object(*skullModel, *textureShader, vec3(1.0f, 1.0f, 0.0f), 0, vec3(0), vec3(1), vec3(0), 1, 1));
+    objects.push_back(new Object(*skullModel, *textureShader, vec3(-1.0f, 1.0f, 0.0f), 0, vec3(0), vec3(1), vec3(0), 1, 1));
+
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
     LightSystem lightSystem = LightSystem(camera);
@@ -260,11 +266,7 @@ int main(void)
             textureShader.setMat4("model", model);
             backpack.Draw(textureShader);
 
-            model = mat4(1.0f);
-            model = translate(model, vec3(0.0f, 0.0f, 2.0f));
-            textureShader.setMat4("model", model);
-            bonfire.Draw(textureShader);
-        }
+        }    
         textureShader.unbind();
 
         /* Render Skybox */
