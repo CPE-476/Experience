@@ -11,6 +11,8 @@
  * GUI Library
  *
  * Level Editor
+ *  - Level Saving
+ *  - Level Loading
  *  - Loading
  *  - Geometry Modification
  *    - Palette
@@ -21,6 +23,8 @@
  *    - Color Editing
  *
  * Instanced Rendering
+ *
+ * Gamepad Support
  */
 
 #include <iostream>
