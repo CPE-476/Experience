@@ -1,5 +1,5 @@
 // Author: Alex Hartford
-// Program: Base
+// Program: Experience
 // File: Main
 // Date: March 2022
 
@@ -9,6 +9,8 @@
  *  - Trees/rocks rendering at proper height
  *
  * GUI Library
+ *
+ * Object Class
  *
  * Level Editor
  *  - File Format
@@ -57,6 +59,7 @@ const unsigned int SCREEN_HEIGHT = 800;
 #include "text.h"
 #include "skybox.h"
 #include "heightmap.h"
+#include "frustum.h"
 
 using namespace std;
 using namespace glm;
@@ -83,54 +86,12 @@ Shader skyboxShader;   // Render a Cubemap Skybox
 Shader lightShader;    // <DEBUG> Render the physical locations of lights
 Shader heightShader;   // Render a Heightmap as Terrain
 
+// Loader Format:
+// {"mat"     | *materialShader
+//  "texture" | *textureShader}}
+
 const float MusicVolume = 1.0f;
 const float SFXVolume = 0.1f;
-
-struct Object
-{
-    void Init(Model *mod, vec3 pos, vec3 vel, float rad)
-    {
-        this->model = mod;
-        this->position = pos;
-        this->velocity = vel;
-        this->radius = rad;
-        this->init = false;
-    }
-
-    void Update(float deltaTime)
-    {
-        if(dying)
-        {
-            deathCounter++;
-            if(deathCounter > 100)
-            {
-                this->init = false;
-            }
-        }
-        else
-        {
-            position += velocity * deltaTime;
-        }
-    }
-
-    Model *model;
-    vec3 position;
-    vec3 velocity;
-    float radius;
-    bool init;
-    bool dying = false;
-    int deathCounter = 0;
-};
-
-bool Collision(Object a, Object b)
-{
-    return a.radius + b.radius > length(b.position - a.position);
-}
-
-bool PlayerCollision(Object o, vec3 cameraPos, float radius)
-{
-    return (length(cameraPos - o.position) < o.radius + radius);
-}
 
 int main(void)
 {
@@ -198,9 +159,12 @@ int main(void)
 
     Heightmap dunes("../resources/heightmap.png");
 
+    // For textures that are wonky.
     stbi_set_flip_vertically_on_load(true);
     Model backpack("../resources/backpack/backpack.obj");
     stbi_set_flip_vertically_on_load(false);
+
+    Model bonfire("../resources/dark_souls_bonfire/scene.gltf");
 
     Model box("../resources/cube.obj");
 
@@ -228,30 +192,32 @@ int main(void)
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
-	/* Render Terrain */
-	dunes.Draw(heightShader, camera);
+        Frustum frustum(projection, view);
 
-	/* Render Light Positions (DEBUG) */
+        /* Render Terrain */
+        dunes.Draw(heightShader, camera);
+
+        /* Render Light Positions (DEBUG) */
         lightShader.bind();
-	{
+        {
             lightShader.setMat4("projection", projection);
             lightShader.setMat4("view", view);
 
-	    for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
-	    {
-		model = mat4(1.0f);
-		model = scale(model, vec3(0.5f, 0.5f, 0.5f));
-		model = translate(model, pointLightPositions[i]);
-		lightShader.setMat4("model", model);
-		box.Draw(lightShader);
-	    }
-	}
-	lightShader.unbind();
+            for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
+            {
+                model = mat4(1.0f);
+                model = scale(model, vec3(0.5f, 0.5f, 0.5f));
+                model = translate(model, pointLightPositions[i]);
+                lightShader.setMat4("model", model);
+                box.Draw(lightShader);
+            }
+        }
+        lightShader.unbind();
 
 
         /* Render Material Objects */
         materialShader.bind();
-	{
+        {
             materialShader.setMat4("projection", projection);
             materialShader.setMat4("view", view);
             materialShader.setVec3("viewPos", camera.Position);
@@ -263,16 +229,24 @@ int main(void)
 
             lightSystem.Render(materialShader);
 
+            vec3 center = vec3(0.0f, 0.0f, 4.0f);
+            float radius = 1.0f;
+
             model = mat4(1.0f);
+            model = translate(model, center);
             materialShader.setMat4("model", model);
-            box.Draw(materialShader);
-	}
+            if(!(frustum.ViewFrustCull(center, radius)))
+            {
+                box.Draw(materialShader);
+                cout << "Drawing Box!\n";
+            }
+        }
         materialShader.unbind();
 
 
         /* Render Textured Objects */
         textureShader.bind();
-	{
+        {
             textureShader.setMat4("projection", projection);
             textureShader.setMat4("view", view);
             textureShader.setVec3("viewPos", camera.Position);
@@ -283,14 +257,19 @@ int main(void)
             model = translate(model, vec3(0.0f, 1.0f, 0.0f));
             textureShader.setMat4("model", model);
             backpack.Draw(textureShader);
-	}
+
+            model = mat4(1.0f);
+            model = translate(model, vec3(0.0f, 0.0f, 2.0f));
+            textureShader.setMat4("model", model);
+            bonfire.Draw(textureShader);
+        }
         textureShader.unbind();
 
         /* Render Skybox */
-	//nightSkybox.Draw(skyboxShader, camera);
+        //nightSkybox.Draw(skyboxShader, camera);
 
         /* Render Text */
-	Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
+        Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
 
         /* Present Render */
         glfwSwapBuffers(window);
@@ -301,6 +280,7 @@ int main(void)
 
     return 0;
 }
+
 
 void processInput(GLFWwindow *window)
 {

@@ -91,6 +91,7 @@ public:
     void RenderText(std::string text, Shader &shader, float x, float y, float scale, glm::vec3 color = glm::vec3(1.0f))
     { 
         shader.bind();
+        // TODO Set to current screen height/width
         mat4 projection = ortho(0.0f, 800.0f, 0.0f, 600.0f);
         shader.setMat4("projection", projection);
 
