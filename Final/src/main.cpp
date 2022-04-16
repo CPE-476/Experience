@@ -182,8 +182,9 @@ int main(void)
 
     /* Object List */
     vector<Object> objects;
-    objects.push_back(Object(&skullModel, &textureShader, 
-                vec3(1.0f, 1.0f, 0.0f), 0.0f, vec3(0.0f), vec3(1), 1, 1, vec3(0.0f)));
+    for(int i = 0; i<20;i++)
+    objects.push_back(Object(&skullModel, &materialShader, 
+                vec3(-20+(i*2), 1.0f, -4.0f), 0.0f, vec3(1.0f), vec3(1), 1, 1, vec3(1.0f)));          
 
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
@@ -242,16 +243,10 @@ int main(void)
             materialShader.setFloat("material.shine", 32.0f); 
 
             lightSystem.Render(materialShader);
-
-            vec3 center = vec3(0.0f, 0.0f, 4.0f);
-            float radius = 1.0f;
-
-            model = mat4(1.0f);
-            model = translate(model, center);
-            materialShader.setMat4("model", model);
-            if(!(frustum.ViewFrustCull(center, radius)))
+            
+            for(int i=0; i<objects.size();i++)
             {
-                box.Draw(materialShader);
+                objects[i].Draw();
             }
         }
         materialShader.unbind();
@@ -273,6 +268,7 @@ int main(void)
 
         }    
         textureShader.unbind();
+
 
         /* Render Skybox */
         //nightSkybox.Draw(skyboxShader, camera);
