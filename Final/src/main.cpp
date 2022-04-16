@@ -23,6 +23,7 @@
  *    - Scale
  *    - Rotation
  *    - Color Editing
+ *
  * Instanced Rendering
  */
 
@@ -68,6 +69,8 @@ void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+void RenderDebugText(TextRenderer Text);
 
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
@@ -179,7 +182,6 @@ int main(void)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         ++frameCount;
-        cout << (int)(1000 * deltaTime) << "ms (" << (int)(1.0f / deltaTime) << " FPS)\n";
 
         processInput(window);
         ma_engine_set_volume(&sfxEngine, SFXVolume);
@@ -270,6 +272,7 @@ int main(void)
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
+	RenderDebugText(Text);
 
         /* Present Render */
         glfwSwapBuffers(window);
@@ -281,6 +284,12 @@ int main(void)
     return 0;
 }
 
+void RenderDebugText(TextRenderer Text)
+{
+    char buffer[256];
+    sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
+    Text.RenderText(buffer, typeShader, 0.0f, 0.0f, 1.0f, vec3(0.5, 0.8, 0.2));
+}
 
 void processInput(GLFWwindow *window)
 {
