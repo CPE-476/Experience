@@ -18,6 +18,11 @@ file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp"
 
 list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/ext/imgui/misc/.*")
 
+# We don't really need to include header and resource files to build, but it's
+# nice to have them show up in IDEs.
+file(GLOB_RECURSE HEADERS "src/*.h" "ext/*/*.h" "ext/*/*/*.h" "ext/glad/*/*.h")
+file(GLOB_RECURSE GLSL "shaders/*.glsl")
+
 include_directories("ext" "ext/glad/include" "ext/imgui" "ext/imgui/backends")
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
