@@ -8,8 +8,9 @@
 #include "shader.h"
 #include "model.h"
 using namespace std;
+using namespace glm;
 
-class object {
+class Object {
 
 public:
     Model *model;
@@ -17,19 +18,20 @@ public:
     vec3 position;
     float angle;
     vec3 rotation;
-    vec3 scale;
+    vec3 Scale;
     vec3 velocity;
     float height_radius;
     float width_radius;
 
-    object (Model *mod, Shader *sdr, vec3 pos, float agl, vec3 rot, vec3 vel, float rad_h, float rad_w, vec3 scl)
+    Object (Model *mod, Shader *sdr, vec3 pos, float agl, vec3 rot, 
+	vec3 vel, float rad_h, float rad_w, vec3 scl)
     {
         this->model = mod;
         this->shader = sdr;
         this->position = pos;
         this->angle = agl;
         this->rotation = rot;
-        this->scale = scl;
+        this->Scale = scl;
         this->velocity = vel;
         this->height_radius = rad_h;
         this->width_radius = rad_w;
@@ -40,15 +42,17 @@ public:
         mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
         mat4 rot = rotate(mat4(1.0f), angle, rotation);
-        mat4 scl = scale(mat4(1.0f), scale);
+        mat4 scl = scale(mat4(1.0f), Scale);
         matrix = pos * rot * scl;
         
-        shader.setMat4("model", matrix);
-        model.Draw(shader);
+        shader->setMat4("model", matrix);
+        model->Draw(*shader);
     }
 
     void Update(float deltaTime)
     {
         position += velocity * deltaTime;
     }
-}
+};
+
+#endif

@@ -176,8 +176,8 @@ int main(void)
 
     /* Object List */
     vector<Object> objects;
-    objects.push_back(new Object(*skullModel, *textureShader, vec3(1.0f, 1.0f, 0.0f), 0, vec3(0), vec3(1), vec3(0), 1, 1));
-    objects.push_back(new Object(*skullModel, *textureShader, vec3(-1.0f, 1.0f, 0.0f), 0, vec3(0), vec3(1), vec3(0), 1, 1));
+    objects.push_back(Object(&skullModel, &textureShader, 
+                vec3(1.0f, 1.0f, 0.0f), 0.0f, vec3(0.0f), vec3(1), 1, 1, vec3(0.0f)));
 
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
