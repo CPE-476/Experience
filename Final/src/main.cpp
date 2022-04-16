@@ -10,11 +10,7 @@
  *
  * GUI Library
  *
- * Object Class
- *
  * Level Editor
- *  - File Format
- *  - Saving
  *  - Loading
  *  - Geometry Modification
  *    - Palette
@@ -51,6 +47,8 @@
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
+
+const unsigned int TEXT_SIZE = 16;
 
 // My Headers
 #include "shader.h"
@@ -94,6 +92,10 @@ Shader heightShader;   // Render a Heightmap as Terrain
 // {"mat"     | *materialShader
 //  "texture" | *textureShader}}
 
+
+// [{"TREE" : &TreeModel}
+//  {"BOX" : &BoxModel}]
+
 const float MusicVolume = 1.0f;
 const float SFXVolume = 0.1f;
 
@@ -134,7 +136,7 @@ int main(void)
 
     /* Text Rendering */
     TextRenderer Text = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    Text.Load("../resources/verdanab.ttf", 16);
+    Text.Load("../resources/verdanab.ttf", TEXT_SIZE);
 
     /* Miniaudio */
     ma_result result;
@@ -246,7 +248,6 @@ int main(void)
             if(!(frustum.ViewFrustCull(center, radius)))
             {
                 box.Draw(materialShader);
-                cout << "Drawing Box!\n";
             }
         }
         materialShader.unbind();
@@ -288,9 +289,17 @@ int main(void)
 
 void RenderDebugText(TextRenderer Text)
 {
+    unsigned int lineNumber = 1;
     char buffer[256];
     sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
-    Text.RenderText(buffer, typeShader, 0.0f, 0.0f, 1.0f, vec3(0.5, 0.8, 0.2));
+    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "This is a debug message.");
+    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+
 }
 
 void processInput(GLFWwindow *window)
