@@ -12,6 +12,9 @@
 
 #include <vector>
 
+using namespace std;
+using namespace glm;
+
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -21,7 +24,8 @@ enum Camera_Movement {
 
 enum Modes {
     FREE,
-    FAST
+    FAST,
+    WALK
 };
 
 const float YAW = -90.0f;
@@ -67,7 +71,7 @@ public:
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = 0;;
+        float velocity = 0;
         if(Mode == FREE)
         {
             velocity = SPEED * deltaTime;
@@ -85,7 +89,6 @@ public:
         if(direction == RIGHT)
             Position += Right * velocity;
     }
-
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {

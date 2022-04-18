@@ -8,6 +8,10 @@
  *  - Walking on it.
  *  - Trees/rocks rendering at proper height
  *
+ * Gamepad Support
+ *
+ * Particles
+ *
  * GUI Library
  *
  * Level Editor
@@ -23,8 +27,6 @@
  *    - Color Editing
  *
  * Instanced Rendering
- *
- * Gamepad Support
  */
 
 #include <iostream>
@@ -54,21 +56,28 @@ const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
-// My Headers
 #include "shader.h"
+Shader textureShader;  // Render Textured Meshes
+Shader materialShader; // Render Material Meshes
+Shader typeShader;     // Render Text on Screen
+Shader skyboxShader;   // Render a Cubemap Skybox
+Shader lightShader;    // <DEBUG> Render the physical locations of lights
+Shader heightShader;   // Render a Heightmap as Terrain
+
+// My Headers
 #include "camera.h"
+#include "heightmap.h"
 #include "model.h"
 #include "object.h"
 #include "light.h"
 #include "text.h"
 #include "skybox.h"
-#include "heightmap.h"
 #include "frustum.h"
 
 using namespace std;
 using namespace glm;
 
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, Heightmap *map);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -82,23 +91,7 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
 unsigned int frameCount = 0;
-
-Shader textureShader;  // Render Textured Meshes
-Shader materialShader; // Render Material Meshes
-Shader typeShader;     // Render Text on Screen
-Shader skyboxShader;   // Render a Cubemap Skybox
-Shader lightShader;    // <DEBUG> Render the physical locations of lights
-Shader heightShader;   // Render a Heightmap as Terrain
-
-// Loader Format:
-// {"mat"     | *materialShader
-//  "texture" | *textureShader}}
-
-
-// [{"TREE" : &TreeModel}
-//  {"BOX" : &BoxModel}]
 
 const float MusicVolume = 1.0f;
 const float SFXVolume = 0.1f;
@@ -196,7 +189,7 @@ int main(void)
         lastFrame = currentFrame;
         ++frameCount;
 
-        processInput(window);
+        processInput(window, &dunes);
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
 
@@ -275,7 +268,7 @@ int main(void)
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-	RenderDebugText(Text);
+        RenderDebugText(Text);
 
         /* Present Render */
         glfwSwapBuffers(window);
@@ -298,11 +291,9 @@ void RenderDebugText(TextRenderer Text)
     sprintf(buffer, "This is a debug message.");
     Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
-
-
 }
 
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow *window, Heightmap *map)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -325,6 +316,8 @@ void processInput(GLFWwindow *window)
         camera.Mode = FAST;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera.Mode = FREE;
+
+    camera.Position.y = map->heightAt(camera.Position.x, camera.Position.y);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

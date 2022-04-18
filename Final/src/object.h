@@ -47,7 +47,6 @@ public:
         
         shader->setMat4("model", matrix);
         model->Draw(*shader);
-        cout << "drawing skull" << endl;
     }
 
     void Update(float deltaTime)

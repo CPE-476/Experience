@@ -13,53 +13,61 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
 using namespace std;
+using namespace glm;
 
 // Tweak these values for different terrain types.
 const float Y_SCALE = 64.0f / 256.0f;
 const float Y_SHIFT = 16.0f;
 
+
+// TODO: Create main GetProjection and GetView Matrix function, 
+//       so we don't have to pass camera around.
 class Heightmap
 {
 public:
     Heightmap(string dir)
     {
-        this->yScale = Y_SCALE;
-        this->yShift = Y_SHIFT;
-
+        walkingData = std::make_unique<float[]>(width * height);
         this->setup();
     }
     void Draw(Shader &shader, Camera &camera)
     {
-	shader.bind();
-	{
+        shader.bind();
+        {
             mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
             // Remove Translation part of matrix.
             mat4 view = camera.GetViewMatrix();
             shader.setMat4("projection", projection);
             shader.setMat4("view", view);
-	    mat4 model = mat4(1.0f);
-	    model = translate(model, vec3(0.0f, -20.0f, 0.0f));;
-	    shader.setMat4("model", model);
+            mat4 model = mat4(1.0f);
+            shader.setMat4("model", model);
 
-	    glBindVertexArray(VAO);
-	    for(unsigned int strip = 0; strip < num_strips; ++strip)
-	    {
-		glDrawElements(GL_TRIANGLE_STRIP,
-			       num_tris_per_strip,
-			       GL_UNSIGNED_INT,
-			       (void *)(sizeof(unsigned int) * num_tris_per_strip * strip));
-	    }
-	}
-	shader.unbind();
+            glBindVertexArray(VAO);
+            for(unsigned int strip = 0; strip < num_strips; ++strip)
+            {
+                glDrawElements(GL_TRIANGLE_STRIP,
+                               num_tris_per_strip,
+                               GL_UNSIGNED_INT,
+                               (void *)(sizeof(unsigned int) * num_tris_per_strip * strip));
+            }
+        }
+        shader.unbind();
     }
-    
+
+    unsigned int height;
+    unsigned int width;
+
+    std::unique_ptr<float[]> walkingData;
+
+    int heightAt(int x, int y) {
+        return walkingData[x + y * width];
+    }
+
 private: 
     unsigned int VAO, VBO, EBO;
     unsigned int textureID;
-
-    float yScale;
-    float yShift;
 
     vector<float> vertices;
     vector<unsigned int> indices;
@@ -72,6 +80,9 @@ private:
         // Load Heightmap
         int width, height, nrChannels;
         unsigned char *data = stbi_load("../resources/heightmap.png", &width, &height, &nrChannels, 0);
+
+        this->width = width;
+        this->height = width;
         
         // Generate Vertices
         for(int i = 0; i < height; ++i)
@@ -81,14 +92,18 @@ private:
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
 
-                vertices.push_back(-height/2.0f + height * i / (float)height); // vx
-                vertices.push_back((int)y * yScale - yShift);		   // vy
-                vertices.push_back(-width / 2.0f + width * j / (float)width);  // vz
+                float vx = (-height/2.0f + height * i / (float)height); // vx
+                float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
+                float vz = (-width / 2.0f + width * j / (float)width);  // vz
+                vertices.push_back(vx);
+                vertices.push_back(vy);
+                vertices.push_back(vz);
+                walkingData[j + i * width] = vy;
             }
         }
         stbi_image_free(data);
 
-        // Generate Indices
+        // Generate Indices (--i/--j for right side up)
         for(int i = height-1; i > 0; --i)
         {
             for(int j = width; j > 0; --j)
