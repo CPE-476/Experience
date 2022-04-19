@@ -45,7 +45,6 @@ struct Frustum
         Left.z /= l;
         Left.w /= l;
         planes[0] = Left;
-        //cout << "Left' " << Left.x << " " << Left.y << " " << Left.z << " " << Left.w << endl;
 
         Right.x = comp[0][3] - comp[0][0]; 
         Right.y = comp[1][3] - comp[1][0]; 
@@ -58,7 +57,6 @@ struct Frustum
         Right.z /= l;
         Right.w /= l;
         planes[1] = Right;
-        //cout << "Right " << Right.x << " " << Right.y << " " <<Right.z << " " << Right.w << endl;
 
         Bottom.x = comp[0][3] + comp[0][1]; 
         Bottom.y = comp[1][3] + comp[1][1]; 
@@ -71,7 +69,6 @@ struct Frustum
         Bottom.z /= l;
         Bottom.w /= l;
         planes[2] = Bottom;
-        //cout << "Bottom " << Bottom.x << " " << Bottom.y << " " <<Bottom.z << " " << Bottom.w << endl;
 
         Top.x = comp[0][3] - comp[0][1]; 
         Top.y = comp[1][3] - comp[1][1]; 
@@ -84,7 +81,6 @@ struct Frustum
         Top.z /= l;
         Top.w /= l;
         planes[3] = Top;
-        //cout << "Top " << Top.x << " " << Top.y << " " <<Top.z << " " << Top.w << endl;
 
         Near.x = comp[0][3];
         Near.y = comp[1][3];
@@ -97,7 +93,6 @@ struct Frustum
         Near.z /= l;
         Near.w /= l;
         planes[4] = Near;
-        //cout << "Near " << Near.x << " " << Near.y << " " <<Near.z << " " << Near.w << endl;
 
         Far.x = comp[0][3] - comp[0][2];
         Far.y = comp[1][3] - comp[1][2];
@@ -110,7 +105,6 @@ struct Frustum
         Far.z /= l;
         Far.w /= l;
         planes[5] = Far;
-        //cout << "Far " << Far.x << " " << Far.y << " " <<Far.z << " " << Far.w << endl;
     }
 
     int ViewFrustCull(vec3 center, float radius)

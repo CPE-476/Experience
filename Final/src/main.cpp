@@ -27,6 +27,9 @@
  *    - Color Editing
  *
  * Instanced Rendering
+ *
+ * Create main GetProjection and GetView Matrix function, 
+ * so we don't have to pass camera around.
  */
 
 #include <iostream>
@@ -77,7 +80,15 @@ Shader heightShader;   // Render a Heightmap as Terrain
 using namespace std;
 using namespace glm;
 
-void processInput(GLFWwindow *window, Heightmap *map);
+enum EditorModes
+{
+    MOVEMENT,
+    GUI
+};
+
+int EditorMode = MOVEMENT;
+
+void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -93,6 +104,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
+int drawnObjects = 0;
+
 const float MusicVolume = 1.0f;
 const float SFXVolume = 0.1f;
 
@@ -106,10 +119,10 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Base", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
     if(window == NULL)
     {
-    cout << "Failed to create GLFW window.\n";
+	cout << "Failed to create GLFW window.\n";
         glfwTerminate();
         return -1;
     }
@@ -119,6 +132,17 @@ int main(void)
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    bool show_demo_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         cout << "Failed to initialize GLAD.\n";
@@ -126,9 +150,7 @@ int main(void)
     }
 
     /* Manage OpenGL State */
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST); glEnable(GL_CULL_FACE); glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     /* Text Rendering */
@@ -177,22 +199,27 @@ int main(void)
     vector<Object> objects;
     for(int i = 0; i<20;i++)
     objects.push_back(Object(&skullModel, &materialShader, 
-                vec3(-20+(i*2), 1.0f, -4.0f), 0.0f, vec3(1.0f), vec3(1), 1, 1, vec3(1.0f)));          
+                             vec3(-20+(i*2), 1.0f, -4.0f), 
+                             0.0f, vec3(1.0f), 
+                             vec3(1), 1, 1, vec3(1.0f)));          
 
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
     LightSystem lightSystem = LightSystem(camera);
     while(!glfwWindowShouldClose(window))
     {
+        glfwPollEvents();
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         ++frameCount;
 
-        processInput(window, &dunes);
+        drawnObjects = 0;
+
+        processInput(window);
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
-
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -200,10 +227,11 @@ int main(void)
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
-        Frustum frustum(projection, view);
 
         /* Render Terrain */
         dunes.Draw(heightShader, camera);
+
+        Frustum frustum(projection, view);
 
         /* Render Light Positions (DEBUG) */
         lightShader.bind();
@@ -239,7 +267,11 @@ int main(void)
             
             for(int i=0; i<objects.size();i++)
             {
-                objects[i].Draw();
+                if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
+                {
+                    objects[i].Draw();
+                    drawnObjects++;
+                }
             }
         }
         materialShader.unbind();
@@ -258,23 +290,63 @@ int main(void)
             model = translate(model, vec3(0.0f, 1.0f, 0.0f));
             textureShader.setMat4("model", model);
             backpack.Draw(textureShader);
-
         }    
         textureShader.unbind();
 
 
         /* Render Skybox */
-        //nightSkybox.Draw(skyboxShader, camera);
+        nightSkybox.Draw(skyboxShader, camera);
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text);
 
+	if(EditorMode == GUI)
+	{
+	    ImGui_ImplOpenGL3_NewFrame();
+	    ImGui_ImplGlfw_NewFrame();
+	    ImGui::NewFrame();
+	    if(show_demo_window)
+		ImGui::ShowDemoWindow(&show_demo_window);
+
+	    {
+		static float f = 0.0f;
+		static int counter = 0;
+
+		ImGui::Begin("Hello, world!");			     // Create a window and append into it
+
+		ImGui::Text("Some useful text.");		         // Display text
+		ImGui::Checkbox("Demo Window", &show_demo_window);       // Edit bools
+
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);	     // Edit 1 float using a slider from 0.0f to 1.0f
+		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
+
+		if(ImGui::Button("Button"))
+		    counter++;
+
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		ImGui::End();
+
+		ImGui::Render();
+		glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO: Investigate why this is required.
+
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	    }
+	}
+
         /* Present Render */
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
 
     return 0;
@@ -288,12 +360,16 @@ void RenderDebugText(TextRenderer Text)
     Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 
-    sprintf(buffer, "This is a debug message.");
+    sprintf(buffer, "Drawn Objects: %d", drawnObjects);
+    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "This is a debug message");
     Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 }
 
-void processInput(GLFWwindow *window, Heightmap *map)
+void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -317,32 +393,47 @@ void processInput(GLFWwindow *window, Heightmap *map)
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera.Mode = FREE;
 
-    camera.Position.y = map->heightAt(camera.Position.x, camera.Position.y);
+    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+	EditorMode = MOVEMENT;
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    if(glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS)
+    {
+	EditorMode = GUI;
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    }
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if(firstMouse)
+    if(EditorMode == MOVEMENT)
     {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-    
-    camera.ProcessMouseMovement(xoffset, yoffset);
+	if(firstMouse)
+	{
+	    lastX = xpos;
+	    lastY = ypos;
+	    firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+	
+	camera.ProcessMouseMovement(xoffset, yoffset);
+    }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    if(EditorMode == MOVEMENT)
+    {
+	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)

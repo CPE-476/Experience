@@ -21,15 +21,12 @@ using namespace glm;
 const float Y_SCALE = 64.0f / 256.0f;
 const float Y_SHIFT = 16.0f;
 
-
-// TODO: Create main GetProjection and GetView Matrix function, 
-//       so we don't have to pass camera around.
 class Heightmap
 {
 public:
     Heightmap(string dir)
     {
-        walkingData = std::make_unique<float[]>(width * height);
+        heightData = std::make_unique<float[]>(width * height);
         this->setup();
     }
     void Draw(Shader &shader, Camera &camera)
@@ -59,10 +56,10 @@ public:
     unsigned int height;
     unsigned int width;
 
-    std::unique_ptr<float[]> walkingData;
+    std::unique_ptr<float[]> heightData;
 
     int heightAt(int x, int y) {
-        return walkingData[x + y * width];
+        return heightData[x + y * width];
     }
 
 private: 
@@ -93,18 +90,19 @@ private:
                 unsigned char y = texel[0];
 
                 float vx = (-height/2.0f + height * i / (float)height); // vx
-                float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
+                //float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
+                float vy = ((float)y * Y_SCALE);                // vy
                 float vz = (-width / 2.0f + width * j / (float)width);  // vz
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);
-                walkingData[j + i * width] = vy;
+                heightData[j + i * width] = vy;
             }
         }
         stbi_image_free(data);
 
         // Generate Indices (--i/--j for right side up)
-        for(int i = height-1; i > 0; --i)
+        for(int i = height; i > 0; --i)
         {
             for(int j = width; j > 0; --j)
             {
