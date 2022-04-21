@@ -72,7 +72,7 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = 0;
-        if(Mode == FREE)
+        if(Mode == FREE || Mode == WALK)
         {
             velocity = SPEED * deltaTime;
         }
@@ -80,14 +80,28 @@ public:
         {
             velocity = FASTSPEED * deltaTime;
         }
-        if(direction == FORWARD)
-            Position += Front * velocity;
-        if(direction == BACKWARD)
-            Position -= Front * velocity;
-        if(direction == LEFT)
-            Position -= Right * velocity;
-        if(direction == RIGHT)
-            Position += Right * velocity;
+        if(Mode == FREE || Mode == FAST)
+        {
+            if(direction == FORWARD)
+                Position += Front * velocity;
+            if(direction == BACKWARD)
+                Position -= Front * velocity;
+            if(direction == LEFT)
+                Position -= Right * velocity;
+            if(direction == RIGHT)
+                Position += Right * velocity;
+        }
+        else if(Mode == WALK)
+        {
+            if(direction == FORWARD)
+                Position += cross(WorldUp, Right) * velocity;
+            if(direction == BACKWARD)
+                Position -= cross(WorldUp, Right) * velocity;
+            if(direction == LEFT)
+                Position += cross(WorldUp, Front) * velocity;
+            if(direction == RIGHT)
+                Position -= cross(WorldUp, Front) * velocity;    
+        }
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)

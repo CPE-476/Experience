@@ -10,11 +10,26 @@
 using namespace std;
 using namespace glm;
 
-class Object {
+/*
+ * TODO
+ *
+ * Material data in constructor.
+ * 
+ */
 
+struct Material
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shine;
+};
+
+class Object {
 public:
     Model *model;
     Shader *shader;
+    Material material;
     vec3 position;
     float angle;
     vec3 rotation;
@@ -35,6 +50,7 @@ public:
         this->velocity = vel;
         this->height_radius = rad_h;
         this->width_radius = rad_w;
+        this->material = {vec3(0.31f, 0.1f, 1.0f), vec3(0.31f, 0.1f, 1.0f), vec3(0.5f, 0.5f, 0.5f), 32.0f};
     }
 
     void Draw()
@@ -46,6 +62,11 @@ public:
         matrix = pos * rot * scl;
         
         shader->setMat4("model", matrix);
+        shader->setVec3("material.ambient", material.ambient);
+        shader->setVec3("material.diffuse", material.diffuse);
+        shader->setVec3("material.specular", material.specular);
+        shader->setFloat("material.shine", material.shine); 
+
         model->Draw(*shader);
     }
 

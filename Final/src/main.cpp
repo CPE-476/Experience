@@ -4,15 +4,16 @@
 // Date: March 2022
 
 /* TODO
- * Ground Geometry
- *  - Walking on it.
- *  - Trees/rocks rendering at proper height
+ *
+ * 25%
+ *  - Ground Geometry
+ *    - Trees/rocks rendering at proper height
+ *  - Particles
+ * 
+ * Cave Transition
+ *  - Plane Transition
  *
  * Gamepad Support
- *
- * Particles
- *
- * GUI Library
  *
  * Level Editor
  *  - Level Saving
@@ -106,7 +107,7 @@ unsigned int frameCount = 0;
 
 int drawnObjects = 0;
 
-const float MusicVolume = 1.0f;
+const float MusicVolume = 0.1f;
 const float SFXVolume = 0.1f;
 
 int main(void)
@@ -258,11 +259,6 @@ int main(void)
             materialShader.setMat4("view", view);
             materialShader.setVec3("viewPos", camera.Position);
 
-            materialShader.setVec3("material.ambient", 0.31f, 0.1f, 1.0f);
-            materialShader.setVec3("material.diffuse", 0.31f, 0.1f, 1.0f);
-            materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-            materialShader.setFloat("material.shine", 32.0f); 
-
             lightSystem.Render(materialShader);
             
             for(int i=0; i<objects.size();i++)
@@ -311,24 +307,33 @@ int main(void)
 
 	    {
 		static float f = 0.0f;
-		static int counter = 0;
+		static int objectPointer = 0;
 
-		ImGui::Begin("Hello, world!");			     // Create a window and append into it
+		ImGui::Begin("Hello, world!"); // Create a window and append into it
 
-		ImGui::Text("Some useful text.");		         // Display text
-		ImGui::Checkbox("Demo Window", &show_demo_window);       // Edit bools
+		    ImGui::Text("Some useful text.");				 // Display text
+		    ImGui::Checkbox("Demo Window", &show_demo_window);		 // Edit bools
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);	     // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
+		    ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
+		    ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
+		    ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
+		    ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
-		if(ImGui::Button("Button"))
-		    counter++;
+		    for (int n = 0; n < objects.size(); ++n)
+		    {
+			char buffer[256];
+			sprintf(buffer, "%d", n);
+			if(ImGui::Button(buffer))
+			    objectPointer = n;
+			ImGui::SameLine();
+		    }
 
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
+//		    if(ImGui::Button("Button")) 
+//			(Any arbitrary code.)
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		    ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
 
+		    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 		ImGui::End();
 
 		ImGui::Render();
@@ -388,9 +393,9 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
         camera.Mode = FAST;
-    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
         camera.Mode = FREE;
 
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -403,6 +408,11 @@ void processInput(GLFWwindow *window)
 	EditorMode = GUI;
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
+
+    if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+	camera.Mode = WALK;
+    if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+	camera.Mode = FREE;
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
