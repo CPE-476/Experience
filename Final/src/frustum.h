@@ -1,3 +1,8 @@
+// Author: Alex Hartford
+// Program: Base
+// File: Frustum
+// Date: April 2022
+
 #ifndef FRUSTUM_H
 #define FRUSTUM_H
 

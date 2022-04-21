@@ -1,3 +1,8 @@
+// Author: Brett Hickman, Lucas Li, Alex Hartford
+// Program: Base
+// File: Object
+// Date: April 2022
+
 #ifndef OBJECT_H
 #define OBJECT_H
 

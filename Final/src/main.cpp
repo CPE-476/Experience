@@ -1,26 +1,26 @@
 // Author: Alex Hartford
 // Program: Experience
 // File: Main
-// Date: March 2022
+// Date: April 2022
 
 /* TODO
  *
- * 25%
- *  - Ground Geometry
- *    - Trees/rocks rendering at proper height
+ * ID System With one format specifier in level loader.
+ *
+ * Ground Geometry
+ *  - Movement
+ *  - Heightmap
  * 
+ * Particles
+ *
  * Cave Transition
  *  - Plane Transition
  *
  * Gamepad Support
  *
  * Level Editor
- *  - Level Saving
- *  - Level Loading
- *  - Geometry Modification
- *    - Translation/Scale/Rotation
- *    - Palette
- *    - Placement?
+ *  - Palette
+ *  - Mouse Placement?
  *
  * Instanced Rendering
  *
@@ -185,9 +185,7 @@ int main(void)
     /* Geometry Loading */
     Skybox blueSkybox("../resources/daysky/", false);
     Skybox nightSkybox("../resources/nightsky/", false);
-
     Heightmap dunes("../resources/heightmap.png");
-
     stbi_set_flip_vertically_on_load(true);
     Model backpack("../resources/backpack/backpack.obj");
     stbi_set_flip_vertically_on_load(false);
