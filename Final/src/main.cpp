@@ -200,7 +200,7 @@ int main(void)
     /* Populating Object List */
     vector<Object> objects;
     level lvl = level(&dunes, &backpack, &skull);
-    lvl.LoadLevel("../levels/level_example.txt", objects);
+    lvl.LoadLevel("../levels/level1.txt", objects);
 
     Frustum frustum;
 
@@ -340,6 +340,10 @@ int main(void)
                     }
                     ImGui::SliderFloat("Angle", (float *)&objects[objectPointer].angle, 0.0f, 1.0f);
 
+                    ImGui::SliderFloat("X Scale", (float *)&objects[objectPointer].Scale.x, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Y Scale", (float *)&objects[objectPointer].Scale.y, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Z Scale", (float *)&objects[objectPointer].Scale.z, 0.0f, 5.0f);
+
                     for (int n = 0; n < objects.size(); ++n)
                     {
                         char buffer[256];
@@ -399,7 +403,8 @@ int main(void)
                     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                     if(ImGui::Button("Save")) 
-                        lvl.SaveLevel("../levels/Level1.txt", objects);
+                        lvl.SaveLevel("../levels/level1.txt", objects);
+
                 ImGui::End();
 
                 ImGui::Render();

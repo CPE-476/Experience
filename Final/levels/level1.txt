@@ -1,0 +1,6 @@
+COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>
+OBJ SKL MAT 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+OBJ SKL MAT 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+OBJ BPK TEX 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+OBJ BPK TEX 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+OBJ SKL MAT 0 0 0 1 1 1 1 1 1 1 1 1 1 1
