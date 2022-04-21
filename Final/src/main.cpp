@@ -106,8 +106,14 @@ const float SFXVolume = 0.1f;
 
 int drawnObjects;
 
+float randFloat(){
+    float r = rand() / static_cast<float>(RAND_MAX);
+    return r;
+}
+
 int main(void)
 {
+    srand(time(NULL));
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -193,20 +199,6 @@ int main(void)
 
     /* Populating Object List */
     vector<Object> objects;
-
-    for(int i = 0; i < 20; ++i)
-    {
-        objects.push_back(Object(&skull, &materialShader, MATERIAL,
-                                 vec3(-20+(i*2), 1.0f, -4.0f), 
-                                 0.0f, vec3(1.0f), 
-                                 vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
-
-        objects.push_back(Object(&rock, &materialShader, MATERIAL, 
-                                 vec3(-20+(i*2), 1.0f, 4.0f), 
-                                 1.8415f, vec3(1.0f, 0.0f, 0.0f), 
-                                 vec3(1), 1, 1, vec3(1.0f), "ROC", "TEX"));
-    }
-
     level lvl = level(&dunes, &backpack, &skull);
     lvl.LoadLevel("../levels/level_example.txt", objects);
 
@@ -306,7 +298,7 @@ int main(void)
 
 
         /* Render Skybox */
-        // nightSkybox.Draw(skyboxShader, camera);
+        blueSkybox.Draw(skyboxShader, camera);
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -370,26 +362,44 @@ int main(void)
                     
                     if(ImGui::Button("Create Tree"))
                     {
-                        objects.push_back(Object(&skull, &materialShader, MATERIAL,
-                                                 vec3(0.0f, 0.0f, 0.0f), 
-                                                 0.0f, vec3(1.0f), 
-                                                 vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
+                        objects.push_back(Object(&tree, &textureShader, TEXTURE,
+                                                 vec3(0.0f), 
+                                                 -1.6f, vec3(1.0f, 0.0f, 0.0f), 
+                                                 vec3(1), 1, 20, vec3(1.0f), "SKL", "TEX"));
                         objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Rock"))
                     {
-                        objects.push_back(Object(&backpack, &textureShader, TEXTURE,
-                                                 vec3(0.0f, 0.0f, 0.0f), 
+                        objects.push_back(Object(&rock, &materialShader, MATERIAL,
+                                                 vec3(0.0f), 
                                                  0.0f, vec3(1.0f), 
-                                                 vec3(1), 1, 1, vec3(1.0f), "BPK", "TEX"));
+                                                 vec3(1), 1, 1, vec3(1.0f), "BPK", "MAT"));
                         objectPointer = objects.size() - 1;
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("Create Forest"))
+                    {
+                        for(int i=0;i<100;i++){
+                        objects.push_back(Object(&tree, &textureShader, TEXTURE,
+                                                 vec3(randFloat()*200.0f, 0.0f, randFloat()*200.0f), 
+                                                 -1.6f, vec3(1.0f, 0.0f, 0.0f), 
+                                                 vec3(1), 1, 20, vec3((randFloat())*2.0f), "SKL", "TEX"));
+                        objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<100;i++){
+                        objects.push_back(Object(&rock, &materialShader, MATERIAL,
+                                                 vec3(randFloat()*200.0f, 0.0f, randFloat()*200.0f), 
+                                                 0.0f, vec3(1.0f), 
+                                                 vec3(1), 1, 1, vec3((randFloat()) * 5.0f), "BPK", "MAT"));
+                        objectPointer = objects.size() - 1;
+                        }
                     }
 
                     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                     if(ImGui::Button("Save")) 
-                        lvl.SaveLevel("../levels/out.txt", objects);
+                        lvl.SaveLevel("../levels/Level1.txt", objects);
                 ImGui::End();
 
                 ImGui::Render();
