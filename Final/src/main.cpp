@@ -191,16 +191,9 @@ int main(void)
 
     /* Populating Object List */
     vector<Object> objects;
-    for(int i = 0; i < 20; ++i)
-    {
-        objects.push_back(Object(&skull, &materialShader, MATERIAL,
-                                 vec3(-20+(i*2), 1.0f, -4.0f), 
-                                 0.0f, vec3(1.0f), 
-                                 vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
-    }
 
     level lvl = level(&dunes, &backpack, &skull);
-    lvl.LoadLevel("../levels/level_example.txt", objects);
+    lvl.LoadLevel("../levels/level1.txt", objects);
 
     Frustum frustum;
 
@@ -298,7 +291,7 @@ int main(void)
 
 
         /* Render Skybox */
-        // nightSkybox.Draw(skyboxShader, camera);
+        //blueSkybox.Draw(skyboxShader, camera);
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -339,6 +332,10 @@ int main(void)
                         objects[objectPointer].rotation = vec3(0.0f, 0.0f, 1.0f);
                     }
                     ImGui::SliderFloat("Angle", (float *)&objects[objectPointer].angle, 0.0f, 1.0f);
+
+                    ImGui::SliderFloat("X Scale", (float *)&objects[objectPointer].Scale.x, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Y Scale", (float *)&objects[objectPointer].Scale.y, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Z Scale", (float *)&objects[objectPointer].Scale.z, 0.0f, 5.0f);
 
                     for (int n = 0; n < objects.size(); ++n)
                     {
@@ -381,7 +378,7 @@ int main(void)
                     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                     if(ImGui::Button("Save")) 
-                        lvl.SaveLevel("../levels/out.txt", objects);
+                        lvl.SaveLevel("../levels/level1.txt", objects);
                 ImGui::End();
 
                 ImGui::Render();

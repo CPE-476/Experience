@@ -154,7 +154,6 @@ public:
                         cout << "inside COM\n";
                     }*/
                     conPrt.clear();
-
                 }
             }
         }
@@ -170,7 +169,7 @@ public:
     {
         ofstream fp;
         fp.open(Filename);
-        fp << "COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>";
+        fp << "COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>\n";
         for(int i = 0; i < objects.size(); ++i)
         {
             fp << "OBJ ";
@@ -187,7 +186,9 @@ public:
             fp << objects[i].velocity.z << " ";
             fp << objects[i].height_radius << " ";
             fp << objects[i].width_radius << " ";
-            fp << objects[i].Scale.x;
+            fp << objects[i].Scale.x << " ";
+            fp << objects[i].Scale.y << " ";
+            fp << objects[i].Scale.z;
 
             fp << "\n";
         }
