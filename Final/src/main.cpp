@@ -8,7 +8,6 @@
  * 25%
  *  - Ground Geometry
  *    - Trees/rocks rendering at proper height
- *  - Particles
  * 
  * Cave Transition
  *  - Plane Transition
@@ -18,14 +17,10 @@
  * Level Editor
  *  - Level Saving
  *  - Level Loading
- *  - Loading
  *  - Geometry Modification
+ *    - Translation/Scale/Rotation
  *    - Palette
- *    - Placement
- *    - Translation
- *    - Scale
- *    - Rotation
- *    - Color Editing
+ *    - Placement?
  *
  * Instanced Rendering
  *
@@ -70,13 +65,14 @@ Shader heightShader;   // Render a Heightmap as Terrain
 
 // My Headers
 #include "camera.h"
-#include "heightmap.h"
-#include "model.h"
 #include "object.h"
 #include "light.h"
 #include "text.h"
 #include "skybox.h"
 #include "frustum.h"
+#include "model.h"
+#include "heightmap.h"
+#include "level.h"
 
 using namespace std;
 using namespace glm;
@@ -90,8 +86,8 @@ enum EditorModes
 int EditorMode = MOVEMENT;
 
 void processInput(GLFWwindow *window);
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void RenderDebugText(TextRenderer Text);
@@ -105,10 +101,10 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
-int drawnObjects = 0;
-
 const float MusicVolume = 0.1f;
 const float SFXVolume = 0.1f;
+
+int drawnObjects;
 
 int main(void)
 {
@@ -161,12 +157,14 @@ int main(void)
     /* Miniaudio */
     ma_result result;
     ma_engine musicEngine;
-    if(ma_engine_init(NULL, &musicEngine) != MA_SUCCESS) {
+    if (ma_engine_init(NULL, &musicEngine) != MA_SUCCESS)
+    {
         cout << "Failed to initialize audio engine.\n";
         return -1;
     }
     ma_engine sfxEngine;
-    if(ma_engine_init(NULL, &sfxEngine) != MA_SUCCESS) {
+    if (ma_engine_init(NULL, &sfxEngine) != MA_SUCCESS)
+    {
         cout << "Failed to initialize audio engine.\n";
         return -1;
     }
@@ -183,9 +181,6 @@ int main(void)
     Skybox blueSkybox("../resources/daysky/", false);
     Skybox nightSkybox("../resources/nightsky/", false);
 
-    Heightmap dunes("../resources/heightmap.png");
-
-    // For textures that are wonky.
     stbi_set_flip_vertically_on_load(true);
     Model backpack("../resources/backpack/backpack.obj");
     stbi_set_flip_vertically_on_load(false);
@@ -196,18 +191,47 @@ int main(void)
 
     Model skullModel("../resources/skull.obj");
 
-    /* Object List */
+    level lvl = level();
+    cout << "Here\n";
+
+    lvl.LoadLevel("../levels data/level_example.txt");
+
+    cout << "DATA : " << lvl.Objects[0]->angle << "\n";
+
+        /* Object List */
     vector<Object> objects;
-    for(int i = 0; i<20;i++)
+    for(int i = 0; i < 20; ++i)
     objects.push_back(Object(&skullModel, &materialShader, 
                              vec3(-20+(i*2), 1.0f, -4.0f), 
                              0.0f, vec3(1.0f), 
                              vec3(1), 1, 1, vec3(1.0f)));          
 
+    /*
+    objects.push_back(Object(lvl.Objects[0]->model, 
+                            lvl.Objects[0]->shader,
+                            lvl.Objects[0]->position,
+                            lvl.Objects[0]->angle, 
+                            lvl.Objects[0]->rotation,
+                            lvl.Objects[0]->velocity,
+                            lvl.Objects[0]->width_radius,
+                            lvl.Objects[0]->height_radius,
+                            lvl.Objects[0]->Scale));
+
+    objects.push_back(Object(lvl.Objects[1]->model, 
+			lvl.Objects[1]->shader,
+			lvl.Objects[1]->position,
+			lvl.Objects[1]->angle, 
+			lvl.Objects[1]->rotation,
+			lvl.Objects[1]->velocity,
+			lvl.Objects[1]->width_radius,
+			lvl.Objects[1]->height_radius,
+			lvl.Objects[1]->Scale));
+    */
+
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
     LightSystem lightSystem = LightSystem(camera);
-    while(!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
 
@@ -230,7 +254,7 @@ int main(void)
 
 
         /* Render Terrain */
-        dunes.Draw(heightShader, camera);
+        // dunes.Draw(heightShader, camera);
 
         Frustum frustum(projection, view);
 
@@ -240,7 +264,7 @@ int main(void)
             lightShader.setMat4("projection", projection);
             lightShader.setMat4("view", view);
 
-            for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
+            for (int i = 0; i < NUM_POINT_LIGHTS; ++i)
             {
                 model = mat4(1.0f);
                 model = scale(model, vec3(0.5f, 0.5f, 0.5f));
@@ -251,7 +275,6 @@ int main(void)
         }
         lightShader.unbind();
 
-
         /* Render Material Objects */
         materialShader.bind();
         {
@@ -259,19 +282,35 @@ int main(void)
             materialShader.setMat4("view", view);
             materialShader.setVec3("viewPos", camera.Position);
 
+	    // TODO(Alex): I want this gone.
+            materialShader.setVec3("material.ambient", 0.31f, 0.1f, 1.0f);
+            materialShader.setVec3("material.diffuse", 0.31f, 0.1f, 1.0f);
+            materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+            materialShader.setFloat("material.shine", 32.0f);
+
             lightSystem.Render(materialShader);
             
-            for(int i=0; i<objects.size();i++)
-            {
-                if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
-                {
-                    objects[i].Draw();
-                    drawnObjects++;
-                }
-            }
+            for(int i = 0; i < objects.size(); i++)
+	    {
+		lightSystem.Render(materialShader);
+
+		vec3 center = vec3(0.0f, 0.0f, 4.0f);
+		float radius = 1.0f;
+
+		model = mat4(1.0f);
+		model = translate(model, center);
+		materialShader.setMat4("model", model);
+		if (!(frustum.ViewFrustCull(center, radius)))
+		{
+		    if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
+		    {
+			objects[i].Draw();
+			drawnObjects++;
+		    }
+		}
+	    }
         }
         materialShader.unbind();
-
 
         /* Render Textured Objects */
         textureShader.bind();
@@ -286,12 +325,15 @@ int main(void)
             model = translate(model, vec3(0.0f, 1.0f, 0.0f));
             textureShader.setMat4("model", model);
             backpack.Draw(textureShader);
-        }    
+
+            lvl.Objects[0]->Draw();
+            lvl.Objects[1]->Draw();
+        }
         textureShader.unbind();
 
 
         /* Render Skybox */
-        nightSkybox.Draw(skyboxShader, camera);
+        // nightSkybox.Draw(skyboxShader, camera);
 
         /* Render Text */
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -337,7 +379,7 @@ int main(void)
 		ImGui::End();
 
 		ImGui::Render();
-		glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO: Investigate why this is required.
+		glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO(Alex): Investigate why this is required.
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	    }
@@ -352,6 +394,9 @@ int main(void)
     ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
+    delete lvl.bp;
+    delete lvl.dunes;
+
     glfwTerminate();
 
     return 0;
@@ -376,26 +421,29 @@ void RenderDebugText(TextRenderer Text)
 
 void processInput(GLFWwindow *window)
 {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         camera.ProcessKeyboard(LEFT, deltaTime);
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
         camera.Mode = FAST;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.Mode = FAST;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         camera.Mode = FREE;
 
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -415,30 +463,36 @@ void processInput(GLFWwindow *window)
 	camera.Mode = FREE;
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
     if(EditorMode == MOVEMENT)
     {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
-	if(firstMouse)
+	if (firstMouse)
 	{
+	    float xpos = static_cast<float>(xposIn);
+	    float ypos = static_cast<float>(yposIn);
+
+	    if(firstMouse)
+	    {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	    }
+
+	    float xoffset = xpos - lastX;
+	    float yoffset = lastY - ypos;
 	    lastX = xpos;
 	    lastY = ypos;
-	    firstMouse = false;
+	    
+	    camera.ProcessMouseMovement(xoffset, yoffset);
 	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
-	
-	camera.ProcessMouseMovement(xoffset, yoffset);
     }
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     if(EditorMode == MOVEMENT)
     {
