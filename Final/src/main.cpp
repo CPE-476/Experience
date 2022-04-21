@@ -188,6 +188,8 @@ int main(void)
     Model bonfire("../resources/dark_souls_bonfire/scene.gltf");
     Model box("../resources/cube.obj");
     Model skull("../resources/skull.obj");
+    Model tree("../resources/low-poly-tree/source/Tree3.fbx");
+    Model rock("../resources/stylized-lowpoly-rock/source/Rock.fbx");
 
     /* Populating Object List */
     vector<Object> objects;
