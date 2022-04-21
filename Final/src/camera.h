@@ -1,7 +1,7 @@
 // Author: Alex Hartford
-// Program: Countdown
+// Program: Experience
 // File: Camera Class
-// Date: March 2022
+// Date: April 2022
 
 #ifndef CAMERA_H
 #define CAMERA_H
