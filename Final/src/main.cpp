@@ -5,6 +5,11 @@
 
 /* TODO
  *
+ * Editor
+ *  - Point Lights
+ *  - Dir Lights
+ *  - etc.
+ *
  * ID System With one format specifier in level loader.
  *
  * Ground Geometry

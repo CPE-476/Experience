@@ -176,7 +176,7 @@ public:
             fp << objects[i].MODEL_ID << " ";
             fp << objects[i].SHADER_ID << " ";
             fp << objects[i].position.x << " ";
-            fp << objects[i].position.y << " ";
+            fp << objects[i].position.z << " ";
             fp << objects[i].angle << " ";
             fp << objects[i].rotation.x << " ";
             fp << objects[i].rotation.y << " ";
