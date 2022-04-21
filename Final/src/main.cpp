@@ -229,8 +229,8 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         /* Render Terrain */
-        dunes.Draw(heightShader, camera);
-
+        //dunes.Draw(heightShader, camera);
+	
         /* Render Light Positions (DEBUG) */
         lightShader.bind();
         {
@@ -268,6 +268,17 @@ int main(void)
                     }
                 }
             }
+
+            materialShader.setVec3("material.ambient", 0.5f, 0.8f, 0.5f);
+            materialShader.setVec3("material.diffuse", 0.5f, 0.8f, 0.5f);
+            materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+            materialShader.setFloat("material.shine", 1.0f); 
+
+	    model = mat4(1.0f);
+	    model = translate(model, vec3(0.0f, -51.0f, 0.0f));
+	    model = scale(model, vec3(100.0f, 100.0f, 100.0f));
+	    materialShader.setMat4("model", model);
+	    box.Draw(materialShader);
         }
         materialShader.unbind();
 
