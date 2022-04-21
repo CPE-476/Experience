@@ -137,7 +137,6 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -310,17 +309,12 @@ int main(void)
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            if(show_demo_window)
-                ImGui::ShowDemoWindow(&show_demo_window);
 
             {
                 static float f = 0.0f;
                 static int objectPointer = 0;
 
-                ImGui::Begin("Hello, world!"); // Create a window and append into it
-
-                    ImGui::Text("Some useful text.");                            // Display text
-                    ImGui::Checkbox("Demo Window", &show_demo_window);           // Edit bools
+                ImGui::Begin("Experience Level Editor"); // Create a window and append into it
 
                     ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
                     ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
@@ -328,8 +322,23 @@ int main(void)
                     ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
                     ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
-                    ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.y, -256.0f, 256.0f);
+                    ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f);
 
+                    if(ImGui::Button("X Rotation"))
+                    {
+                        objects[objectPointer].rotation = vec3(1.0f, 0.0f, 0.0f);
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("Y Rotation"))
+                    {
+                        objects[objectPointer].rotation = vec3(0.0f, 1.0f, 0.0f);
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("Z Rotation"))
+                    {
+                        objects[objectPointer].rotation = vec3(0.0f, 0.0f, 1.0f);
+                    }
+                    ImGui::SliderFloat("Angle", (float *)&objects[objectPointer].angle, 0.0f, 1.0f);
 
                     for (int n = 0; n < objects.size(); ++n)
                     {
@@ -339,8 +348,35 @@ int main(void)
                             objectPointer = n;
                         ImGui::SameLine();
                     }
+                    ImGui::NewLine();
 
                     ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
+
+                    if(ImGui::Button("Delete Object"))
+                    {
+                        objects.erase(objects.begin() + objectPointer);
+                        objectPointer--;
+                        if(objectPointer > objects.size())
+                            objectPointer = objects.size() - 2;
+                    }
+                    
+                    if(ImGui::Button("Create Tree"))
+                    {
+                        objects.push_back(Object(&skull, &materialShader, MATERIAL,
+                                                 vec3(0.0f, 0.0f, 0.0f), 
+                                                 0.0f, vec3(1.0f), 
+                                                 vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
+                        objectPointer = objects.size() - 1;
+                    }
+                    ImGui::SameLine();
+                    if(ImGui::Button("Create Rock"))
+                    {
+                        objects.push_back(Object(&backpack, &textureShader, TEXTURE,
+                                                 vec3(0.0f, 0.0f, 0.0f), 
+                                                 0.0f, vec3(1.0f), 
+                                                 vec3(1), 1, 1, vec3(1.0f), "BPK", "TEX"));
+                        objectPointer = objects.size() - 1;
+                    }
 
                     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
