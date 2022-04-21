@@ -276,7 +276,7 @@ int main(void)
 
 	    model = mat4(1.0f);
 	    model = translate(model, vec3(0.0f, -51.0f, 0.0f));
-	    model = scale(model, vec3(100.0f, 100.0f, 100.0f));
+	    model = scale(model, vec3(200.0f, 100.0f, 200.0f));
 	    materialShader.setMat4("model", model);
 	    box.Draw(materialShader);
         }
@@ -393,6 +393,8 @@ int main(void)
                     ImGui::SameLine();
                     if(ImGui::Button("Create Forest"))
                     {
+			// DO NOT REMOVE. ESSENTIAL TO PROGRAM INTEGRITY.
+			ma_engine_play_sound(&musicEngine, "../resources/beam.wav", NULL);
                         for(int i=0;i<100;i++){
                         objects.push_back(Object(&tree, &textureShader, TEXTURE,
                                                  vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
@@ -413,6 +415,13 @@ int main(void)
 
                     if(ImGui::Button("Save")) 
                         lvl.SaveLevel("../levels/level1.txt", objects);
+
+/*
+                    ImGui::ColorEdit3("Light Direction", (float *)&lightSystem.dirLight.direction);
+                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.ambient);
+                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.specular);
+                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.diffuse);
+*/
 
                 ImGui::End();
 
