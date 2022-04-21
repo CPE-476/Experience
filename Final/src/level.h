@@ -39,138 +39,164 @@ struct TerrPair {
 };
 
 class level {
-
-    public:
+public:
     Model *bp;
+    Model *sk;
     Heightmap *dunes;
 
-    level()
+    level(Heightmap *dunes, Model *backpack, Model *skull)
     {
-        this->dunes = new Heightmap("../resources/heightmap.png");
-        this->bp = new Model("../resources/backpack/backpack.obj");
+        this->dunes = dunes;
+        this->bp = backpack;
+        this->sk = skull;
     }
 
-    vector<Object*> Objects;
     Camera camera;
     Heightmap* terrain;
 
-    void LoadLevel(std::string Filename)
+    void LoadLevel(string Filename, vector<Object> &objects)
     {
-    // Adding new Models
-    vector<ModelPair> modelList {
-        {strdup("BPK"), bp}
-    };
+        // Adding new Models
+        vector<ModelPair> modelList {
+            {strdup("BPK"), bp},
+            {strdup("SKL"), sk}
+        };
 
-    // Adding new Shaders
-    vector<ShaderPair> ShaderList {
-        {strdup("TEX"), &textureShader},
-        {strdup("MAT"), &materialShader}
-    };
+        // Adding new Shaders
+        vector<ShaderPair> ShaderList {
+            {strdup("TEX"), &textureShader},
+            {strdup("MAT"), &materialShader}
+        };
 
-    vector<TerrPair> TerrList {
-        {strdup("DUNES"), dunes}
-    };
+        vector<TerrPair> TerrList {
+            {strdup("DUNES"), dunes}
+        };
 
-    string Line;
-    string Type;
-    string cont;
-    char* prt;
-    size_t len;
-    vector<string> conStr;
-    vector<const char*> conPrt;
+        string Line;
+        string Type;
+        string cont;
+        vector<string> conStr;
+        vector<const char*> conPrt;
 
-    int Col = 0;
-    int Row = 0;
-
-
-    ifstream fp;
-    fp.open(Filename);
-    if(fp.is_open())
-    {
-        while(getline(fp, Line))
+        ifstream fp;
+        fp.open(Filename);
+        if(fp.is_open())
         {
-            if(!Line.empty())
+            while(getline(fp, Line))
             {
-                vec3 pos;
-                float angle;
-                vec3 rot;
-                vec3 vel;
-                float rad_h;
-                float rad_w;
-                vec3 scale;
+                if(!Line.empty())
+                {
+                    int shad_t;
+                    vec3 pos;
+                    float angle;
+                    vec3 rot;
+                    vec3 vel;
+                    float rad_h;
+                    float rad_w;
+                    vec3 scale;
 
- 
-                Type = Line.substr(0, 3);
-                cont = Line.substr(4);
+                    string m;
+                    string s;
+     
+                    Type = Line.substr(0, 3);
+                    cont = Line.substr(4);
 
-                conStr = getCont(cont);
+                    conStr = getCont(cont);
 
-                for (int i = 0; i < conStr.size(); i++){
-                    const char* char_array = conStr[i].c_str();
-                    conPrt.push_back(char_array);    
-                }
+                    for (int i = 0; i < conStr.size(); i++){
+                        const char* char_array = conStr[i].c_str();
+                        conPrt.push_back(char_array);    
+                    }
 
-                if (Type == "OBJ"){
-                    
-                    const char* objectName = conPrt[0];
-                    for (int i = 0; i < modelList.size(); i++){
-                        if (strcmp(objectName, modelList[i].modelName) == 0){
-                            // model exist
-                            const char* shaderName = conPrt[1];
-                            for (int j = 0; j < ShaderList.size(); j++){
-                                if (strcmp(shaderName, ShaderList[j].shaderName) == 0){
-                                    // shader exist
-                                    cout << "here1\n" << conPrt.size() << "\n";
-                                    pos = vec3((float)atof(conPrt[2]), 0.0f, (float)atof(conPrt[3]));
-                                    angle = (float) atof(conPrt[4]);
-                                    rot = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
-                                    vel = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
-                                    rad_h = (float) atof(conPrt[11]);
-                                    rad_w = (float) atof(conPrt[12]);
-                                    scale = vec3((float)atof(conPrt[13]), (float)atof(conPrt[14]), (float)atof(conPrt[15]));
-                                    cout << "here2\n";
-                                    Object* newObject = new Object(modelList[i].model, ShaderList[j].shader, pos, angle, rot, vel, rad_h, rad_w, scale);
-                                    cout << "here3\n";
-                                    Objects.push_back(newObject);
-
-                                    cout << Objects[0]->position.x << "\n";
+                    if (Type == "OBJ"){ 
+                        const char* objectName = conPrt[0];
+                        m = conPrt[0];
+                        for (int i = 0; i < modelList.size(); i++){
+                            if (strcmp(objectName, modelList[i].modelName) == 0){
+                                // model exist
+                                const char* shaderName = conPrt[1];
+                                s = conPrt[1];
+                                for (int j = 0; j < ShaderList.size(); j++){
+                                    if (strcmp(shaderName, ShaderList[j].shaderName) == 0){
+                                        if(j == 0)
+                                            shad_t = TEXTURE;
+                                        else
+                                            shad_t = MATERIAL;
+                                        pos = vec3((float)atof(conPrt[2]), 0.0f, (float)atof(conPrt[3]));
+                                        angle = (float) atof(conPrt[4]);
+                                        rot = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
+                                        vel = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
+                                        rad_h = (float) atof(conPrt[11]);
+                                        rad_w = (float) atof(conPrt[12]);
+                                        scale = vec3((float)atof(conPrt[13]), (float)atof(conPrt[14]), (float)atof(conPrt[15]));
+                                        objects.push_back(Object(modelList[i].model, ShaderList[j].shader, shad_t, pos, angle, rot, vel, rad_h, rad_w, scale, m, s));
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                                /*
-                else if (Type == "POV"){
-                    cout << conPrt[0] << "\n";
-                    pos = vec3((float)atof(conPrt[0]), 0.0f, (float)atof(conPrt[1]));
-                    camera.Position = pos;
-                }
-                else if (Type == "TER"){
-                    const char* terrName = conPrt[0];
-                    for (int i = 0; i < TerrList.size(); i++){
-                        if (strcmp(terrName, TerrList[i].terrName) == 0){
-                            // terr exist
-                            terrain = TerrList[i].terr;
+                    /*
+                    else if (Type == "POV"){
+                        cout << conPrt[0] << "\n";
+                        pos = vec3((float)atof(conPrt[0]), 0.0f, (float)atof(conPrt[1]));
+                        camera.Position = pos;
+                    }
+                    else if (Type == "TER"){
+                        const char* terrName = conPrt[0];
+                        for (int i = 0; i < TerrList.size(); i++){
+                            if (strcmp(terrName, TerrList[i].terrName) == 0){
+                                // terr exist
+                                terrain = TerrList[i].terr;
+                            }
                         }
                     }
-                }
-                else{
-                    cout << "inside COM\n";
-                }*/
-                conPrt.clear();
+                    else{
+                        cout << "inside COM\n";
+                    }*/
+                    conPrt.clear();
 
+                }
             }
         }
+        else
+        {
+            cout << "Error: Level file not found.\n";
+        }
+
+        fp.close();
     }
-    else
+
+    void SaveLevel(string Filename, vector<Object> &objects)
     {
-        cout << "LoadLevel ERROR\n";
+        ofstream fp;
+        fp.open(Filename);
+        fp << "COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>";
+        for(int i = 0; i < objects.size(); ++i)
+        {
+            fp << "OBJ ";
+            fp << objects[i].MODEL_ID << " ";
+            fp << objects[i].SHADER_ID << " ";
+            fp << objects[i].position.x << " ";
+            fp << objects[i].position.y << " ";
+            fp << objects[i].angle << " ";
+            fp << objects[i].rotation.x << " ";
+            fp << objects[i].rotation.y << " ";
+            fp << objects[i].rotation.z << " ";
+            fp << objects[i].velocity.x << " ";
+            fp << objects[i].velocity.y << " ";
+            fp << objects[i].velocity.z << " ";
+            fp << objects[i].height_radius << " ";
+            fp << objects[i].width_radius << " ";
+            fp << objects[i].Scale.x;
+
+            fp << "\n";
+        }
+
+        fp.close();
     }
 
-    fp.close();
-    }
-
-    vector<string> getCont(string cont){
+    vector<string> getCont(string cont)
+    {
         vector<string> res;
         string delimiter = " ";
         while(cont.find(delimiter) != -1){
@@ -188,5 +214,4 @@ class level {
 
         return res; 
     }
-
 };

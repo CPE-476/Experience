@@ -23,9 +23,8 @@ struct Frustum
     vec4 Left, Right, Bottom, Top, Near, Far;
     vec4 planes[6];
 
-    Frustum(mat4 Projection, mat4 View)
+    Frustum()
     {
-        ExtractVFPlanes(Projection, View);
     };
 
     void ExtractVFPlanes(mat4 Projection, mat4 View)

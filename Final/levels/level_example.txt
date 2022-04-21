@@ -1,3 +1,4 @@
 COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>
 OBJ BPK TEX 0.5 0.25 0.62 0 0 1 0 0 0 0.02 0.01 0.2 0.2 0.2
 OBJ BPK TEX 10 7.5 0.62 0 0 1 0 0 0 0.02 0.01 0.5 0.5 0.5
+OBJ SKL MAT 5 5 0.1 0 1 0 0 0 0 0.02 0.01 2 2 2

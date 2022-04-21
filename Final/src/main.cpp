@@ -119,7 +119,7 @@ int main(void)
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
     if(window == NULL)
     {
-	cout << "Failed to create GLFW window.\n";
+        cout << "Failed to create GLFW window.\n";
         glfwTerminate();
         return -1;
     }
@@ -181,52 +181,29 @@ int main(void)
     Skybox blueSkybox("../resources/daysky/", false);
     Skybox nightSkybox("../resources/nightsky/", false);
 
+    Heightmap dunes("../resources/heightmap.png");
+
     stbi_set_flip_vertically_on_load(true);
     Model backpack("../resources/backpack/backpack.obj");
     stbi_set_flip_vertically_on_load(false);
-
     Model bonfire("../resources/dark_souls_bonfire/scene.gltf");
-
     Model box("../resources/cube.obj");
+    Model skull("../resources/skull.obj");
 
-    Model skullModel("../resources/skull.obj");
-
-    level lvl = level();
-    cout << "Here\n";
-
-    lvl.LoadLevel("../levels data/level_example.txt");
-
-    cout << "DATA : " << lvl.Objects[0]->angle << "\n";
-
-        /* Object List */
+    /* Populating Object List */
     vector<Object> objects;
     for(int i = 0; i < 20; ++i)
-    objects.push_back(Object(&skullModel, &materialShader, 
-                             vec3(-20+(i*2), 1.0f, -4.0f), 
-                             0.0f, vec3(1.0f), 
-                             vec3(1), 1, 1, vec3(1.0f)));          
+    {
+        objects.push_back(Object(&skull, &materialShader, MATERIAL,
+                                 vec3(-20+(i*2), 1.0f, -4.0f), 
+                                 0.0f, vec3(1.0f), 
+                                 vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
+    }
 
-    /*
-    objects.push_back(Object(lvl.Objects[0]->model, 
-                            lvl.Objects[0]->shader,
-                            lvl.Objects[0]->position,
-                            lvl.Objects[0]->angle, 
-                            lvl.Objects[0]->rotation,
-                            lvl.Objects[0]->velocity,
-                            lvl.Objects[0]->width_radius,
-                            lvl.Objects[0]->height_radius,
-                            lvl.Objects[0]->Scale));
+    level lvl = level(&dunes, &backpack, &skull);
+    lvl.LoadLevel("../levels/level_example.txt", objects);
 
-    objects.push_back(Object(lvl.Objects[1]->model, 
-			lvl.Objects[1]->shader,
-			lvl.Objects[1]->position,
-			lvl.Objects[1]->angle, 
-			lvl.Objects[1]->rotation,
-			lvl.Objects[1]->velocity,
-			lvl.Objects[1]->width_radius,
-			lvl.Objects[1]->height_radius,
-			lvl.Objects[1]->Scale));
-    */
+    Frustum frustum;
 
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
@@ -252,11 +229,10 @@ int main(void)
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
+        frustum.ExtractVFPlanes(projection, view);
 
         /* Render Terrain */
-        // dunes.Draw(heightShader, camera);
-
-        Frustum frustum(projection, view);
+        dunes.Draw(heightShader, camera);
 
         /* Render Light Positions (DEBUG) */
         lightShader.bind();
@@ -282,33 +258,19 @@ int main(void)
             materialShader.setMat4("view", view);
             materialShader.setVec3("viewPos", camera.Position);
 
-	    // TODO(Alex): I want this gone.
-            materialShader.setVec3("material.ambient", 0.31f, 0.1f, 1.0f);
-            materialShader.setVec3("material.diffuse", 0.31f, 0.1f, 1.0f);
-            materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-            materialShader.setFloat("material.shine", 32.0f);
-
             lightSystem.Render(materialShader);
-            
+
             for(int i = 0; i < objects.size(); i++)
-	    {
-		lightSystem.Render(materialShader);
-
-		vec3 center = vec3(0.0f, 0.0f, 4.0f);
-		float radius = 1.0f;
-
-		model = mat4(1.0f);
-		model = translate(model, center);
-		materialShader.setMat4("model", model);
-		if (!(frustum.ViewFrustCull(center, radius)))
-		{
-		    if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
-		    {
-			objects[i].Draw();
-			drawnObjects++;
-		    }
-		}
-	    }
+            {
+                if(objects[i].shader_type == MATERIAL)
+                {
+                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
+                    {
+                        objects[i].Draw();
+                        drawnObjects++;
+                    }
+                }
+            }
         }
         materialShader.unbind();
 
@@ -321,13 +283,17 @@ int main(void)
 
             lightSystem.Render(textureShader);
 
-            model = mat4(1.0f);
-            model = translate(model, vec3(0.0f, 1.0f, 0.0f));
-            textureShader.setMat4("model", model);
-            backpack.Draw(textureShader);
-
-            lvl.Objects[0]->Draw();
-            lvl.Objects[1]->Draw();
+            for(int i = 0; i < objects.size(); i++)
+            {
+                if(objects[i].shader_type == TEXTURE)
+                {
+                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
+                    {
+                        objects[i].Draw();
+                        drawnObjects++;
+                    }
+                }
+            }
         }
         textureShader.unbind();
 
@@ -339,51 +305,55 @@ int main(void)
         Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text);
 
-	if(EditorMode == GUI)
-	{
-	    ImGui_ImplOpenGL3_NewFrame();
-	    ImGui_ImplGlfw_NewFrame();
-	    ImGui::NewFrame();
-	    if(show_demo_window)
-		ImGui::ShowDemoWindow(&show_demo_window);
+        if(EditorMode == GUI)
+        {
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            if(show_demo_window)
+                ImGui::ShowDemoWindow(&show_demo_window);
 
-	    {
-		static float f = 0.0f;
-		static int objectPointer = 0;
+            {
+                static float f = 0.0f;
+                static int objectPointer = 0;
 
-		ImGui::Begin("Hello, world!"); // Create a window and append into it
+                ImGui::Begin("Hello, world!"); // Create a window and append into it
 
-		    ImGui::Text("Some useful text.");				 // Display text
-		    ImGui::Checkbox("Demo Window", &show_demo_window);		 // Edit bools
+                    ImGui::Text("Some useful text.");                            // Display text
+                    ImGui::Checkbox("Demo Window", &show_demo_window);           // Edit bools
 
-		    ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
-		    ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
-		    ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
-		    ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
+                    ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
+                    ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
+                    ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
+                    ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
-		    for (int n = 0; n < objects.size(); ++n)
-		    {
-			char buffer[256];
-			sprintf(buffer, "%d", n);
-			if(ImGui::Button(buffer))
-			    objectPointer = n;
-			ImGui::SameLine();
-		    }
+                    ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
+                    ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.y, -256.0f, 256.0f);
 
-//		    if(ImGui::Button("Button")) 
-//			(Any arbitrary code.)
 
-		    ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
+                    for (int n = 0; n < objects.size(); ++n)
+                    {
+                        char buffer[256];
+                        sprintf(buffer, "%d", n);
+                        if(ImGui::Button(buffer))
+                            objectPointer = n;
+                        ImGui::SameLine();
+                    }
 
-		    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
-		ImGui::End();
+                    ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
 
-		ImGui::Render();
-		glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO(Alex): Investigate why this is required.
+                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	    }
-	}
+                    if(ImGui::Button("Save")) 
+                        lvl.SaveLevel("../levels/out.txt", objects);
+                ImGui::End();
+
+                ImGui::Render();
+                glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO(Alex): Investigate why this is required.
+
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+        }
 
         /* Present Render */
         glfwSwapBuffers(window);
@@ -394,8 +364,6 @@ int main(void)
     ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
-    delete lvl.bp;
-    delete lvl.dunes;
 
     glfwTerminate();
 
@@ -448,47 +416,41 @@ void processInput(GLFWwindow *window)
 
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-	EditorMode = MOVEMENT;
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        EditorMode = MOVEMENT;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     if(glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS)
     {
-	EditorMode = GUI;
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        EditorMode = GUI;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
-	camera.Mode = WALK;
+        camera.Mode = WALK;
     if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-	camera.Mode = FREE;
+        camera.Mode = FREE;
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
     if(EditorMode == MOVEMENT)
     {
-	float xpos = static_cast<float>(xposIn);
-	float ypos = static_cast<float>(yposIn);
+        float xpos = static_cast<float>(xposIn);
+        float ypos = static_cast<float>(yposIn);
 
-	if (firstMouse)
-	{
-	    float xpos = static_cast<float>(xposIn);
-	    float ypos = static_cast<float>(yposIn);
+        if(firstMouse)
+        {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
 
-	    if(firstMouse)
-	    {
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	    }
-
-	    float xoffset = xpos - lastX;
-	    float yoffset = lastY - ypos;
-	    lastX = xpos;
-	    lastY = ypos;
-	    
-	    camera.ProcessMouseMovement(xoffset, yoffset);
-	}
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos;
+        lastX = xpos;
+        lastY = ypos;
+        
+        camera.ProcessMouseMovement(xoffset, yoffset);
     }
 }
 
@@ -496,7 +458,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     if(EditorMode == MOVEMENT)
     {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+        camera.ProcessMouseScroll(static_cast<float>(yoffset));
     }
 }
 

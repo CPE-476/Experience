@@ -14,8 +14,16 @@ using namespace glm;
  * TODO
  *
  * Material data in constructor.
- * 
+ *
+ * Culling Radius
+ * Just Width Radius for collisions
+ *
  */
+
+enum ShaderTypes {
+    MATERIAL,
+    TEXTURE
+};
 
 struct Material
 {
@@ -29,6 +37,7 @@ class Object {
 public:
     Model *model;
     Shader *shader;
+    int shader_type;
     Material material;
     vec3 position;
     float angle;
@@ -38,11 +47,16 @@ public:
     float height_radius;
     float width_radius;
 
-    Object (Model *mod, Shader *sdr, vec3 pos, float agl, vec3 rot, 
-	vec3 vel, float rad_h, float rad_w, vec3 scl)
+    // TODO(Alex): Create a more robust system. This sucks.
+    string MODEL_ID;
+    string SHADER_ID;
+
+    Object (Model *mod, Shader *sdr, int shad_t, vec3 pos, float agl, vec3 rot, 
+	vec3 vel, float rad_h, float rad_w, vec3 scl, string m, string s)
     {
         this->model = mod;
         this->shader = sdr;
+        this->shader_type = shad_t;
         this->position = pos;
         this->angle = agl;
         this->rotation = rot;
@@ -51,6 +65,8 @@ public:
         this->height_radius = rad_h;
         this->width_radius = rad_w;
         this->material = {vec3(0.31f, 0.1f, 1.0f), vec3(0.31f, 0.1f, 1.0f), vec3(0.5f, 0.5f, 0.5f), 32.0f};
+        this->MODEL_ID = m;
+        this->SHADER_ID = s;
     }
 
     void Draw()
@@ -62,10 +78,13 @@ public:
         matrix = pos * rot * scl;
         
         shader->setMat4("model", matrix);
-        shader->setVec3("material.ambient", material.ambient);
-        shader->setVec3("material.diffuse", material.diffuse);
-        shader->setVec3("material.specular", material.specular);
-        shader->setFloat("material.shine", material.shine); 
+        if(shader_type == MATERIAL)
+        {
+            shader->setVec3("material.ambient", material.ambient);
+            shader->setVec3("material.diffuse", material.diffuse);
+            shader->setVec3("material.specular", material.specular);
+            shader->setFloat("material.shine", material.shine); 
+        }
 
         model->Draw(*shader);
     }
