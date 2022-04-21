@@ -395,14 +395,14 @@ int main(void)
                     {
                         for(int i=0;i<100;i++){
                         objects.push_back(Object(&tree, &textureShader, TEXTURE,
-                                                 vec3(randFloat()*200.0f, 0.0f, randFloat()*200.0f), 
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                  -1.6f, vec3(1.0f, 0.0f, 0.0f), 
                                                  vec3(1), 1, 20, vec3((randFloat())*2.0f), "SKL", "TEX"));
                         objectPointer = objects.size() - 1;
                         }
                         for(int i=0;i<100;i++){
                         objects.push_back(Object(&rock, &materialShader, MATERIAL,
-                                                 vec3(randFloat()*200.0f, 0.0f, randFloat()*200.0f), 
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                  0.0f, vec3(1.0f), 
                                                  vec3(1), 1, 1, vec3((randFloat()) * 5.0f), "BPK", "MAT"));
                         objectPointer = objects.size() - 1;
