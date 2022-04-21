@@ -189,15 +189,23 @@ int main(void)
     Model bonfire("../resources/dark_souls_bonfire/scene.gltf");
     Model box("../resources/cube.obj");
     Model skull("../resources/skull.obj");
+    Model tree("../resources/low-poly-tree/source/Tree3.fbx");
+    Model rock("../resources/stylized-lowpoly-rock/source/Rock.fbx");
 
     /* Populating Object List */
     vector<Object> objects;
+
     for(int i = 0; i < 20; ++i)
     {
         objects.push_back(Object(&skull, &materialShader, MATERIAL,
                                  vec3(-20+(i*2), 1.0f, -4.0f), 
                                  0.0f, vec3(1.0f), 
                                  vec3(1), 1, 1, vec3(1.0f), "SKL", "MAT"));
+
+        objects.push_back(Object(&rock, &materialShader, MATERIAL, 
+                                 vec3(-20+(i*2), 1.0f, 4.0f), 
+                                 1.8415f, vec3(1.0f, 0.0f, 0.0f), 
+                                 vec3(1), 1, 1, vec3(1.0f), "ROC", "TEX"));
     }
 
     level lvl = level(&dunes, &backpack, &skull);

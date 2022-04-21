@@ -64,7 +64,7 @@ public:
         this->velocity = vel;
         this->height_radius = rad_h;
         this->width_radius = rad_w;
-        this->material = {vec3(0.31f, 0.1f, 1.0f), vec3(0.31f, 0.1f, 1.0f), vec3(0.5f, 0.5f, 0.5f), 32.0f};
+        this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
         this->MODEL_ID = m;
         this->SHADER_ID = s;
     }
