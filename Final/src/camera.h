@@ -1,7 +1,7 @@
 // Author: Alex Hartford
-// Program: Countdown
+// Program: Experience
 // File: Camera Class
-// Date: March 2022
+// Date: April 2022
 
 #ifndef CAMERA_H
 #define CAMERA_H
@@ -12,6 +12,9 @@
 
 #include <vector>
 
+using namespace std;
+using namespace glm;
+
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -21,7 +24,8 @@ enum Camera_Movement {
 
 enum Modes {
     FREE,
-    FAST
+    FAST,
+    WALK
 };
 
 const float YAW = -90.0f;
@@ -67,8 +71,8 @@ public:
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = 0;;
-        if(Mode == FREE)
+        float velocity = 0;
+        if(Mode == FREE || Mode == WALK)
         {
             velocity = SPEED * deltaTime;
         }
@@ -76,16 +80,29 @@ public:
         {
             velocity = FASTSPEED * deltaTime;
         }
-        if(direction == FORWARD)
-            Position += Front * velocity;
-        if(direction == BACKWARD)
-            Position -= Front * velocity;
-        if(direction == LEFT)
-            Position -= Right * velocity;
-        if(direction == RIGHT)
-            Position += Right * velocity;
+        if(Mode == FREE || Mode == FAST)
+        {
+            if(direction == FORWARD)
+                Position += Front * velocity;
+            if(direction == BACKWARD)
+                Position -= Front * velocity;
+            if(direction == LEFT)
+                Position -= Right * velocity;
+            if(direction == RIGHT)
+                Position += Right * velocity;
+        }
+        else if(Mode == WALK)
+        {
+            if(direction == FORWARD)
+                Position += cross(WorldUp, Right) * velocity;
+            if(direction == BACKWARD)
+                Position -= cross(WorldUp, Right) * velocity;
+            if(direction == LEFT)
+                Position += cross(WorldUp, Front) * velocity;
+            if(direction == RIGHT)
+                Position -= cross(WorldUp, Front) * velocity;    
+        }
     }
-
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {

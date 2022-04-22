@@ -1,3 +1,8 @@
+// Author: Alex Hartford
+// Program: Experience
+// File: Mesh
+// Date: April 2022
+
 #ifndef MESH_H
 #define MESH_H
 

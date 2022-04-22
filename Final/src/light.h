@@ -68,10 +68,10 @@ struct LightSystem {
 
     LightSystem(Camera &camera)
     {
-        dirLight = {vec3(0.0f, 0.0f, -1.0f), // Direction
-                    vec3(0.05f, 0.05f, 0.05f), // Ambient
-                    vec3(0.4f, 0.4f, 0.4f),    // Diffuse
-                    vec3(0.5f, 0.5f, 0.5f)};   // Specular
+        dirLight = {vec3(0.0f, 0.0f, 1.0f),   // Direction
+                    vec3(0.4f, 0.2f, 0.2f),   // Ambient
+                    vec3(0.8f, 0.6f, 0.6f),   // Diffuse
+                    vec3(0.5f, 0.3f, 0.3f)};  // Specular
 
         for(int i = 0; i < NUM_POINT_LIGHTS; ++i)
         {

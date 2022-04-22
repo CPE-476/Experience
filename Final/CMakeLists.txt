@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 include("${CMAKE_SOURCE_DIR}/FindGfxLibs.cmake")
 
-project(Base)
+project(Exp)
 
 # Enforce use of C++14
 set(CMAKE_CXX_STANDARD_REQUIRED 14)
