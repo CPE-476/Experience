@@ -1,16 +1,43 @@
-// Author: Alex Hartford
+// Author: Alex Hartford, Brett Hickman, Lucas Li
 // Program: Experience
 // File: Main
 // Date: April 2022
 
 /* TODO
- *
- * Editor
- *  - Point Lights
- *  - Dir Lights
- *  - etc.
+ * Easy Stuff
+ *  - Gamepad Support
+ *  - Choosing Meshes.
+ *  - BUG Editor Camera Problem.
+ *  - Fullscreen
+ *  - Create main GetProjection and GetView Matrix function, 
+ *    so we don't have to pass camera around.
  *
  * ID System With one format specifier in level loader.
+ *
+ * Water!
+ *
+ * Editor
+ *  - Three Rotations at once.
+ *  - Point Lights
+ *  - Dir Lights
+ *  - Top down view for quick editing.
+ *  - Mass Delete
+ *  - Undo/Redo
+ *  - Second Backup File Saving
+ *  - Raycasting - Point and Click.
+ *  - Palette
+ *  - Be able to see which object you are looking at.
+ *  - Automatic Y Placement of Objects.
+ *    - Including Scale, Min/Max
+ *
+ * Fog
+ *  - Distance
+ *  - Cloud
+ *
+ * Level Transitions
+ *  - Fog at the edges.
+ *  - Fade to White
+ *  - Plane Transition
  *
  * Ground Geometry
  *  - Movement
@@ -18,19 +45,29 @@
  * 
  * Particles
  *
- * Cave Transition
- *  - Plane Transition
- *
- * Gamepad Support
- *
- * Level Editor
- *  - Palette
- *  - Mouse Placement?
- *
  * Instanced Rendering
+ *  - Grass
+ *  - Flowers with Noise
  *
- * Create main GetProjection and GetView Matrix function, 
- * so we don't have to pass camera around.
+ * Collisions
+ *
+ * Note Pickup
+ *  - Collision
+ *  - Render Text to Screen.
+ *
+ * Soundtrack
+ * NOTE: Look into MiniAudio stuff.
+ *  - Ambient Sounds.
+ *  - Spatial Sounds.
+ *    - Birds
+ *    - Water
+ *    - Note Makes a directional Sound.
+ *
+ * Ideas
+ *  - Dunes Walking Trail
+ *  - Trail on the Heightmap.
+ *    - Start in the Woods, no Path.
+ *  - Wind Waker Wind
  */
 
 #include <iostream>
