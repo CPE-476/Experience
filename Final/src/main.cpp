@@ -231,16 +231,14 @@ int main(void)
 
     /* Populating Object List */
     vector<Object> objects;
-    // objects.push_back(Object(0,
-	// 		     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-	// 		     vec3(1), 1, 20, 1.0f));
+
     level lvl;
     lvl.LoadLevel("../levels/level1.txt", objects, &m);
 
     Frustum frustum;
 
     /* Sound and Lighting */
-    ma_engine_play_sound(&musicEngine, "../resources/bach.mp3", NULL);
+    ma_engine_play_sound(&musicEngine, "../resources/audio/bach.mp3", NULL);
     LightSystem lightSystem = LightSystem(camera);
     while (!glfwWindowShouldClose(window))
     {
@@ -266,7 +264,7 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         /* Render Terrain */
-        m.terrains.dunes.Draw(m.shaders.heightShader, camera);
+        // m.terrains.dunes.Draw(m.shaders.heightShader, camera);
         
         /* Render Light Positions (DEBUG) */
         m.shaders.lightShader.bind();
@@ -401,7 +399,7 @@ int main(void)
                     
                     if(ImGui::Button("Create Tree"))
                     {
-                        objects.push_back(Object(2,
+                        objects.push_back(Object(0,
                                                  vec3(0.0f), -1.6f, 0.0f, 0.0f, 
                                                  vec3(1), 1, 20, 1.0f, &m));
                         objectPointer = objects.size() - 1;
@@ -409,28 +407,78 @@ int main(void)
                     ImGui::SameLine();
                     if(ImGui::Button("Create Rock"))
                     {
-                        objects.push_back(Object(3,
-                                                 vec3(0.0f), 0.0f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 1, 1.0f, &m));
-                        objectPointer = objects.size() - 1;
+                        // objects.push_back(Object(3,
+                        //                          vec3(0.0f), 0.0f, 0.0f, 0.0f, 
+                        //                          vec3(1), 1, 1, 1.0f, &m));
+                        // objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Forest"))
                     {
-                        for(int i=0;i<100;i++){
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(0,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(1,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
                             objects.push_back(Object(2,
                                                      vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                      -1.6f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 20, randFloat()*2.0f,  &m));
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
                             objectPointer = objects.size() - 1;
                         }
-                        for(int i=0;i<100;i++){
+                        for(int i=0;i<10;i++){
                             objects.push_back(Object(3,
                                                      vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                     0.0f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 1, randFloat() * 5.0f, &m));
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
                             objectPointer = objects.size() - 1;
                         }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(4,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(5,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(6,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(7,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        for(int i=0;i<10;i++){
+                            objects.push_back(Object(8,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                            objectPointer = objects.size() - 1;
+                        }
+                        
                     }
 
                     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 

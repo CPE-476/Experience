@@ -1,2 +1,2 @@
-COM <type id pos.x pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>
+COM <type id pos.x pos.z angleX angleY angle vel.x vel.y vel.z rad_h rad_w scale>
 OBJ 0 -3.354 -1.118 -1.44 0.041 -0.014 1 1 1 1 20 1

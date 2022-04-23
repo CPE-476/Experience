@@ -73,7 +73,7 @@ private:
     {
         // Load Heightmap
         int width, height, nrChannels;
-        unsigned char *data = stbi_load("../resources/heightmap.png", &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load("../resources/testing/heightmap.png", &width, &height, &nrChannels, 0);
 
         this->width = width;
         this->height = width;
