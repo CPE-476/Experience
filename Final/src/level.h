@@ -35,16 +35,16 @@ struct ShaderPair {
 
 struct TerrPair {
     char* terrName;
-    Heightmap* terr;
+    Terrain* terr;
 };
 
 class level {
 public:
     Model *bp;
     Model *sk;
-    Heightmap *dunes;
+    Terrain *dunes;
 
-    level(Heightmap *dunes, Model *backpack, Model *skull)
+    level(Terrain *dunes, Model *backpack, Model *skull)
     {
         this->dunes = dunes;
         this->bp = backpack;
@@ -52,7 +52,7 @@ public:
     }
 
     Camera camera;
-    Heightmap* terrain;
+    Terrain* terrain;
 
     void LoadLevel(string Filename, vector<Object> &objects, Manager m)
     {

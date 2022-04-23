@@ -17,7 +17,7 @@
 #include "model.h"
 #include "camera.h"
 #include "skybox.h"
-#include "heightmap.h"
+#include "terrain.h"
 
 using namespace std;
 using namespace glm;
@@ -58,7 +58,6 @@ struct Shader_Container
     Shader typeShader;
     Shader skyboxShader;
     Shader lightShader;
-    Shader heightShader;
 };
 
 struct Skybox_Container
@@ -79,7 +78,7 @@ struct Model_Container
 
 struct Terrain_Container
 {
-    Heightmap dunes;
+    Terrain dunes;
 };
 
 struct Manager
@@ -97,7 +96,6 @@ struct Manager
         this->shaders.typeShader.init("../shaders/type_vert.glsl", "../shaders/type_frag.glsl");
         this->shaders.skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
-        this->shaders.heightShader.init("../shaders/height_vert.glsl", "../shaders/height_frag.glsl");
 
         /* Geometry Loading */
         this->skyboxes.daySkybox.init("../resources/daysky/", false);

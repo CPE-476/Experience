@@ -18,8 +18,6 @@
  *
  *  - Create main GetProjection and GetView Matrix function, so we don't have to pass camera around.
  *
- * ID System With one format specifier in level loader.
- *
  * Editor
  *  - Point Lights
  *  - Dir Lights
@@ -118,7 +116,7 @@ const unsigned int TEXT_SIZE = 16;
 #include "skybox.h"
 #include "frustum.h"
 #include "model.h"
-#include "heightmap.h"
+#include "terrain.h"
 #include "level.h"
 
 using namespace std;
@@ -173,7 +171,6 @@ int main(void)
     // Full Screen Mode
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
 #endif
-
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
     if(window == NULL)
     {
@@ -264,11 +261,8 @@ int main(void)
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
-
-        /* Render Terrain */
-        m.terrains.dunes.Draw(m.shaders.heightShader, camera);
         
-        /* Render Light Positions (DEBUG) */
+        // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
         {
             m.shaders.lightShader.setMat4("projection", projection);
@@ -285,7 +279,7 @@ int main(void)
         }
         m.shaders.lightShader.unbind();
 
-        /* Render Material Objects */
+        // Render Material Objects
         m.shaders.materialShader.bind();
         {
             m.shaders.materialShader.setMat4("projection", projection);
@@ -308,8 +302,11 @@ int main(void)
 
             m.shaders.materialShader.setVec3("material.ambient", 0.5f, 0.8f, 0.5f);
             m.shaders.materialShader.setVec3("material.diffuse", 0.5f, 0.8f, 0.5f);
-            m.shaders.materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+            m.shaders.materialShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
             m.shaders.materialShader.setFloat("material.shine", 1.0f); 
+
+            // Render Terrain
+            m.terrains.dunes.Draw(m.shaders.materialShader, camera);
 
             model = mat4(1.0f);
             model = translate(model, vec3(0.0f, -51.0f, 0.0f));
@@ -319,7 +316,7 @@ int main(void)
         }
         m.shaders.materialShader.unbind();
 
-        /* Render Textured Objects */
+        // Render Textured Objects
         m.shaders.textureShader.bind();
         {
             m.shaders.textureShader.setMat4("projection", projection);
@@ -343,10 +340,10 @@ int main(void)
         m.shaders.textureShader.unbind();
 
 
-        /* Render Skybox */
+        // Render Skybox
         m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader, camera);
 
-        /* Render Text */
+        // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text, m);
 
@@ -356,102 +353,90 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            {
+	    static int objectPointer = 0;
 
-                static float f = 0.0f;
-                static int objectPointer = 0;
+	    ImGui::Begin("Level Editor");
 
-                ImGui::Begin("Level Editor");
+		ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
+		ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
+		ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
+		ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
-                    ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
-                    ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
-                    ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
-                    ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
+		ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
+		ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f);
 
-                    ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
-                    ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f);
+		ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
+		ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
+		ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
 
-                    ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
-                    ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
-                    ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
+		ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
 
-                    ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
+		for (int n = 0; n < objects.size(); ++n)
+		{
+		    char buffer[256];
+		    sprintf(buffer, "%d", n);
+		    if(ImGui::Button(buffer))
+			objectPointer = n;
+		    ImGui::SameLine();
+		}
+		ImGui::NewLine();
 
-                    for (int n = 0; n < objects.size(); ++n)
-                    {
-                        char buffer[256];
-                        sprintf(buffer, "%d", n);
-                        if(ImGui::Button(buffer))
-                            objectPointer = n;
-                        ImGui::SameLine();
-                    }
-                    ImGui::NewLine();
+		ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
 
-                    ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
+		if(ImGui::Button("Delete Object"))
+		{
+		    objects.erase(objects.begin() + objectPointer);
+		    objectPointer--;
+		    if(objectPointer > objects.size())
+			objectPointer = objects.size() - 2;
+		}
+		
+		if(ImGui::Button("Create Tree"))
+		{
+		    objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+					     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+					     vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
+		    objectPointer = objects.size() - 1;
+		}
+		ImGui::SameLine();
+		if(ImGui::Button("Create Rock"))
+		{
+		    objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+					     vec3(0.0f), 0.0f, 0.0f, 0.0f, 
+					     vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
+		    objectPointer = objects.size() - 1;
+		}
+		ImGui::SameLine();
+		if(ImGui::Button("Create Forest"))
+		{
+		    for(int i=0;i<100;i++){
+			objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+						 -1.6f, 0.0f, 0.0f, 
+						 vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
+			objectPointer = objects.size() - 1;
+		    }
+		    for(int i=0;i<100;i++){
+			objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+						 0.0f, 0.0f, 0.0f, 
+						 vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
+			objectPointer = objects.size() - 1;
+		    }
+		}
 
-                    if(ImGui::Button("Delete Object"))
-                    {
-                        objects.erase(objects.begin() + objectPointer);
-                        objectPointer--;
-                        if(objectPointer > objects.size())
-                            objectPointer = objects.size() - 2;
-                    }
-                    
-                    if(ImGui::Button("Create Tree"))
-                    {
-                        objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-                                                 vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
-                        objectPointer = objects.size() - 1;
-                    }
-                    ImGui::SameLine();
-                    if(ImGui::Button("Create Rock"))
-                    {
-                        objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
-                                                 vec3(0.0f), 0.0f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
-                        objectPointer = objects.size() - 1;
-                    }
-                    ImGui::SameLine();
-                    if(ImGui::Button("Create Forest"))
-                    {
-                        for(int i=0;i<100;i++){
-                            objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                     -1.6f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
-                            objectPointer = objects.size() - 1;
-                        }
-                        for(int i=0;i<100;i++){
-                            objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
-                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                     0.0f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
-                            objectPointer = objects.size() - 1;
-                        }
-                    }
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
-                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
+		if(ImGui::Button("Save")) 
+		    lvl.SaveLevel("../levels/level1.txt", objects);
+		    lvl.SaveLevel("../levels/level1_backup.txt", objects);
 
-                    if(ImGui::Button("Save")) 
-                        lvl.SaveLevel("../levels/level1.txt", objects);
-                        lvl.SaveLevel("../levels/level1_backup.txt", objects);
+	    ImGui::End();
 
-// LIGHT EDITING
-/*
-                    ImGui::ColorEdit3("Light Direction", (float *)&lightSystem.dirLight.direction);
-                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.ambient);
-                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.specular);
-                    ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.diffuse);
-*/
+	    ImGui::Render();
+	    glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
 
-                ImGui::End();
-
-                ImGui::Render();
-                glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
-
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            }
+	    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
         /* Present Render */
@@ -528,7 +513,7 @@ void processInput(GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 }

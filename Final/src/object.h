@@ -17,7 +17,6 @@ using namespace glm;
 
 /*
  * TODO
- *
  * Material data in constructor.
  *
  * Culling Radius
