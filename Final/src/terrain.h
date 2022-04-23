@@ -18,7 +18,7 @@ using namespace std;
 using namespace glm;
 
 // Tweak these values for different terrain types.
-const float Y_SCALE = 64.0f / 256.0f; // Desired Size / Original Image size.
+const float Y_SCALE = 256.0f / 256.0f; // Desired Size / Original Image size.
 const float Y_SHIFT = 64.0f;          // Height of Mesh
 
 
@@ -74,6 +74,13 @@ public:
 	*/
     }
 
+    float pointsData[256][256];
+
+    float heightAt(float x, float y)
+    {
+        return pointsData[(int)x][(int)y];
+    }
+
     void init(string path)
     {
         // Load Heightmap
@@ -88,12 +95,18 @@ public:
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
 
+                float vx = (-height + height * i / (float)height); // vx
+                float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
+                float vz = (-width + width * j / (float)width);  // vz
+                /*
                 float vx = (-height/2.0f + height * i / (float)height); // vx
                 float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
                 float vz = (-width / 2.0f + width * j / (float)width);  // vz
+                */
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);
+                pointsData[i][j] = vy;
             }
         }
         stbi_image_free(data);

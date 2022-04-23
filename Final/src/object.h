@@ -15,8 +15,7 @@
 using namespace std;
 using namespace glm;
 
-/*
- * TODO
+/* TODO
  * Material data in constructor.
  *
  * Culling Radius
@@ -91,6 +90,11 @@ public:
         }
 
         model->Draw(*shader);
+    }
+
+    void UpdateY(Terrain *terrain)
+    {
+        position.y = terrain->heightAt(position.x - 128, position.z - 128);
     }
 
     void Update(float deltaTime)

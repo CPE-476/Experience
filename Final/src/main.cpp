@@ -229,8 +229,8 @@ int main(void)
     /* Populating Object List */
     vector<Object> objects;
     objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-			     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-			     vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
+                             vec3(0.0f, m.terrains.dunes.heightAt(0.0f, 0.0f), 0.0f), -1.6f, 0.0f, 0.0f, 
+                             vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
     level lvl = level(&m.terrains.dunes, &m.models.tree, &m.models.rock);
     lvl.LoadLevel("../levels/level1.txt", objects, m);
 
@@ -353,90 +353,93 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-	    static int objectPointer = 0;
+            static int objectPointer = 0;
 
-	    ImGui::Begin("Level Editor");
+            ImGui::Begin("Level Editor");
 
-		ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
-		ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
-		ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
-		ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
+                ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
+                ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
+                ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
+                ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
-		ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
-		ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f);
+                if(ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f))
+                    objects[objectPointer].UpdateY(&m.terrains.dunes);
+                if(ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f))
+                    objects[objectPointer].UpdateY(&m.terrains.dunes);
+                ImGui::SliderFloat("Pos.y", (float *)&objects[objectPointer].position.y, -256.0f, 256.0f);
 
-		ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
-		ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
-		ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
+                ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
+                ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
+                ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
 
-		ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
+                ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
 
-		for (int n = 0; n < objects.size(); ++n)
-		{
-		    char buffer[256];
-		    sprintf(buffer, "%d", n);
-		    if(ImGui::Button(buffer))
-			objectPointer = n;
-		    ImGui::SameLine();
-		}
-		ImGui::NewLine();
+                for (int n = 0; n < objects.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if(ImGui::Button(buffer))
+                        objectPointer = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
 
-		ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
+                ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
 
-		if(ImGui::Button("Delete Object"))
-		{
-		    objects.erase(objects.begin() + objectPointer);
-		    objectPointer--;
-		    if(objectPointer > objects.size())
-			objectPointer = objects.size() - 2;
-		}
-		
-		if(ImGui::Button("Create Tree"))
-		{
-		    objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-					     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-					     vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
-		    objectPointer = objects.size() - 1;
-		}
-		ImGui::SameLine();
-		if(ImGui::Button("Create Rock"))
-		{
-		    objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
-					     vec3(0.0f), 0.0f, 0.0f, 0.0f, 
-					     vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
-		    objectPointer = objects.size() - 1;
-		}
-		ImGui::SameLine();
-		if(ImGui::Button("Create Forest"))
-		{
-		    for(int i=0;i<100;i++){
-			objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<100;i++){
-			objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 0.0f, 0.0f, 0.0f, 
-						 vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
-			objectPointer = objects.size() - 1;
-		    }
-		}
+                if(ImGui::Button("Delete Object"))
+                {
+                    objects.erase(objects.begin() + objectPointer);
+                    objectPointer--;
+                    if(objectPointer > objects.size())
+                        objectPointer = objects.size() - 2;
+                }
+                
+                if(ImGui::Button("Create Tree"))
+                {
+                    objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                                             vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+                                             vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
+                    objectPointer = objects.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Rock"))
+                {
+                    objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                                             vec3(0.0f), 0.0f, 0.0f, 0.0f, 
+                                             vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
+                    objectPointer = objects.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Forest"))
+                {
+                    for(int i=0;i<100;i++){
+                        objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<100;i++){
+                        objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
+                        objectPointer = objects.size() - 1;
+                    }
+                }
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
-		if(ImGui::Button("Save")) 
-		    lvl.SaveLevel("../levels/level1.txt", objects);
-		    lvl.SaveLevel("../levels/level1_backup.txt", objects);
+                if(ImGui::Button("Save")) 
+                    lvl.SaveLevel("../levels/level1.txt", objects);
+                    lvl.SaveLevel("../levels/level1_backup.txt", objects);
 
-	    ImGui::End();
+            ImGui::End();
 
-	    ImGui::Render();
-	    glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+            ImGui::Render();
+            glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
 
-	    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
         /* Present Render */
@@ -488,7 +491,7 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
         camera.Mode = FAST;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
-	camera.Mode = FREE;
+        camera.Mode = FREE;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.Mode = FAST;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
@@ -515,7 +518,6 @@ void processInput(GLFWwindow *window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
