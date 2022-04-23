@@ -88,6 +88,7 @@ struct Manager
     Skybox_Container skyboxes;
     Model_Container models;
     Terrain_Container terrains;
+
     Manager()
     {
         /* Shader Compilation */
@@ -119,9 +120,9 @@ struct Manager
     void Populate()
     {
         Lookup[0] = {0, &this->models.backpack, &this->shaders.textureShader, TEXTURE};
-        Lookup[1] = {1, &this->models.skull, &this->shaders.textureShader, MATERIAL};
-        Lookup[2] = {2, &this->models.skull, &this->shaders.textureShader, MATERIAL};
-        Lookup[3] = {3, &this->models.skull, &this->shaders.textureShader, MATERIAL};
+        Lookup[1] = {1, &this->models.skull, &this->shaders.materialShader, MATERIAL};
+        Lookup[2] = {2, &this->models.tree, &this->shaders.textureShader, TEXTURE};
+        Lookup[3] = {3, &this->models.rock, &this->shaders.materialShader, MATERIAL};
     }
 };
 
