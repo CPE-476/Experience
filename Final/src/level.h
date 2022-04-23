@@ -19,58 +19,22 @@
 #include "model.h"
 #include "camera.h"
 #include "object.h"
+#include "manager.h"
 
 using namespace std;
 using namespace glm;
 
-struct ModelPair {
-    char* modelName;
-    Model* model;
-};
-
-struct ShaderPair {
-    char* shaderName;
-    Shader* shader;
-};
-
-struct TerrPair {
-    char* terrName;
-    Heightmap* terr;
-};
-
 class level {
 public:
-    Model *bp;
-    Model *sk;
-    Heightmap *dunes;
 
-    level(Heightmap *dunes, Model *backpack, Model *skull)
+    level()
     {
-        this->dunes = dunes;
-        this->bp = backpack;
-        this->sk = skull;
     }
 
     Camera camera;
-    Heightmap* terrain;
 
-    void LoadLevel(string Filename, vector<Object> &objects, Manager m)
+    void LoadLevel(string Filename, vector<Object> &objects, Manager* m)
     {
-        // Adding new Models
-        vector<ModelPair> modelList {
-            {strdup("BPK"), bp},
-            {strdup("SKL"), sk}
-        };
-
-        // Adding new Shaders
-        vector<ShaderPair> ShaderList {
-            {strdup("TEX"), &m.shaders.textureShader},
-            {strdup("MAT"), &m.shaders.materialShader}
-        };
-
-        vector<TerrPair> TerrList {
-            {strdup("DUNES"), dunes}
-        };
 
         string Line;
         string Type;
@@ -86,7 +50,7 @@ public:
             {
                 if(!Line.empty())
                 {
-                    int shad_t;
+                    int id;
                     vec3 pos;
                     float angleX;
                     float angleY;
@@ -95,9 +59,6 @@ public:
                     float rad_h;
                     float rad_w;
                     float scaleFactor;
-
-                    string m;
-                    string s;
      
                     Type = Line.substr(0, 3);
                     cont = Line.substr(4);
@@ -110,32 +71,17 @@ public:
                     }
 
                     if (Type == "OBJ"){ 
-                        const char* objectName = conPrt[0];
-                        m = conPrt[0];
-                        for (int i = 0; i < modelList.size(); i++){
-                            if (strcmp(objectName, modelList[i].modelName) == 0){
-                                // model exist
-                                const char* shaderName = conPrt[1];
-                                s = conPrt[1];
-                                for (int j = 0; j < ShaderList.size(); j++){
-                                    if (strcmp(shaderName, ShaderList[j].shaderName) == 0){
-                                        if(j == 0)
-                                            shad_t = TEXTURE;
-                                        else
-                                            shad_t = MATERIAL;
-                                        pos = vec3((float)atof(conPrt[2]), 0.0f, (float)atof(conPrt[3]));
-                                        angleX = (float)atof(conPrt[4]);
-                                        angleY = (float)atof(conPrt[5]);
-                                        angleZ = (float)atof(conPrt[6]);
-                                        vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
-                                        rad_h = (float)atof(conPrt[10]);
-                                        rad_w = (float)atof(conPrt[11]);
-                                        scaleFactor = (float)atof(conPrt[12]);
-                                        objects.push_back(Object(modelList[i].model, ShaderList[j].shader, shad_t, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m, s));
-                                    }
-                                }
-                            }
-                        }
+                        // get the id and other data
+                        id = (int)atof(conPrt[0]);
+                        pos = vec3((float)atof(conPrt[1]), 0.0f, (float)atof(conPrt[2]));
+                        angleX = (float)atof(conPrt[3]);
+                        angleY = (float)atof(conPrt[4]);
+                        angleZ = (float)atof(conPrt[5]);
+                        vel = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
+                        rad_h = (float)atof(conPrt[9]);
+                        rad_w = (float)atof(conPrt[10]);
+                        scaleFactor = (float)atof(conPrt[11]);
+                        objects.push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m));
                     }
                     /*
                     else if (Type == "POV"){
@@ -171,12 +117,11 @@ public:
     {
         ofstream fp;
         fp.open(Filename);
-        fp << "COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>\n";
+        fp << "COM <type id pos.x pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
         for(int i = 0; i < objects.size(); ++i)
         {
             fp << "OBJ ";
-            fp << objects[i].MODEL_ID << " ";
-            fp << objects[i].SHADER_ID << " ";
+            fp << objects[i].id << " ";
             fp << objects[i].position.x << " ";
             fp << objects[i].position.z << " ";
             fp << objects[i].angleX << " ";

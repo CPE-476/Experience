@@ -231,11 +231,11 @@ int main(void)
 
     /* Populating Object List */
     vector<Object> objects;
-    objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
-			     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-			     vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
-    level lvl = level(&m.terrains.dunes, &m.models.tree, &m.models.rock);
-    lvl.LoadLevel("../levels/level1.txt", objects, m);
+    // objects.push_back(Object(0,
+	// 		     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+	// 		     vec3(1), 1, 20, 1.0f));
+    level lvl;
+    lvl.LoadLevel("../levels/level1.txt", objects, &m);
 
     Frustum frustum;
 
@@ -296,7 +296,8 @@ int main(void)
 
             for(int i = 0; i < objects.size(); i++)
             {
-                if(objects[i].shader_type == MATERIAL)
+                int id = objects[i].id;
+                if(m.findbyId(id).shader_type == MATERIAL)
                 {
                     if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
                     {
@@ -330,7 +331,8 @@ int main(void)
 
             for(int i = 0; i < objects.size(); i++)
             {
-                if(objects[i].shader_type == TEXTURE)
+                int id = objects[i].id;
+                if(m.findbyId(id).shader_type == TEXTURE)
                 {
                     if(!frustum.ViewFrustCull(objects[i].position, objects[i].width_radius))
                     {
@@ -399,34 +401,34 @@ int main(void)
                     
                     if(ImGui::Button("Create Tree"))
                     {
-                        objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                        objects.push_back(Object(2,
                                                  vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
+                                                 vec3(1), 1, 20, 1.0f, &m));
                         objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Rock"))
                     {
-                        objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                        objects.push_back(Object(3,
                                                  vec3(0.0f), 0.0f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
+                                                 vec3(1), 1, 1, 1.0f, &m));
                         objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Forest"))
                     {
                         for(int i=0;i<100;i++){
-                            objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                            objects.push_back(Object(2,
                                                      vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                      -1.6f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
+                                                     vec3(1), 1, 20, randFloat()*2.0f,  &m));
                             objectPointer = objects.size() - 1;
                         }
                         for(int i=0;i<100;i++){
-                            objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                            objects.push_back(Object(3,
                                                      vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                      0.0f, 0.0f, 0.0f, 
-                                                     vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
+                                                     vec3(1), 1, 1, randFloat() * 5.0f, &m));
                             objectPointer = objects.size() - 1;
                         }
                     }

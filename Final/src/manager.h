@@ -88,6 +88,7 @@ struct Manager
     Skybox_Container skyboxes;
     Model_Container models;
     Terrain_Container terrains;
+    ID_Entry Lookup[100];
 
     Manager()
     {
@@ -113,9 +114,8 @@ struct Manager
         this->models.skull.init("../resources/skull.obj");
         this->models.tree.init("../resources/low-poly-tree/source/Tree3.fbx");
         this->models.rock.init("../resources/stylized-lowpoly-rock/source/Rock.fbx");
+        this->Populate();
     }
-
-    ID_Entry Lookup[100];
 
     void Populate()
     {
@@ -123,6 +123,10 @@ struct Manager
         Lookup[1] = {1, &this->models.skull, &this->shaders.materialShader, MATERIAL};
         Lookup[2] = {2, &this->models.tree, &this->shaders.textureShader, TEXTURE};
         Lookup[3] = {3, &this->models.rock, &this->shaders.materialShader, MATERIAL};
+    }
+
+    ID_Entry findbyId(int id) {
+        return Lookup[id];
     }
 };
 
