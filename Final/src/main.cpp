@@ -49,9 +49,6 @@
  *
  * Ground Geometry
  *  - Movement
- *  - Heightmap working (no bugs)
- *  - Automatic Y Placement of Objects.
- *    - Including Scale, Min/Max
  *
  * Instanced Rendering
  *  - Grass
