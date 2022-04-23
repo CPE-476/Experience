@@ -151,9 +151,15 @@ const float SFXVolume = 0.1f;
 
 int drawnObjects;
 
-float randFloat(){
+float randFloat()
+{
     float r = rand() / static_cast<float>(RAND_MAX);
     return r;
+}
+
+float lerp(float a, float b, float x)
+{
+    return a + (b - a) * x;
 }
 
 int main(void)
@@ -251,6 +257,9 @@ int main(void)
         drawnObjects = 0;
 
         processInput(window);
+
+	// TODO(Alex): Interpolate this value for smooth movement.
+	camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f);
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
 

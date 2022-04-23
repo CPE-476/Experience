@@ -3,6 +3,13 @@
 // File: Terrain
 // Date: April 2022
 
+/* TODO(Alex)
+ * Interpolate Values
+ * Generalize Sizes
+ * Generate Normals
+ * Create really contrast-y colors.
+ */
+
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
