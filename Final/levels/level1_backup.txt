@@ -1,3 +1,4 @@
 COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>
 OBJ SKL TEX 0 0 -1.6 0 0 1 1 1 1 20 1
-OBJ SKL TEX -3.354 0 6.118 -1.619 2.003 1 1 1 1 20 4.978
+OBJ SKL TEX 0 0 -1.6 0 0 1 1 1 1 20 1
+OBJ SKL TEX -3.354 0 6.118 -1.619 3.141 1 1 1 1 20 4.978
