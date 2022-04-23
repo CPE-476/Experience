@@ -18,7 +18,7 @@ using namespace std;
 using namespace glm;
 
 // Tweak these values for different terrain types.
-const float Y_SCALE = 256.0f / 256.0f; // Desired Size / Original Image size.
+const float Y_SCALE = 128.0f / 256.0f; // Desired Size / Original Image size.
 const float Y_SHIFT = 64.0f;          // Height of Mesh
 
 
@@ -95,9 +95,9 @@ public:
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
 
-                float vx = (-height + height * i / (float)height); // vx
-                float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
-                float vz = (-width + width * j / (float)width);  // vz
+                float vx = (-height/2.0f + height * i / (float)height); // vx
+                float vy = (y * Y_SCALE - Y_SHIFT);			// vy
+                float vz = (-width/2.0f + width * j / (float)width);    // vz
                 /*
                 float vx = (-height/2.0f + height * i / (float)height); // vx
                 float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy

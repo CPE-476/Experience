@@ -362,11 +362,11 @@ int main(void)
                 ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
                 ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
 
-                if(ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f))
+                if(ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -128.0f, 128.0f))
                     objects[objectPointer].UpdateY(&m.terrains.dunes);
-                if(ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f))
+                if(ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -128.0f, 128.0f))
                     objects[objectPointer].UpdateY(&m.terrains.dunes);
-                ImGui::SliderFloat("Pos.y", (float *)&objects[objectPointer].position.y, -256.0f, 256.0f);
+                ImGui::SliderFloat("Pos.y", (float *)&objects[objectPointer].position.y, -128.0f, 128.0f);
 
                 ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
                 ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);

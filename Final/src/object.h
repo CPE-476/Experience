@@ -94,7 +94,7 @@ public:
 
     void UpdateY(Terrain *terrain)
     {
-        position.y = terrain->heightAt(position.x - 128, position.z - 128);
+        position.y = terrain->heightAt(position.x + 128, position.z + 128);
     }
 
     void Update(float deltaTime)
