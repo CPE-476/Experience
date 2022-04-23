@@ -502,17 +502,18 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
         camera.Mode = FAST;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
+	camera.Mode = FREE;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.Mode = FAST;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+        camera.Mode = FREE;
+
+    if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+        camera.Mode = WALK;
+    if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
         camera.Mode = FREE;
 
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -527,10 +528,11 @@ void processInput(GLFWwindow *window)
         firstMouse = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
-        camera.Mode = WALK;
-    if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-        camera.Mode = FREE;
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_RELEASE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
