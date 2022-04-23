@@ -65,7 +65,11 @@ float skyboxVertices[] = {
 class Skybox
 {
 public:
-    Skybox(string dir, bool png = false)
+    Skybox()
+    {
+    }
+
+    void init(string dir, bool png = false)
     {
         vector<string> paths;
         paths.push_back(dir + (png ? "right.png" : "right.jpg"));
@@ -77,6 +81,7 @@ public:
         this->textureID = loadCubemap(paths);
         setup();
     }
+
     void Draw(Shader &shader, Camera& camera)
     {
         glDepthFunc(GL_LEQUAL);

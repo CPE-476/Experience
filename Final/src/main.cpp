@@ -4,46 +4,54 @@
 // Date: April 2022
 
 /* TODO
+ * Models Rotating to the Angle we want them to be when constructed.
+ * BUG
+ * Objects with Initial Angles are reset when you edit their angle in the GUI.
+ * SOLUTION
+ * Manually edit vertices when loading a mesh so they are oriented the way we want them.
+ *
  * Easy Stuff
  *  - Gamepad Support
- *  - Choosing Meshes.
- *  - BUG Editor Camera Problem.
- *  - Fullscreen
- *  - Create main GetProjection and GetView Matrix function, 
- *    so we don't have to pass camera around.
+ *  - Mesh Research
+ *    - Uniform Style
+ *    - Low Poly
+ *
+ *  - Create main GetProjection and GetView Matrix function, so we don't have to pass camera around.
  *
  * ID System With one format specifier in level loader.
  *
- * Water!
- *
  * Editor
- *  - Three Rotations at once.
  *  - Point Lights
  *  - Dir Lights
+ *
+ *  - Material colors saved.
+ *    - Just for Material Objects?
+ *    - Do we want default colors for most objects, then be able to save if we specify for particular instances?
  *  - Top down view for quick editing.
  *  - Mass Delete
  *  - Undo/Redo
- *  - Second Backup File Saving
  *  - Raycasting - Point and Click.
- *  - Palette
- *  - Be able to see which object you are looking at.
- *  - Automatic Y Placement of Objects.
- *    - Including Scale, Min/Max
+ *  - Be able to see which object you are editing.
+ *    IDEAS
+ *    - Move camera to that object, so you're looking right at it.
+ *    - Outline object with some light color.
+ *    - Show object type in GUI.
  *
  * Fog
  *  - Distance
  *  - Cloud
+ * Water!
+ * Particles
  *
  * Level Transitions
  *  - Fog at the edges.
- *  - Fade to White
- *  - Plane Transition
+ *  - Fade to White, then load other level, then fade back in.
  *
  * Ground Geometry
  *  - Movement
- *  - Heightmap
- * 
- * Particles
+ *  - Heightmap working (no bugs)
+ *  - Automatic Y Placement of Objects.
+ *    - Including Scale, Min/Max
  *
  * Instanced Rendering
  *  - Grass
@@ -56,12 +64,13 @@
  *  - Render Text to Screen.
  *
  * Soundtrack
- * NOTE: Look into MiniAudio stuff.
+ * NOTE: Look into MiniAudio's Extended Functionality
  *  - Ambient Sounds.
  *  - Spatial Sounds.
  *    - Birds
  *    - Water
  *    - Note Makes a directional Sound.
+ *    - Fog Wall sound.
  *
  * Ideas
  *  - Dunes Walking Trail
@@ -92,20 +101,16 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#define PI 3.1415
+
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
-#include "shader.h"
-Shader textureShader;  // Render Textured Meshes
-Shader materialShader; // Render Material Meshes
-Shader typeShader;     // Render Text on Screen
-Shader skyboxShader;   // Render a Cubemap Skybox
-Shader lightShader;    // <DEBUG> Render the physical locations of lights
-Shader heightShader;   // Render a Heightmap as Terrain
-
 // My Headers
+#include "shader.h"
+#include "manager.h"
 #include "camera.h"
 #include "object.h"
 #include "light.h"
@@ -131,8 +136,8 @@ void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void RenderDebugText(TextRenderer Text, Manager m);
 
-void RenderDebugText(TextRenderer Text);
 
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
@@ -164,6 +169,10 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
+#if 0
+    // Full Screen Mode
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+#endif
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
     if(window == NULL)
     {
@@ -216,31 +225,16 @@ int main(void)
         return -1;
     }
 
-    /* Shader Compilation */
-    textureShader.init("../shaders/texture_vert.glsl", "../shaders/texture_frag.glsl");
-    materialShader.init("../shaders/material_vert.glsl", "../shaders/material_frag.glsl");
-    typeShader.init("../shaders/type_vert.glsl", "../shaders/type_frag.glsl");
-    skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
-    lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
-    heightShader.init("../shaders/height_vert.glsl", "../shaders/height_frag.glsl");
-
-    /* Geometry Loading */
-    Skybox blueSkybox("../resources/daysky/", false);
-    Skybox nightSkybox("../resources/nightsky/", false);
-    Heightmap dunes("../resources/heightmap.png");
-    stbi_set_flip_vertically_on_load(true);
-    Model backpack("../resources/backpack/backpack.obj");
-    stbi_set_flip_vertically_on_load(false);
-    Model bonfire("../resources/dark_souls_bonfire/scene.gltf");
-    Model box("../resources/cube.obj");
-    Model skull("../resources/skull.obj");
-    Model tree("../resources/low-poly-tree/source/Tree3.fbx");
-    Model rock("../resources/stylized-lowpoly-rock/source/Rock.fbx");
+    // Manager Object. Loads all Shaders, Models, Geometry.
+    Manager m;
 
     /* Populating Object List */
     vector<Object> objects;
-    level lvl = level(&dunes, &backpack, &skull);
-    lvl.LoadLevel("../levels/level1.txt", objects);
+    objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+			     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+			     vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
+    level lvl = level(&m.terrains.dunes, &m.models.tree, &m.models.rock);
+    lvl.LoadLevel("../levels/level1.txt", objects, m);
 
     Frustum frustum;
 
@@ -271,33 +265,33 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         /* Render Terrain */
-        //dunes.Draw(heightShader, camera);
-	
+        m.terrains.dunes.Draw(m.shaders.heightShader, camera);
+        
         /* Render Light Positions (DEBUG) */
-        lightShader.bind();
+        m.shaders.lightShader.bind();
         {
-            lightShader.setMat4("projection", projection);
-            lightShader.setMat4("view", view);
+            m.shaders.lightShader.setMat4("projection", projection);
+            m.shaders.lightShader.setMat4("view", view);
 
             for (int i = 0; i < NUM_POINT_LIGHTS; ++i)
             {
                 model = mat4(1.0f);
                 model = scale(model, vec3(0.5f, 0.5f, 0.5f));
                 model = translate(model, pointLightPositions[i]);
-                lightShader.setMat4("model", model);
-                box.Draw(lightShader);
+                m.shaders.lightShader.setMat4("model", model);
+                m.models.box.Draw(m.shaders.lightShader);
             }
         }
-        lightShader.unbind();
+        m.shaders.lightShader.unbind();
 
         /* Render Material Objects */
-        materialShader.bind();
+        m.shaders.materialShader.bind();
         {
-            materialShader.setMat4("projection", projection);
-            materialShader.setMat4("view", view);
-            materialShader.setVec3("viewPos", camera.Position);
+            m.shaders.materialShader.setMat4("projection", projection);
+            m.shaders.materialShader.setMat4("view", view);
+            m.shaders.materialShader.setVec3("viewPos", camera.Position);
 
-            lightSystem.Render(materialShader);
+            lightSystem.Render(m.shaders.materialShader);
 
             for(int i = 0; i < objects.size(); i++)
             {
@@ -311,27 +305,27 @@ int main(void)
                 }
             }
 
-            materialShader.setVec3("material.ambient", 0.5f, 0.8f, 0.5f);
-            materialShader.setVec3("material.diffuse", 0.5f, 0.8f, 0.5f);
-            materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-            materialShader.setFloat("material.shine", 1.0f); 
+            m.shaders.materialShader.setVec3("material.ambient", 0.5f, 0.8f, 0.5f);
+            m.shaders.materialShader.setVec3("material.diffuse", 0.5f, 0.8f, 0.5f);
+            m.shaders.materialShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+            m.shaders.materialShader.setFloat("material.shine", 1.0f); 
 
-	    model = mat4(1.0f);
-	    model = translate(model, vec3(0.0f, -51.0f, 0.0f));
-	    model = scale(model, vec3(200.0f, 100.0f, 200.0f));
-	    materialShader.setMat4("model", model);
-	    box.Draw(materialShader);
+            model = mat4(1.0f);
+            model = translate(model, vec3(0.0f, -51.0f, 0.0f));
+            model = scale(model, vec3(200.0f, 100.0f, 200.0f));
+            m.shaders.materialShader.setMat4("model", model);
+            m.models.box.Draw(m.shaders.materialShader);
         }
-        materialShader.unbind();
+        m.shaders.materialShader.unbind();
 
         /* Render Textured Objects */
-        textureShader.bind();
+        m.shaders.textureShader.bind();
         {
-            textureShader.setMat4("projection", projection);
-            textureShader.setMat4("view", view);
-            textureShader.setVec3("viewPos", camera.Position);
+            m.shaders.textureShader.setMat4("projection", projection);
+            m.shaders.textureShader.setMat4("view", view);
+            m.shaders.textureShader.setVec3("viewPos", camera.Position);
 
-            lightSystem.Render(textureShader);
+            lightSystem.Render(m.shaders.textureShader);
 
             for(int i = 0; i < objects.size(); i++)
             {
@@ -345,15 +339,15 @@ int main(void)
                 }
             }
         }
-        textureShader.unbind();
+        m.shaders.textureShader.unbind();
 
 
         /* Render Skybox */
-        blueSkybox.Draw(skyboxShader, camera);
+        m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader, camera);
 
         /* Render Text */
-        Text.RenderText("You will die.", typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-        RenderDebugText(Text);
+        Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
+        RenderDebugText(Text, m);
 
         if(EditorMode == GUI)
         {
@@ -362,10 +356,11 @@ int main(void)
             ImGui::NewFrame();
 
             {
+
                 static float f = 0.0f;
                 static int objectPointer = 0;
 
-                ImGui::Begin("Experience Level Editor"); // Create a window and append into it
+                ImGui::Begin("Level Editor");
 
                     ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
                     ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
@@ -375,25 +370,11 @@ int main(void)
                     ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -256.0f, 256.0f);
                     ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -256.0f, 256.0f);
 
-                    if(ImGui::Button("X Rotation"))
-                    {
-                        objects[objectPointer].rotation = vec3(1.0f, 0.0f, 0.0f);
-                    }
-                    ImGui::SameLine();
-                    if(ImGui::Button("Y Rotation"))
-                    {
-                        objects[objectPointer].rotation = vec3(0.0f, 1.0f, 0.0f);
-                    }
-                    ImGui::SameLine();
-                    if(ImGui::Button("Z Rotation"))
-                    {
-                        objects[objectPointer].rotation = vec3(0.0f, 0.0f, 1.0f);
-                    }
-                    ImGui::SliderFloat("Angle", (float *)&objects[objectPointer].angle, 0.0f, 1.0f);
+                    ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
+                    ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
+                    ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
 
-                    ImGui::SliderFloat("X Scale", (float *)&objects[objectPointer].Scale.x, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Y Scale", (float *)&objects[objectPointer].Scale.y, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Z Scale", (float *)&objects[objectPointer].Scale.z, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
 
                     for (int n = 0; n < objects.size(); ++n)
                     {
@@ -417,39 +398,35 @@ int main(void)
                     
                     if(ImGui::Button("Create Tree"))
                     {
-                        objects.push_back(Object(&tree, &textureShader, TEXTURE,
-                                                 vec3(0.0f), 
-                                                 -1.6f, vec3(1.0f, 0.0f, 0.0f), 
-                                                 vec3(1), 1, 20, vec3(1.0f), "SKL", "TEX"));
+                        objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                                                 vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 1.0f, "SKL", "TEX"));
                         objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Rock"))
                     {
-                        objects.push_back(Object(&rock, &materialShader, MATERIAL,
-                                                 vec3(0.0f), 
-                                                 0.0f, vec3(1.0f), 
-                                                 vec3(1), 1, 1, vec3(1.0f), "BPK", "MAT"));
+                        objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                                                 vec3(0.0f), 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 1, 1.0f, "BPK", "MAT"));
                         objectPointer = objects.size() - 1;
                     }
                     ImGui::SameLine();
                     if(ImGui::Button("Create Forest"))
                     {
-			// DO NOT REMOVE. ESSENTIAL TO PROGRAM INTEGRITY.
-			ma_engine_play_sound(&musicEngine, "../resources/beam.wav", NULL);
                         for(int i=0;i<100;i++){
-                        objects.push_back(Object(&tree, &textureShader, TEXTURE,
-                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                 -1.6f, vec3(1.0f, 0.0f, 0.0f), 
-                                                 vec3(1), 1, 20, vec3((randFloat())*2.0f), "SKL", "TEX"));
-                        objectPointer = objects.size() - 1;
+                            objects.push_back(Object(&m.models.tree, &m.shaders.textureShader, TEXTURE,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     -1.6f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 20, randFloat()*2.0f, "SKL", "TEX"));
+                            objectPointer = objects.size() - 1;
                         }
                         for(int i=0;i<100;i++){
-                        objects.push_back(Object(&rock, &materialShader, MATERIAL,
-                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                 0.0f, vec3(1.0f), 
-                                                 vec3(1), 1, 1, vec3((randFloat()) * 5.0f), "BPK", "MAT"));
-                        objectPointer = objects.size() - 1;
+                            objects.push_back(Object(&m.models.rock, &m.shaders.materialShader, MATERIAL,
+                                                     vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                     0.0f, 0.0f, 0.0f, 
+                                                     vec3(1), 1, 1, randFloat() * 5.0f, "BPK", "MAT"));
+                            objectPointer = objects.size() - 1;
                         }
                     }
 
@@ -457,7 +434,9 @@ int main(void)
 
                     if(ImGui::Button("Save")) 
                         lvl.SaveLevel("../levels/level1.txt", objects);
+                        lvl.SaveLevel("../levels/level1_backup.txt", objects);
 
+// LIGHT EDITING
 /*
                     ImGui::ColorEdit3("Light Direction", (float *)&lightSystem.dirLight.direction);
                     ImGui::ColorEdit3("LAmbient", (float *)&lightSystem.dirLight.ambient);
@@ -468,7 +447,7 @@ int main(void)
                 ImGui::End();
 
                 ImGui::Render();
-                glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2); // TODO(Alex): Investigate why this is required.
+                glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
 
                 ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             }
@@ -489,20 +468,20 @@ int main(void)
     return 0;
 }
 
-void RenderDebugText(TextRenderer Text)
+void RenderDebugText(TextRenderer Text, Manager m)
 {
     unsigned int lineNumber = 1;
     char buffer[256];
     sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
-    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 
     sprintf(buffer, "Drawn Objects: %d", drawnObjects);
-    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 
     sprintf(buffer, "This is a debug message");
-    Text.RenderText(buffer, typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 }
 
@@ -542,6 +521,7 @@ void processInput(GLFWwindow *window)
     {
         EditorMode = GUI;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        firstMouse = true;
     }
 
     if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)

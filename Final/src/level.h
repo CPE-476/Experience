@@ -54,7 +54,7 @@ public:
     Camera camera;
     Heightmap* terrain;
 
-    void LoadLevel(string Filename, vector<Object> &objects)
+    void LoadLevel(string Filename, vector<Object> &objects, Manager m)
     {
         // Adding new Models
         vector<ModelPair> modelList {
@@ -64,8 +64,8 @@ public:
 
         // Adding new Shaders
         vector<ShaderPair> ShaderList {
-            {strdup("TEX"), &textureShader},
-            {strdup("MAT"), &materialShader}
+            {strdup("TEX"), &m.shaders.textureShader},
+            {strdup("MAT"), &m.shaders.materialShader}
         };
 
         vector<TerrPair> TerrList {
@@ -88,12 +88,13 @@ public:
                 {
                     int shad_t;
                     vec3 pos;
-                    float angle;
-                    vec3 rot;
+                    float angleX;
+                    float angleY;
+                    float angleZ;
                     vec3 vel;
                     float rad_h;
                     float rad_w;
-                    vec3 scale;
+                    float scaleFactor;
 
                     string m;
                     string s;
@@ -123,13 +124,14 @@ public:
                                         else
                                             shad_t = MATERIAL;
                                         pos = vec3((float)atof(conPrt[2]), 0.0f, (float)atof(conPrt[3]));
-                                        angle = (float) atof(conPrt[4]);
-                                        rot = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
-                                        vel = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
-                                        rad_h = (float) atof(conPrt[11]);
-                                        rad_w = (float) atof(conPrt[12]);
-                                        scale = vec3((float)atof(conPrt[13]), (float)atof(conPrt[14]), (float)atof(conPrt[15]));
-                                        objects.push_back(Object(modelList[i].model, ShaderList[j].shader, shad_t, pos, angle, rot, vel, rad_h, rad_w, scale, m, s));
+                                        angleX = (float)atof(conPrt[4]);
+                                        angleY = (float)atof(conPrt[5]);
+                                        angleZ = (float)atof(conPrt[6]);
+                                        vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
+                                        rad_h = (float)atof(conPrt[10]);
+                                        rad_w = (float)atof(conPrt[11]);
+                                        scaleFactor = (float)atof(conPrt[12]);
+                                        objects.push_back(Object(modelList[i].model, ShaderList[j].shader, shad_t, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m, s));
                                     }
                                 }
                             }
@@ -177,18 +179,15 @@ public:
             fp << objects[i].SHADER_ID << " ";
             fp << objects[i].position.x << " ";
             fp << objects[i].position.z << " ";
-            fp << objects[i].angle << " ";
-            fp << objects[i].rotation.x << " ";
-            fp << objects[i].rotation.y << " ";
-            fp << objects[i].rotation.z << " ";
+            fp << objects[i].angleX << " ";
+            fp << objects[i].angleY << " ";
+            fp << objects[i].angleZ << " ";
             fp << objects[i].velocity.x << " ";
             fp << objects[i].velocity.y << " ";
             fp << objects[i].velocity.z << " ";
             fp << objects[i].height_radius << " ";
             fp << objects[i].width_radius << " ";
-            fp << objects[i].Scale.x << " ";
-            fp << objects[i].Scale.y << " ";
-            fp << objects[i].Scale.z;
+            fp << objects[i].scaleFactor;
 
             fp << "\n";
         }
