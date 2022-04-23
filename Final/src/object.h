@@ -12,6 +12,7 @@
 
 #include "shader.h"
 #include "model.h"
+#include "manager.h"
 using namespace std;
 using namespace glm;
 
@@ -22,13 +23,7 @@ using namespace glm;
  *
  * Culling Radius
  * Just Width Radius for collisions
- *
  */
-
-enum ShaderTypes {
-    MATERIAL,
-    TEXTURE
-};
 
 struct Material
 {
@@ -40,49 +35,62 @@ struct Material
 
 class Object {
 public:
-    Model *model;
-    Shader *shader;
-    int shader_type;
+
+    Manager *manager;
+    int id;
     Material material;
     vec3 position;
-    float angle;
-    vec3 rotation;
-    vec3 Scale;
+    float angleX;
+    float angleY;
+    float angleZ;
+    float scaleFactor;
     vec3 velocity;
     float height_radius;
     float width_radius;
 
-    // TODO(Alex): Create a more robust system. This sucks.
-    string MODEL_ID;
-    string SHADER_ID;
+    ID_Entry entry;
+    Model *model;
+    Shader *shader;
+    int shader_type;
 
-    Object (Model *mod, Shader *sdr, int shad_t, vec3 pos, float agl, vec3 rot, 
-	vec3 vel, float rad_h, float rad_w, vec3 scl, string m, string s)
+
+    Object (int id,
+            vec3 pos, float agl_x, float agl_y, float agl_z, 
+            vec3 vel, float rad_h, float rad_w, 
+            float scl, Manager* m)
     {
-        this->model = mod;
-        this->shader = sdr;
-        this->shader_type = shad_t;
+        this->id = id;
         this->position = pos;
-        this->angle = agl;
-        this->rotation = rot;
-        this->Scale = scl;
+        this->angleX = agl_x;
+        this->angleY = agl_y;
+        this->angleZ = agl_z;
+        this->scaleFactor = scl;
         this->velocity = vel;
         this->height_radius = rad_h;
         this->width_radius = rad_w;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
-        this->MODEL_ID = m;
-        this->SHADER_ID = s;
+        this->manager = m;
     }
 
     void Draw()
     {
         mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
-        mat4 rot = rotate(mat4(1.0f), angle, rotation);
-        mat4 scl = scale(mat4(1.0f), Scale);
-        matrix = pos * rot * scl;
+        mat4 rotX = rotate(mat4(1.0f), angleX, vec3(1.0f, 0.0f, 0.0f));
+        mat4 rotY = rotate(mat4(1.0f), angleY, vec3(0.0f, 1.0f, 0.0f));
+        mat4 rotZ = rotate(mat4(1.0f), angleZ, vec3(0.0f, 0.0f, 1.0f));
+        mat4 scl = scale(mat4(1.0f), scaleFactor * vec3(1.0f, 1.0f, 1.0f));
+        matrix = pos * rotX * rotY * rotZ * scl;
+
+        entry = manager->findbyId(id);
+        model = entry.model;
+        shader = entry.shader;
+        shader_type = entry.shader_type;
+
+
         
         shader->setMat4("model", matrix);
+
         if(shader_type == MATERIAL)
         {
             shader->setVec3("material.ambient", material.ambient);

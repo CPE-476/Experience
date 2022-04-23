@@ -24,9 +24,12 @@ const float Y_SHIFT = 16.0f;
 class Heightmap
 {
 public:
-    Heightmap(string dir)
+    Heightmap()
     {
-        heightData = std::make_unique<float[]>(width * height);
+    }
+
+    void init(string dir)
+    {
         this->setup();
     }
     void Draw(Shader &shader, Camera &camera)
@@ -56,12 +59,6 @@ public:
     unsigned int height;
     unsigned int width;
 
-    std::unique_ptr<float[]> heightData;
-
-    int heightAt(int x, int y) {
-        return heightData[x + y * width];
-    }
-
 private: 
     unsigned int VAO, VBO, EBO;
     unsigned int textureID;
@@ -76,7 +73,7 @@ private:
     {
         // Load Heightmap
         int width, height, nrChannels;
-        unsigned char *data = stbi_load("../resources/heightmap.png", &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load("../resources/testing/heightmap.png", &width, &height, &nrChannels, 0);
 
         this->width = width;
         this->height = width;
@@ -96,7 +93,6 @@ private:
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);
-                heightData[j + i * width] = vy;
             }
         }
         stbi_image_free(data);
