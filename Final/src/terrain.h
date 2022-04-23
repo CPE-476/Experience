@@ -6,8 +6,7 @@
 /* TODO(Alex)
  * Interpolate Values
  * Generalize Sizes
- * Generate Normals
- * Create really contrast-y colors.
+ * Generate Normals to create contrast and see terrain colors.
  */
 
 #ifndef TERRAIN_H
@@ -26,7 +25,7 @@ using namespace glm;
 
 // Tweak these values for different terrain types.
 const float Y_SCALE = 128.0f / 256.0f; // Desired Size / Original Image size.
-const float Y_SHIFT = 64.0f;          // Height of Mesh
+const float Y_SHIFT = 64.0f;           // Height of Mesh
 
 
 class Terrain
@@ -105,11 +104,6 @@ public:
                 float vx = (-height/2.0f + height * i / (float)height); // vx
                 float vy = (y * Y_SCALE - Y_SHIFT);			// vy
                 float vz = (-width/2.0f + width * j / (float)width);    // vz
-                /*
-                float vx = (-height/2.0f + height * i / (float)height); // vx
-                float vy = ((int)y * Y_SCALE - Y_SHIFT);                // vy
-                float vz = (-width / 2.0f + width * j / (float)width);  // vz
-                */
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);

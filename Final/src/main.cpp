@@ -259,7 +259,9 @@ int main(void)
         processInput(window);
 
 	// TODO(Alex): Interpolate this value for smooth movement.
-	camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f);
+	if(camera.Mode == WALK || camera.Mode == SPRINT)
+	    camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f;
+
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
 
@@ -501,10 +503,10 @@ void processInput(GLFWwindow *window)
         camera.Mode = FAST;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
         camera.Mode = FREE;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.Mode = FAST;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-        camera.Mode = FREE;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == WALK)
+        camera.Mode = SPRINT;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == SPRINT)
+        camera.Mode = WALK;
 
     if(glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
         camera.Mode = WALK;
