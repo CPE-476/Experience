@@ -72,14 +72,14 @@ public:
                     if (Type == "OBJ"){ 
                         // get the id and other data
                         id = (int)atof(conPrt[0]);
-                        pos = vec3((float)atof(conPrt[1]), 0.0f, (float)atof(conPrt[2]));
-                        angleX = (float)atof(conPrt[3]);
-                        angleY = (float)atof(conPrt[4]);
-                        angleZ = (float)atof(conPrt[5]);
-                        vel = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
-                        rad_h = (float)atof(conPrt[9]);
-                        rad_w = (float)atof(conPrt[10]);
-                        scaleFactor = (float)atof(conPrt[11]);
+                        pos = vec3((float)atof(conPrt[1]), (float)atof(conPrt[2]), (float)atof(conPrt[3]));
+                        angleX = (float)atof(conPrt[4]);
+                        angleY = (float)atof(conPrt[5]);
+                        angleZ = (float)atof(conPrt[6]);
+                        vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
+                        rad_h = (float)atof(conPrt[10]);
+                        rad_w = (float)atof(conPrt[11]);
+                        scaleFactor = (float)atof(conPrt[12]);
                         objects.push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m));
                     }
                     /*
@@ -116,7 +116,7 @@ public:
     {
         ofstream fp;
         fp.open(Filename);
-        fp << "COM <type id pos.x pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
+        fp << "COM <type id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
         for(int i = 0; i < objects.size(); ++i)
         {
             fp << "OBJ ";

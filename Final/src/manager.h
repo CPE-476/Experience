@@ -22,20 +22,7 @@
 using namespace std;
 using namespace glm;
 
-/* TODO
- *
- * PROCESS:
- * See ID
- * Get
- *  - Model Ref
- *  - Shader Ref
- *  - Shader ID
- * Create Object
- *
- * Ideally, we only load an ID, and we only Save an ID too.
- *
- * NOTE: If any objects are dynamically allocated, we need to have a destructor.
- */
+// NOTE(Alex): If any objects are dynamically allocated, we need to have a destructor.
 
 enum ShaderTypes {
     MATERIAL,

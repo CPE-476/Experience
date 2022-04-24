@@ -267,9 +267,6 @@ int main(void)
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
-
-        // Render Terrain
-        m.terrains.dunes.Draw(m.shaders.heightShader, camera);
         
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
@@ -316,13 +313,7 @@ int main(void)
             m.shaders.materialShader.setFloat("material.shine", 1.0f); 
 
             // Render Terrain
-            m.terrains.dunes.Draw(m.shaders.materialShader, camera);
-
-            model = mat4(1.0f);
-            model = translate(model, vec3(0.0f, -51.0f, 0.0f));
-            model = scale(model, vec3(200.0f, 100.0f, 200.0f));
-            m.shaders.materialShader.setMat4("model", model);
-            m.models.box.Draw(m.shaders.materialShader);
+            //m.terrains.dunes.Draw(m.shaders.materialShader, camera);
         }
         m.shaders.materialShader.unbind();
 
