@@ -26,7 +26,6 @@ using namespace glm;
 
 class level {
 public:
-
     level()
     {
     }
@@ -123,6 +122,7 @@ public:
             fp << "OBJ ";
             fp << objects[i].id << " ";
             fp << objects[i].position.x << " ";
+            fp << objects[i].position.y << " ";
             fp << objects[i].position.z << " ";
             fp << objects[i].angleX << " ";
             fp << objects[i].angleY << " ";

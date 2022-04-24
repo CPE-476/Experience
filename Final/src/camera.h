@@ -25,12 +25,13 @@ enum Camera_Movement {
 enum Modes {
     FREE,
     FAST,
-    WALK
+    WALK,
+    SPRINT
 };
 
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 2.5f;
+const float SPEED = 10.0f;
 const float FASTSPEED = 100.0f;
 const float SENSITIVITY = 0.03f;
 const float ZOOM = 45.0f;
@@ -76,7 +77,7 @@ public:
         {
             velocity = SPEED * deltaTime;
         }
-        else if(Mode == FAST)
+        else if(Mode == FAST || Mode == SPRINT)
         {
             velocity = FASTSPEED * deltaTime;
         }
@@ -91,7 +92,7 @@ public:
             if(direction == RIGHT)
                 Position += Right * velocity;
         }
-        else if(Mode == WALK)
+        else if(Mode == WALK || Mode == SPRINT)
         {
             if(direction == FORWARD)
                 Position += cross(WorldUp, Right) * velocity;
