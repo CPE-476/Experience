@@ -30,8 +30,6 @@ public:
     {
     }
 
-    Camera camera;
-
     void LoadLevel(string Filename, vector<Object> &objects, Manager* m)
     {
 

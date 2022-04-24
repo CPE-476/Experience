@@ -66,7 +66,7 @@ struct LightSystem {
     PointLight pointLights[NUM_POINT_LIGHTS];
     SpotLight spotLight;
 
-    LightSystem(Camera &camera)
+    LightSystem()
     {
         dirLight = {vec3(0.0f, 0.0f, 1.0f),   // Direction
                     vec3(0.4f, 0.2f, 0.2f),   // Ambient

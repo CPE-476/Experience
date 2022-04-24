@@ -82,11 +82,12 @@ public:
         setup();
     }
 
-    void Draw(Shader &shader, Camera& camera)
+    void Draw(Shader &shader)
     {
         glDepthFunc(GL_LEQUAL);
         shader.bind();
-        mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+	mat4 projection = camera.GetProjectionMatrix();
+
         // Remove Translation part of matrix.
         mat4 view = mat4(mat3(camera.GetViewMatrix()));
         shader.setMat4("projection", projection);

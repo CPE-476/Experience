@@ -156,12 +156,11 @@ public:
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
     }
 
-    void Draw(Shader &shader, Camera &camera)
+    void Draw(Shader &shader)
     {
         shader.bind();
         {
-            mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
-            // Remove Translation part of matrix.
+            mat4 projection = camera.GetProjectionMatrix();
             mat4 view = camera.GetViewMatrix();
             shader.setMat4("projection", projection);
             shader.setMat4("view", view);

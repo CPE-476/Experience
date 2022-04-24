@@ -15,7 +15,6 @@
 
 #include "shader.h"
 #include "model.h"
-#include "camera.h"
 #include "skybox.h"
 #include "terrain.h"
 

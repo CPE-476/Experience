@@ -16,8 +16,6 @@
  *    - Uniform Style
  *    - Low Poly
  *
- *  - Create main GetProjection and GetView Matrix function, so we don't have to pass camera around.
- *
  * Editor
  *  - Point Lights
  *  - Dir Lights
@@ -44,9 +42,6 @@
  * Level Transitions
  *  - Fog at the edges.
  *  - Fade to White, then load other level, then fade back in.
- *
- * Ground Geometry
- *  - Movement
  *
  * Instanced Rendering
  *  - Grass
@@ -96,6 +91,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+using namespace std;
+using namespace glm;
+
+// NOTE(Alex): Global State!
 #define PI 3.1415
 
 const unsigned int SCREEN_WIDTH = 1280;
@@ -103,36 +102,11 @@ const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
-// My Headers
-#include "shader.h"
-#include "manager.h"
-#include "camera.h"
-#include "object.h"
-#include "light.h"
-#include "text.h"
-#include "skybox.h"
-#include "frustum.h"
-#include "model.h"
-#include "terrain.h"
-#include "level.h"
-
-using namespace std;
-using namespace glm;
-
-enum EditorModes
-{
-    MOVEMENT,
-    GUI
-};
+enum EditorModes { MOVEMENT, GUI };
 
 int EditorMode = MOVEMENT;
 
-void processInput(GLFWwindow *window);
-void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void RenderDebugText(TextRenderer Text, Manager m);
-
+#include "camera.h"
 
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
@@ -147,6 +121,24 @@ const float MusicVolume = 0.1f;
 const float SFXVolume = 0.1f;
 
 int drawnObjects;
+
+// My Headers
+#include "shader.h"
+#include "manager.h"
+#include "object.h"
+#include "light.h"
+#include "text.h"
+#include "skybox.h"
+#include "frustum.h"
+#include "model.h"
+#include "terrain.h"
+#include "level.h"
+
+void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void RenderDebugText(TextRenderer Text, Manager m);
 
 float randFloat()
 {
@@ -239,7 +231,7 @@ int main(void)
 
     /* Sound and Lighting */
     ma_engine_play_sound(&musicEngine, "../resources/audio/bach.mp3", NULL);
-    LightSystem lightSystem = LightSystem(camera);
+    LightSystem lightSystem = LightSystem();
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -343,7 +335,7 @@ int main(void)
 
 
         // Render Skybox
-        m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader, camera);
+        m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
