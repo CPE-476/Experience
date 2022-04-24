@@ -123,14 +123,14 @@ public:
                                             shad_t = TEXTURE;
                                         else
                                             shad_t = MATERIAL;
-                                        pos = vec3((float)atof(conPrt[2]), 0.0f, (float)atof(conPrt[3]));
-                                        angleX = (float)atof(conPrt[4]);
-                                        angleY = (float)atof(conPrt[5]);
-                                        angleZ = (float)atof(conPrt[6]);
-                                        vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
-                                        rad_h = (float)atof(conPrt[10]);
-                                        rad_w = (float)atof(conPrt[11]);
-                                        scaleFactor = (float)atof(conPrt[12]);
+                                        pos = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
+                                        angleX = (float)atof(conPrt[5]);
+                                        angleY = (float)atof(conPrt[6]);
+                                        angleZ = (float)atof(conPrt[7]);
+                                        vel = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[11]));
+                                        rad_h = (float)atof(conPrt[11]);
+                                        rad_w = (float)atof(conPrt[12]);
+                                        scaleFactor = (float)atof(conPrt[13]);
                                         objects.push_back(Object(modelList[i].model, ShaderList[j].shader, shad_t, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m, s));
                                     }
                                 }
@@ -171,13 +171,14 @@ public:
     {
         ofstream fp;
         fp.open(Filename);
-        fp << "COM <type model shader pos.x pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>\n";
+        fp << "COM <type model shader pos.x pos.y pos.z angle rot.x rot.y rot.z vel.x vel.y vel.z rad_h rad_w scale>\n";
         for(int i = 0; i < objects.size(); ++i)
         {
             fp << "OBJ ";
             fp << objects[i].MODEL_ID << " ";
             fp << objects[i].SHADER_ID << " ";
             fp << objects[i].position.x << " ";
+            fp << objects[i].position.y << " ";
             fp << objects[i].position.z << " ";
             fp << objects[i].angleX << " ";
             fp << objects[i].angleY << " ";
