@@ -32,7 +32,6 @@ public:
 
     void LoadLevel(string Filename, vector<Object> &objects, Manager* m)
     {
-
         string Line;
         string Type;
         string cont;
