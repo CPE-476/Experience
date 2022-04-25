@@ -4,39 +4,26 @@
 // Date: April 2022
 
 /* TODO
- * Models Rotating to the Angle we want them to be when constructed.
- * BUG
- * Objects with Initial Angles are reset when you edit their angle in the GUI.
- * SOLUTION
- * Manually edit vertices when loading a mesh so they are oriented the way we want them.
- *
- * Easy Stuff
- *  - Gamepad Support
- *  - Mesh Research
- *    - Uniform Style
- *    - Low Poly
+ * Gamepad Support
  *
  * Editor
- *  - Point Lights
- *  - Dir Lights
- *
- *  - Material colors saved.
- *    - Just for Material Objects?
- *    - Do we want default colors for most objects, then be able to save if we specify for particular instances?
+ *  - Compass
+ *  - Point Lights Presets in ID System
+ *  - Be able to see which object you are editing.
+ *  - Color Picker
+ *  - DirLight in Level Loader
  *  - Top down view for quick editing.
  *  - Mass Delete
  *  - Undo/Redo
  *  - Raycasting - Point and Click.
- *  - Be able to see which object you are editing.
  *    IDEAS
- *    - Move camera to that object, so you're looking right at it.
  *    - Outline object with some light color.
  *    - Show object type in GUI.
  *
- * Fog
- *  - Distance
- *  - Cloud
- * Water!
+ * Distance Fog
+ * Fog Clouds
+ * Water
+ *
  * Particles
  *
  * Level Transitions
@@ -49,9 +36,7 @@
  *
  * Collisions
  *
- * Note Pickup
- *  - Collision
- *  - Render Text to Screen.
+ * Note Pickup Render Text to Screen.
  *
  * Soundtrack
  * NOTE: Look into MiniAudio's Extended Functionality
@@ -218,20 +203,37 @@ int main(void)
         return -1;
     }
 
+
+
+
     // Manager Object. Loads all Shaders, Models, Geometry.
     Manager m;
 
-    /* Populating Object List */
+    // Populating Object List
     vector<Object> objects;
 
+    vector<Light> lights;
+
+    // Default value.
+    DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
+                                 vec3(0.4f, 0.2f, 0.2f),   // Ambient
+                                 vec3(0.8f, 0.6f, 0.6f),   // Diffuse
+                                 vec3(0.5f, 0.3f, 0.3f));  // Specular
+
     level lvl;
-    lvl.LoadLevel("../levels/level1.txt", objects, &m);
+    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight, &m);
 
     Frustum frustum;
 
-    /* Sound and Lighting */
+    // Sound System
     ma_engine_play_sound(&musicEngine, "../resources/audio/bach.mp3", NULL);
-    LightSystem lightSystem = LightSystem();
+
+    bool showLightEditor = true;
+    bool showDirLightEditor = true;
+    bool showObjectEditor = true;
+
+    bool snapToTerrain = false;
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -245,9 +247,9 @@ int main(void)
 
         processInput(window);
 
-	// TODO(Alex): Interpolate this value for smooth movement.
-	if(camera.Mode == WALK || camera.Mode == SPRINT)
-	    camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f;
+        // TODO(Alex): Interpolate this value for smooth movement.
+        if(camera.Mode == WALK || camera.Mode == SPRINT)
+            camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f;
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
@@ -266,11 +268,11 @@ int main(void)
             m.shaders.lightShader.setMat4("projection", projection);
             m.shaders.lightShader.setMat4("view", view);
 
-            for (int i = 0; i < NUM_POINT_LIGHTS; ++i)
+            for (int i = 0; i < lights.size(); ++i)
             {
                 model = mat4(1.0f);
                 model = scale(model, vec3(0.5f, 0.5f, 0.5f));
-                model = translate(model, pointLightPositions[i]);
+                model = translate(model, lights[i].position);
                 m.shaders.lightShader.setMat4("model", model);
                 m.models.box.Draw(m.shaders.lightShader);
             }
@@ -284,9 +286,15 @@ int main(void)
             m.shaders.materialShader.setMat4("view", view);
             m.shaders.materialShader.setVec3("viewPos", camera.Position);
 
-            lightSystem.Render(m.shaders.materialShader);
+            dirLight.Render(m.shaders.materialShader);
 
-            for(int i = 0; i < objects.size(); i++)
+            m.shaders.materialShader.setInt("size", lights.size());
+            for(int i = 0; i < lights.size(); ++i)
+            {
+                lights[i].Render(m.shaders.materialShader, i);
+            }
+
+            for(int i = 0; i < objects.size(); ++i)
             {
                 int id = objects[i].id;
                 if(m.findbyId(id).shader_type == MATERIAL)
@@ -316,7 +324,13 @@ int main(void)
             m.shaders.textureShader.setMat4("view", view);
             m.shaders.textureShader.setVec3("viewPos", camera.Position);
 
-            lightSystem.Render(m.shaders.textureShader);
+            dirLight.Render(m.shaders.textureShader);
+
+            m.shaders.textureShader.setInt("size", lights.size());
+            for(int i = 0; i < lights.size(); ++i)
+            {
+                lights[i].Render(m.shaders.textureShader, i);
+            }
 
             for(int i = 0; i < objects.size(); i++)
             {
@@ -348,26 +362,63 @@ int main(void)
             ImGui::NewFrame();
 
             static int objectPointer = 0;
+            static int lightPointer = 0;
 
-            ImGui::Begin("Level Editor");
+            if(showLightEditor)
+            {
+                ImGui::Begin("Light Editor");
+                for (int n = 0; n < lights.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if(ImGui::Button(buffer))
+                        lightPointer = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+                ImGui::Text("Light = %d. Position = (%f %f %f)", lightPointer, lights[lightPointer].position.x, lights[lightPointer].position.y, lights[lightPointer].position.z);
 
-                ImGui::ColorEdit3("Ambient", (float *)&objects[objectPointer].material.ambient);
-                ImGui::ColorEdit3("Diffuse", (float *)&objects[objectPointer].material.diffuse);
-                ImGui::ColorEdit3("Specular", (float *)&objects[objectPointer].material.specular);
-                ImGui::SliderFloat("Shine", (float *)&objects[objectPointer].material.shine, 0.0f, 32.0f);
+                ImGui::SliderFloat3("Position", (float *)&lights[lightPointer].position, -128.0f, 128.0f);
 
-                if(ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -128.0f, 128.0f))
-                    objects[objectPointer].UpdateY(&m.terrains.dunes);
-                if(ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -128.0f, 128.0f))
-                    objects[objectPointer].UpdateY(&m.terrains.dunes);
-                ImGui::SliderFloat("Pos.y", (float *)&objects[objectPointer].position.y, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Ambient", (float *)&lights[lightPointer].ambient, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Diffuse", (float *)&lights[lightPointer].diffuse, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Specular", (float *)&lights[lightPointer].specular, 0.0f, 1.0f);
 
-                ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
-                ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
-                ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
+                ImGui::SliderFloat("Constant", (float *)&lights[lightPointer].constant, 0.0f, 1.0f);
+                ImGui::SliderFloat("Linear", (float *)&lights[lightPointer].linear, 0.0f, 1.0f);
+                ImGui::SliderFloat("Quadratic", (float *)&lights[lightPointer].quadratic, 0.0f, 1.0f);
 
-                ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
+                if(ImGui::Button("Delete Light"))
+                {
+                    lights.erase(lights.begin() + lightPointer);
+                    lightPointer--;
+                    if(lightPointer > lights.size())
+                        lightPointer = lights.size() - 2;
+                }
+                
+                if(ImGui::Button("Create Light"))
+                {
+                    lights.push_back(Light(0, vec3(0.0f), vec3(0.05f), vec3(1.0f), vec3(0.4f),
+                                           1.0f, 0.09f, 0.032f));
+                    lightPointer = lights.size() - 1;
+                }
+                ImGui::End();
+            }
 
+            if(showDirLightEditor)
+            {
+                ImGui::Begin("DirLight Editor");
+                ImGui::SliderFloat3("Direction", (float *)&dirLight.direction, -1.0f, 1.0f);
+
+                ImGui::SliderFloat3("Ambient", (float *)&dirLight.ambient, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Diffuse", (float *)&dirLight.diffuse, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Specular", (float *)&dirLight.specular, 0.0f, 1.0f);
+                ImGui::End();
+            }
+
+            if(showObjectEditor)
+            {
+                ImGui::Begin("Object Editor");
                 for (int n = 0; n < objects.size(); ++n)
                 {
                     char buffer[256];
@@ -377,106 +428,144 @@ int main(void)
                     ImGui::SameLine();
                 }
                 ImGui::NewLine();
-
                 ImGui::Text("Object = %d. Position = (%f %f %f)", objectPointer, objects[objectPointer].position.x, objects[objectPointer].position.y, objects[objectPointer].position.z);
 
-		if(ImGui::Button("Delete Object"))
+		ImGui::Checkbox("Terrain Snap", &snapToTerrain);
+
+                if(ImGui::SliderFloat("Pos.x", (float *)&objects[objectPointer].position.x, -128.0f, 128.0f))
 		{
-		    objects.erase(objects.begin() + objectPointer);
-		    objectPointer--;
-		    if(objectPointer > objects.size())
-			objectPointer = objects.size() - 2;
+		    if(snapToTerrain)
+		    {
+			objects[objectPointer].UpdateY(&m.terrains.dunes);
+		    }
 		}
-		
-		if(ImGui::Button("Create Tree"))
+                ImGui::SliderFloat("Pos.y", (float *)&objects[objectPointer].position.y, -128.0f, 128.0f);
+                if(ImGui::SliderFloat("Pos.z", (float *)&objects[objectPointer].position.z, -128.0f, 128.0f))
 		{
-		    objects.push_back(Object(0,
-					     vec3(0.0f), -1.6f, 0.0f, 0.0f, 
-					     vec3(1), 1, 20, 1.0f, &m));
-		    objectPointer = objects.size() - 1;
-		}
-		ImGui::SameLine();
-		if(ImGui::Button("Create Rock"))
-		{
-		    // objects.push_back(Object(3,
-		    //                          vec3(0.0f), 0.0f, 0.0f, 0.0f, 
-		    //                          vec3(1), 1, 1, 1.0f, &m));
-		    // objectPointer = objects.size() - 1;
-		}
-		ImGui::SameLine();
-		if(ImGui::Button("Create Forest"))
-		{
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(0,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
+		    if(snapToTerrain)
+		    {
+			objects[objectPointer].UpdateY(&m.terrains.dunes);
 		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(1,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(2,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(3,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(4,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(5,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(6,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(7,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    for(int i=0;i<10;i++){
-			objects.push_back(Object(8,
-						 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-						 -1.6f, 0.0f, 0.0f, 
-						 vec3(1), 1, 20, randFloat()*1.5f,  &m));
-			objectPointer = objects.size() - 1;
-		    }
-		    
 		}
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
+                ImGui::SliderFloat("AngleX", (float *)&objects[objectPointer].angleX, -PI, PI);
+                ImGui::SliderFloat("AngleY", (float *)&objects[objectPointer].angleY, -PI, PI);
+                ImGui::SliderFloat("AngleZ", (float *)&objects[objectPointer].angleZ, -PI, PI);
+
+                ImGui::SliderFloat("Scale", (float *)&objects[objectPointer].scaleFactor, 0.0f, 5.0f);
+
+                if(ImGui::Button("Delete Object"))
+                {
+                    objects.erase(objects.begin() + objectPointer);
+                    objectPointer--;
+                    if(objectPointer > objects.size())
+                        objectPointer = objects.size() - 2;
+                }
+                
+                if(ImGui::Button("Create Tree"))
+                {
+                    objects.push_back(Object(0,
+                                             vec3(0.0f), -1.6f, 0.0f, 0.0f, 
+                                             vec3(1), 1, 20, 1.0f, &m));
+                    objectPointer = objects.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Rock"))
+                {
+                    objects.push_back(Object(3,
+                                             vec3(0.0f), 0.0f, 0.0f, 0.0f, 
+                                             vec3(1), 1, 1, 1.0f, &m));
+                    objectPointer = objects.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Forest"))
+                {
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(0,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(1,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(2,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(3,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(4,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(5,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(6,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(7,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(8,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                }
+
+                ImGui::End();
+            }
+
+            ImGui::Begin("Level Editor");
+                ImGui::Checkbox("Light Editor", &showLightEditor);                
+                ImGui::Checkbox("DirLight Editor", &showDirLightEditor);                
+                ImGui::Checkbox("Object Editor", &showObjectEditor);                
+
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                 if(ImGui::Button("Save")) 
-                    lvl.SaveLevel("../levels/level1.txt", objects);
-                    lvl.SaveLevel("../levels/level1_backup.txt", objects);
+                {
+                    lvl.SaveLevel("../levels/level1.txt", &objects, &lights, &dirLight);
+                    ImGui::Text("Level saved.");
+                }
+
+                if(ImGui::Button("Load"))
+                {
+                    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight, &m);
+                    ImGui::Text("Level loaded."); 
+                }
 
             ImGui::End();
 
