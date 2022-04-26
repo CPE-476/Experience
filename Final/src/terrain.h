@@ -24,7 +24,7 @@ using namespace std;
 using namespace glm;
 
 // Tweak these values for different terrain types.
-const float Y_SCALE = 128.0f / 256.0f; // Desired Size / Original Image size.
+const float Y_SCALE = 32.0f / 256.0f; // Desired Size / Original Image size.
 const float Y_SHIFT = 64.0f;           // Height of Mesh
 
 
