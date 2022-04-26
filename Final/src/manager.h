@@ -54,10 +54,12 @@ struct Skybox_Container
 
 struct Model_Container
 {
+    // testing
     Model backpack;
     Model bonfire;
     Model box;
     Model skull;
+    // forest
     Model tree_1;
     Model tree_2;
     Model tree_3;
@@ -67,6 +69,15 @@ struct Model_Container
     Model rock_2;
     Model rock_3;
     Model rock_4;
+    // desert
+    Model rock_5;
+    Model rock_6;
+    Model rock_7;
+    Model rock_8;
+    Model rock_9;
+    Model rock_10;
+    Model rock_11;
+    
 };
 
 struct Terrain_Container
@@ -110,10 +121,19 @@ struct Manager
         this->models.tree_3.init("../resources/models/trees/tree_3.fbx");
         this->models.tree_4.init("../resources/models/trees/tree_4.fbx");
         this->models.tree_5.init("../resources/models/trees/tree_5.fbx");
-        this->models.rock_1.init("../resources/models/forest_rocks/rocks/rock_1.fbx");
-        this->models.rock_2.init("../resources/models/forest_rocks/rocks/rock_2.fbx");
-        this->models.rock_3.init("../resources/models/forest_rocks/rocks/rock_3.fbx");
-        this->models.rock_4.init("../resources/models/forest_rocks/rocks/rock_4.fbx");
+        this->models.rock_1.init("../resources/models/rocks/forest_rocks/rock_1.fbx");
+        this->models.rock_2.init("../resources/models/rocks/forest_rocks/rock_2.fbx");
+        this->models.rock_3.init("../resources/models/rocks/forest_rocks/rock_3.fbx");
+        this->models.rock_4.init("../resources/models/rocks/forest_rocks/rock_4.fbx");
+        this->models.rock_5.init("../resources/models/rocks/desert_rocks/rock_13.fbx");
+        this->models.rock_6.init("../resources/models/rocks/desert_rocks/rock_9.fbx");
+        this->models.rock_7.init("../resources/models/rocks/desert_rocks/rock_8.fbx");
+        this->models.rock_8.init("../resources/models/rocks/desert_rocks/rock_6.fbx");
+        this->models.rock_9.init("../resources/models/rocks/desert_rocks/rock_3.fbx");
+        this->models.rock_10.init("../resources/models/rocks/desert_rocks/rock_2.fbx");
+        this->models.rock_11.init("../resources/models/rocks/desert_rocks/rock_1.fbx");
+
+
 
         this->Populate();
     }
@@ -129,6 +149,13 @@ struct Manager
         Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE};
         Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE};
         Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE};
+        Lookup[9] = {9, &this->models.rock_5, &this->shaders.textureShader, TEXTURE};
+        Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE};
+        Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE};
+        Lookup[12] = {12, &this->models.rock_8, &this->shaders.textureShader, TEXTURE};
+        Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE};
+        Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE};
+        Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE};
 
     }
 
