@@ -84,8 +84,6 @@ public:
         model = entry.model;
         shader = entry.shader;
         shader_type = entry.shader_type;
-
-
         
         shader->setMat4("model", matrix);
 
