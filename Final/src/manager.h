@@ -110,10 +110,10 @@ struct Manager
         this->models.tree_3.init("../resources/models/trees/tree_3.fbx");
         this->models.tree_4.init("../resources/models/trees/tree_4.fbx");
         this->models.tree_5.init("../resources/models/trees/tree_5.fbx");
-        this->models.rock_1.init("../resources/models/rocks/rock_1.fbx");
-        this->models.rock_2.init("../resources/models/rocks/rock_2.fbx");
-        this->models.rock_3.init("../resources/models/rocks/rock_3.fbx");
-        this->models.rock_4.init("../resources/models/rocks/rock_4.fbx");
+        this->models.rock_1.init("../resources/models/forest_rocks/rocks/rock_1.fbx");
+        this->models.rock_2.init("../resources/models/forest_rocks/rocks/rock_2.fbx");
+        this->models.rock_3.init("../resources/models/forest_rocks/rocks/rock_3.fbx");
+        this->models.rock_4.init("../resources/models/forest_rocks/rocks/rock_4.fbx");
 
         this->Populate();
     }
