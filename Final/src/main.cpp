@@ -5,7 +5,12 @@
 
 /* TODO
  *
- * Gamepad Support
+ * Cel-Shader
+ * Fog Shader
+ *
+ * ? Wind Waker Wind
+ *
+ * ? Gamepad Support
  *
  * Editor
  *  - Compass
@@ -16,16 +21,14 @@
  *  - Mass Delete
  *  - Undo/Redo
  *  - Raycasting - Point and Click.
- *    IDEAS
- *    - Outline object with some light color.
- *    - Show object type in GUI.
+ *    - GLM::Unproject() - Converts pixel space to a ray in world space
  *
- * Distance Fog
  * Fog Clouds
  * Water
+ *  - Moving with noise
  *
  * Level Transitions
- *  - Fog at the edges.
+ *  - Fog at the edges of each level.
  *  - Fade to White, then load other level, then fade back in.
  *
  * Instanced Rendering
@@ -45,19 +48,13 @@
  *    - Note Makes a directional Sound.
  *    - Fog Wall sound.
  *
- * Ideas
- *  - Dunes Walking Trail
- *  - Trail on the Heightmap.
- *    - Start in the Woods, no Path.
- *  - Wind Waker Wind
- *
  * FBO
  *   - Draw to different render targets by Binding one, getting an integer handle.
  *   - Draw the scene to that target.
  *   - Then draw a quad with the FBO as its texture.
  *   - Perform processing in the shader.
  *     - glGenFramebuffers(1, frameBuffer);
- *     -  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+ *     - glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
  */
 
 #include <iostream>
