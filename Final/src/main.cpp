@@ -90,10 +90,6 @@ const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
-enum EditorModes { MOVEMENT, GUI };
-
-int EditorMode = MOVEMENT;
-
 #include "camera.h"
 
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
@@ -105,22 +101,36 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
+// My Headers
+#include "shader.h"
+#include "model.h"
+#include "object.h"
+#include "light.h"
+#include "level.h"
+#include "text.h"
+#include "skybox.h"
+#include "terrain.h"
+#include "frustum.h"
+#include "particle.h"
+#include "particleSys.h"
+
+using namespace std;
+using namespace glm;
+enum EditorModes { MOVEMENT, GUI };
+
+int EditorMode = MOVEMENT;
+
+Shader textureShader;  // Render Textured Meshes
+Shader materialShader; // Render Material Meshes
+Shader typeShader;     // Render Text on Screen
+Shader skyboxShader;   // Render a Cubemap Skybox
+Shader lightShader;    // <DEBUG> Render the physical locations of lights
+Shader heightShader;   // Render a Heightmap as Terrain
+Shader particleShader; // Render Instanced Particles
 const float MusicVolume = 0.1f;
 const float SFXVolume = 0.1f;
 
 int drawnObjects;
-
-// My Headers
-#include "shader.h"
-#include "manager.h"
-#include "object.h"
-#include "light.h"
-#include "text.h"
-#include "skybox.h"
-#include "frustum.h"
-#include "model.h"
-#include "terrain.h"
-#include "level.h"
 
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
@@ -183,6 +193,43 @@ int main(void)
         return -1;
     }
 
+    float partVertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
+    };
+
+    int indices[] = {
+        0, 1, 2,
+        3, 2, 1,
+    };
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load("../resources/part.png", &width, &height, &nrComponents, 0);
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    GLuint TextureID  = glGetUniformLocation(particleShader.ID, "myTex");
+    glUniform1i(TextureID, 0);
+
+    ParticleSys test1 = ParticleSys(200, vec3(0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0.9, 0.9, 0.9, 0.9), 1, 0);
+    test1.Setup(particleShader, partVertices, indices);
+
+    ParticleSys test2 = ParticleSys(4000, vec3(10, 0, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.0, 0.4, 1, 0.9), 1, 0);
+    test2.Setup(particleShader, partVertices, indices);
+
     /* Manage OpenGL State */
     glEnable(GL_DEPTH_TEST); glEnable(GL_CULL_FACE); glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -206,8 +253,14 @@ int main(void)
         return -1;
     }
 
-
-
+    /* Shader Compilation */
+    textureShader.init("../shaders/texture_vert.glsl", "../shaders/texture_frag.glsl");
+    materialShader.init("../shaders/material_vert.glsl", "../shaders/material_frag.glsl");
+    typeShader.init("../shaders/type_vert.glsl", "../shaders/type_frag.glsl");
+    skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
+    lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
+    heightShader.init("../shaders/height_vert.glsl", "../shaders/height_frag.glsl");
+    particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
 
     // Manager Object. Loads all Shaders, Models, Geometry.
     Manager m;
@@ -360,6 +413,31 @@ int main(void)
             }
         }
         m.shaders.textureShader.unbind();
+
+
+        particleShader.bind();
+        {
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glUniform1i(TextureID, 0);
+
+            // for billboarding
+            particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
+            particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
+
+            particleShader.setMat4("Projection", projection);
+            particleShader.setMat4("View", view);
+            particleShader.setVec3("viewPos", camera.Position);
+
+            //lightSystem.Render(particleShader);
+
+            model = mat4(1.0f);
+            particleShader.setMat4("Model", model);
+            test1.Draw(deltaTime, camera);
+            test2.Draw(deltaTime, camera);
+        }
+        particleShader.unbind();
 
 
         // Render Skybox
@@ -644,6 +722,10 @@ int main(void)
                 ImGui::Checkbox("DirLight Editor", &showDirLightEditor);                
                 ImGui::Checkbox("Object Editor", &showObjectEditor);                
 
+            model = mat4(1.0f);
+            model = translate(model, vec3(0.0f, 1.0f, 0.0f));
+            textureShader.setMat4("model", model);
+            //backpack.Draw(textureShader);
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                 if(ImGui::Button("Save")) 
