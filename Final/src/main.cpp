@@ -313,7 +313,7 @@ int main(void)
             m.shaders.materialShader.setFloat("material.shine", 1.0f); 
 
             // Render Terrain
-            //m.terrains.dunes.Draw(m.shaders.materialShader, camera);
+            m.terrains.dunes.Draw(m.shaders.materialShader);
         }
         m.shaders.materialShader.unbind();
 

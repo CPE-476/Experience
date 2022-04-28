@@ -54,6 +54,7 @@ public:
             vec3 u = v1 - v0;
             vec3 v = v2 - v0;
             vec3 faceNormal = cross(u, v);
+	    cout << faceNormal.x << "|" << faceNormal.y << "|" << faceNormal.z << "\n";
 
             // Format: [3 * vertex number + x/y/z offset]
             normals[3 * indices[i]] += faceNormal.x;
@@ -66,18 +67,6 @@ public:
             normals[3 * indices[i+2] + 1] += faceNormal.y;
             normals[3 * indices[i+2] + 2] += faceNormal.z;
         }
-
-	/*
-        // NOTE(Alex): Normalizing the Normals.
-        for(int i = 0; i < normals.size(); i = i + 3) {
-            int x = normals[3 * i];
-            int y = normals[3 * i + 1];
-            int z = normals[3 * i + 2];
-            normals[3 * i] = -1 * (x / sqrt(x * x + y * y + z * z));
-            normals[3 * i + 1] = -1 * (y / sqrt(x * x + y * y + z * z));
-            normals[3 * i + 2] = -1 * (z / sqrt(x * x + y * y + z * z));
-        }
-	*/
     }
 
     float pointsData[256][256];
@@ -107,15 +96,16 @@ public:
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);
+		// This would put our index into world space rather than image space. Experiment.
+		// pointsData[vx][vz] = vy?
                 pointsData[i][j] = vy;
             }
         }
         stbi_image_free(data);
 
-        // Generate Indices (--i/--j for right side up)
-        for(int i = height - 2; i > -1; --i)
+        for(int i = 0; i < height - 1; ++i)
         {
-            for(int j = width - 1; j > -1; --j)
+            for(int j = 0; j < width; ++j)
             {
                 for(int k = 0; k < 2; ++k)
                 {
@@ -138,18 +128,16 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        /*
         // normal attribute
         glGenBuffers(1, &NBO);
         glBindBuffer(GL_ARRAY_BUFFER, NBO);
         glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-        */
+        glEnableVertexAttribArray(VBO);
+        glVertexAttribPointer(VBO, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+
+        glEnableVertexAttribArray(NBO);
+        glVertexAttribPointer(NBO, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 
         glGenBuffers(1, &EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
