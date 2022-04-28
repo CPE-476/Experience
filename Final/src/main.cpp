@@ -93,25 +93,6 @@ const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
-// My Headers
-#include "shader.h"
-#include "camera.h"
-#include "model.h"
-#include "object.h"
-#include "light.h"
-#include "text.h"
-#include "skybox.h"
-#include "heightmap.h"
-#include "frustum.h"
-#include "particle.h"
-#include "particlesys.h"
-
-using namespace std;
-using namespace glm;
-enum EditorModes { MOVEMENT, GUI };
-
-int EditorMode = MOVEMENT;
-
 #include "camera.h"
 
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
@@ -122,6 +103,25 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
+
+// My Headers
+#include "shader.h"
+#include "model.h"
+#include "object.h"
+#include "light.h"
+#include "level.h"
+#include "text.h"
+#include "skybox.h"
+#include "terrain.h"
+#include "frustum.h"
+#include "particle.h"
+#include "particleSys.h"
+
+using namespace std;
+using namespace glm;
+enum EditorModes { MOVEMENT, GUI };
+
+int EditorMode = MOVEMENT;
 
 Shader textureShader;  // Render Textured Meshes
 Shader materialShader; // Render Material Meshes
@@ -134,18 +134,6 @@ const float MusicVolume = 0.1f;
 const float SFXVolume = 0.1f;
 
 int drawnObjects;
-
-// My Headers
-#include "shader.h"
-#include "manager.h"
-#include "object.h"
-#include "light.h"
-#include "text.h"
-#include "skybox.h"
-#include "frustum.h"
-#include "model.h"
-#include "terrain.h"
-#include "level.h"
 
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
@@ -428,6 +416,31 @@ int main(void)
             }
         }
         m.shaders.textureShader.unbind();
+
+
+        particleShader.bind();
+        {
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glUniform1i(TextureID, 0);
+
+            // for billboarding
+            particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
+            particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
+
+            particleShader.setMat4("Projection", projection);
+            particleShader.setMat4("View", view);
+            particleShader.setVec3("viewPos", camera.Position);
+
+            //lightSystem.Render(particleShader);
+
+            model = mat4(1.0f);
+            particleShader.setMat4("Model", model);
+            test1.Draw(deltaTime, camera);
+            test2.Draw(deltaTime, camera);
+        }
+        particleShader.unbind();
 
 
         // Render Skybox
@@ -723,30 +736,6 @@ int main(void)
                     lvl.SaveLevel("../levels/level1.txt", &objects, &lights, &dirLight);
                     ImGui::Text("Level saved.");
                 }
-
-        particleShader.bind();
-        {
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glUniform1i(TextureID, 0);
-
-            // for billboarding
-            particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
-            particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
-
-            particleShader.setMat4("Projection", projection);
-            particleShader.setMat4("View", view);
-            particleShader.setVec3("viewPos", camera.Position);
-
-            lightSystem.Render(particleShader);
-
-            model = mat4(1.0f);
-            particleShader.setMat4("Model", model);
-            test1.Draw(deltaTime, camera);
-            test2.Draw(deltaTime, camera);
-        }
-        particleShader.unbind();
 
                 if(ImGui::Button("Load"))
                 {
