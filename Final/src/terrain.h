@@ -6,7 +6,6 @@
 /* TODO(Alex)
  * Interpolate Values
  * Generalize Sizes
- * Generate Normals to create contrast and see terrain colors.
  */
 
 #ifndef TERRAIN_H
@@ -24,49 +23,14 @@ using namespace std;
 using namespace glm;
 
 // Tweak these values for different terrain types.
-const float Y_SCALE = 128.0f / 256.0f; // Desired Size / Original Image size.
-const float Y_SHIFT = 64.0f;           // Height of Mesh
-
+const float Y_SCALE = 32.0f / 256.0f; // Desired Size / Original Image size.
+const float Y_SHIFT = 16.0f;          // Height of Mesh. Should be half of Desired Size.
 
 class Terrain
 {
 public:
     Terrain()
     {
-    }
-
-    void computeNormals()
-    {
-        normals.resize(vertices.size(), 0);
-        for(int i = 0; i < indices.size(); i = i + 3)
-        {
-            vec3 v0, v1, v2;
-            v0.x = vertices[3 * indices[i]];
-            v0.y = vertices[3 * indices[i] + 1];
-            v0.z = vertices[3 * indices[i] + 2];
-            v1.x = vertices[3 * indices[i+1]];
-            v1.y = vertices[3 * indices[i+1] + 1];
-            v1.z = vertices[3 * indices[i+1] + 2];
-            v2.x = vertices[3 * indices[i+2]];
-            v2.y = vertices[3 * indices[i+2] + 1];
-            v2.z = vertices[3 * indices[i+2] + 2];
-
-            vec3 u = v1 - v0;
-            vec3 v = v2 - v0;
-            vec3 faceNormal = cross(u, v);
-	    cout << faceNormal.x << "|" << faceNormal.y << "|" << faceNormal.z << "\n";
-
-            // Format: [3 * vertex number + x/y/z offset]
-            normals[3 * indices[i]] += faceNormal.x;
-            normals[3 * indices[i] + 1] += faceNormal.y;
-            normals[3 * indices[i] + 2] += faceNormal.z;
-            normals[3 * indices[i+1]] += faceNormal.x;
-            normals[3 * indices[i+1] + 1] += faceNormal.y;
-            normals[3 * indices[i+1] + 2] += faceNormal.z;
-            normals[3 * indices[i+2]] += faceNormal.x;
-            normals[3 * indices[i+2] + 1] += faceNormal.y;
-            normals[3 * indices[i+2] + 2] += faceNormal.z;
-        }
     }
 
     float pointsData[256][256];
@@ -79,73 +43,79 @@ public:
     void init(string path)
     {
         // Load Heightmap
-        int width, height, nrChannels;
+        int nrChannels;
         unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
- 
-        // Generate Vertices
+
         for(int i = 0; i < height; ++i)
         {
             for(int j = 0; j < width; ++j)
             {
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
-
-                float vx = (-height/2.0f + height * i / (float)height); // vx
-                float vy = (y * Y_SCALE - Y_SHIFT);			// vy
-                float vz = (-width/2.0f + width * j / (float)width);    // vz
-                vertices.push_back(vx);
-                vertices.push_back(vy);
-                vertices.push_back(vz);
-		// This would put our index into world space rather than image space. Experiment.
-		// pointsData[vx][vz] = vy?
+                float vy = (y * Y_SCALE - Y_SHIFT);
                 pointsData[i][j] = vy;
             }
         }
         stbi_image_free(data);
-
-        for(int i = 0; i < height - 1; ++i)
+ 
+        // Generate Vertices
+        for(int i = 0; i < height; ++i)
         {
             for(int j = 0; j < width; ++j)
             {
-                for(int k = 0; k < 2; ++k)
-                {
-                    indices.push_back(j + width * (i + k));
-                }
+                float vx = (-height/2.0f + height * i / (float)height); // vx
+                float vz = (-width/2.0f + width * j / (float)width);    // vz
+                vertices.push_back(vx);
+                vertices.push_back(pointsData[i][j]);
+                vertices.push_back(vz);
+
+                // Compute Normals, pack into array.
+                vec3 v0 = vec3(0, (pointsData[i][j+1] - pointsData[i][j-1]), 2);
+                vec3 v1 = vec3(2, (pointsData[i+1][j] - pointsData[i-1][j]), 0);
+                vec3 normal = normalize(cross(v0, v1));
+                vertices.push_back(normal.x);
+                vertices.push_back(normal.y);
+                vertices.push_back(normal.z);
+            }
+        }
+
+        for(int i = 0; i < height - 1; ++i)             // For each strip
+        {
+            for(int j = 0; j < width; ++j)              // For each column
+            {
+                indices.push_back(j + width * (i + 0)); // For each side of the strip
+                indices.push_back(j + width * (i + 1));
             }
         }
 
         num_strips = height - 1;
         num_tris_per_strip = width * 2;
 
-        computeNormals();
-
         // Buffers
         glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
 
         // position attribute
-        glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
-        // normal attribute
-        glGenBuffers(1, &NBO);
-        glBindBuffer(GL_ARRAY_BUFFER, NBO);
-        glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
+        // Vertex data
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
 
-        glEnableVertexAttribArray(VBO);
-        glVertexAttribPointer(VBO, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        // Normal data
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-        glEnableVertexAttribArray(NBO);
-        glVertexAttribPointer(NBO, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-
-        glGenBuffers(1, &EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     }
 
     void Draw(Shader &shader)
     {
+        glFrontFace(GL_CW);
         shader.bind();
         {
             mat4 projection = camera.GetProjectionMatrix();
@@ -165,17 +135,19 @@ public:
             }
         }
         shader.unbind();
+        glFrontFace(GL_CCW);
     }
 
 private: 
-    unsigned int VAO, VBO, NBO, EBO;
+    unsigned int VAO, VBO, EBO;
 
     vector<float> vertices;
-    vector<float> normals;
     vector<unsigned int> indices;
 
     unsigned int num_strips;
     unsigned int num_tris_per_strip;
+
+    int width, height;
 };
 
 #endif

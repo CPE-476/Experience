@@ -11,7 +11,6 @@
  *  - Point Lights Presets in ID System
  *  - Be able to see which object you are editing.
  *  - Color Picker
- *  - DirLight in Level Loader
  *  - Top down view for quick editing.
  *  - Mass Delete
  *  - Undo/Redo
@@ -23,8 +22,6 @@
  * Distance Fog
  * Fog Clouds
  * Water
- *
- * Particles
  *
  * Level Transitions
  *  - Fog at the edges.
@@ -247,9 +244,20 @@ int main(void)
 
         processInput(window);
 
-        // TODO(Alex): Interpolate this value for smooth movement.
+        // TODO(Alex): Find a better Interpolation.
         if(camera.Mode == WALK || camera.Mode == SPRINT)
-            camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f;
+	{
+            float xPosY = lerp(m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f,
+			m.terrains.dunes.heightAt(camera.Position.x + 128.0f + 1.0f, camera.Position.z + 128.0f) + 5.0f,
+			camera.Position.x - (int)camera.Position.x);
+
+            float zPosY = lerp(m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f,
+			m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f + 1.0f) + 5.0f,
+			camera.Position.z - (int)camera.Position.z);
+
+	    camera.Position.y = lerp(xPosY, zPosY, 0.5);
+	}
+
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
@@ -349,7 +357,7 @@ int main(void)
 
 
         // Render Skybox
-        m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
+        //m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
