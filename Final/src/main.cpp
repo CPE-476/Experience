@@ -4,6 +4,7 @@
 // Date: April 2022
 
 /* TODO
+ *
  * Gamepad Support
  *
  * Editor
@@ -49,6 +50,14 @@
  *  - Trail on the Heightmap.
  *    - Start in the Woods, no Path.
  *  - Wind Waker Wind
+ *
+ * FBO
+ *   - Draw to different render targets by Binding one, getting an integer handle.
+ *   - Draw the scene to that target.
+ *   - Then draw a quad with the FBO as its texture.
+ *   - Perform processing in the shader.
+ *     - glGenFramebuffers(1, frameBuffer);
+ *     -  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
  */
 
 #include <iostream>
