@@ -64,6 +64,8 @@ const unsigned int TEXT_SIZE = 16;
 #include "skybox.h"
 #include "heightmap.h"
 #include "frustum.h"
+#include "particle.h"
+#include "particlesys.h"
 
 using namespace std;
 using namespace glm;
@@ -91,6 +93,7 @@ Shader typeShader;     // Render Text on Screen
 Shader skyboxShader;   // Render a Cubemap Skybox
 Shader lightShader;    // <DEBUG> Render the physical locations of lights
 Shader heightShader;   // Render a Heightmap as Terrain
+Shader particleShader; // Render Instanced Particles
 
 // Loader Format:
 // {"mat"     | *materialShader
@@ -132,6 +135,43 @@ int main(void)
         return -1;
     }
 
+    float partVertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
+    };
+
+    int indices[] = {
+        0, 1, 2,
+        3, 2, 1,
+    };
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load("../resources/part.png", &width, &height, &nrComponents, 0);
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    GLuint TextureID  = glGetUniformLocation(particleShader.ID, "myTex");
+    glUniform1i(TextureID, 0);
+
+    ParticleSys test1 = ParticleSys(200, vec3(0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0.9, 0.9, 0.9, 0.9), 1, 0);
+    test1.Setup(particleShader, partVertices, indices);
+
+    ParticleSys test2 = ParticleSys(4000, vec3(10, 0, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.0, 0.4, 1, 0.9), 1, 0);
+    test2.Setup(particleShader, partVertices, indices);
+
     /* Manage OpenGL State */
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -162,6 +202,8 @@ int main(void)
     skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
     lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
     heightShader.init("../shaders/height_vert.glsl", "../shaders/height_frag.glsl");
+    particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
+
 
     /* Geometry Loading */
     Skybox blueSkybox("../resources/daysky/", false);
@@ -264,10 +306,34 @@ int main(void)
             model = mat4(1.0f);
             model = translate(model, vec3(0.0f, 1.0f, 0.0f));
             textureShader.setMat4("model", model);
-            backpack.Draw(textureShader);
+            //backpack.Draw(textureShader);
 
         }    
         textureShader.unbind();
+
+        particleShader.bind();
+        {
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glUniform1i(TextureID, 0);
+
+            // for billboarding
+            particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
+            particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
+
+            particleShader.setMat4("Projection", projection);
+            particleShader.setMat4("View", view);
+            particleShader.setVec3("viewPos", camera.Position);
+
+            lightSystem.Render(particleShader);
+
+            model = mat4(1.0f);
+            particleShader.setMat4("Model", model);
+            test1.Draw(deltaTime, camera);
+            test2.Draw(deltaTime, camera);
+        }
+        particleShader.unbind();
 
 
         /* Render Skybox */
