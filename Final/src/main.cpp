@@ -478,6 +478,16 @@ int main(void)
                     if(objectPointer > objects.size())
                         objectPointer = objects.size() - 2;
                 }
+
+                if(ImGui::Button("Delete All"))
+                {
+                    while (objects.size() > 0) {
+                        objects.erase(objects.begin() + objectPointer);
+                        objectPointer--;
+                        if(objectPointer > objects.size())
+                            objectPointer = objects.size() - 2;
+                    }
+                }
                 
                 if(ImGui::Button("Create Tree"))
                 {
@@ -562,6 +572,73 @@ int main(void)
                     }
                 }
 
+                ImGui::SameLine();
+                if(ImGui::Button("Create Desert"))
+                {
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(9,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(10,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(11,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(12,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(13,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(14,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(15,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(3,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(4,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                }
                 ImGui::End();
             }
 

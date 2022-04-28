@@ -108,7 +108,7 @@ struct Manager
 
         this->skyboxes.nightSkybox.init("../resources/skyboxes/nightsky/", false);
 
-        this->terrains.dunes.init("../resources/testing/heightmap.png");
+        this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");
 
         stbi_set_flip_vertically_on_load(true);
         this->models.backpack.init("../resources/models/backpack/backpack.obj");
