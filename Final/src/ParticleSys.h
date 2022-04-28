@@ -113,8 +113,6 @@ private:
         glBindBuffer(GL_ARRAY_BUFFER, scaleVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * MaxParticles, &scaleOffsets[0], GL_STREAM_DRAW);
 
-        cout << posOffsets[0].y << endl;
-
         glBindVertexArray(quadVAO);
         glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(sizeof(indies)), GL_UNSIGNED_INT, 0, particleAmount);
         }
