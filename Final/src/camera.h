@@ -1,7 +1,7 @@
 // Author: Alex Hartford
-// Program: Countdown
+// Program: Experience
 // File: Camera Class
-// Date: March 2022
+// Date: April 2022
 
 #ifndef CAMERA_H
 #define CAMERA_H
@@ -12,6 +12,9 @@
 
 #include <vector>
 
+using namespace std;
+using namespace glm;
+
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -21,12 +24,14 @@ enum Camera_Movement {
 
 enum Modes {
     FREE,
-    FAST
+    FAST,
+    WALK,
+    SPRINT
 };
 
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 2.5f;
+const float SPEED = 10.0f;
 const float FASTSPEED = 100.0f;
 const float SENSITIVITY = 0.03f;
 const float ZOOM = 45.0f;
@@ -34,11 +39,11 @@ const float ZOOM = 45.0f;
 class Camera
 {
 public:
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
+    vec3 Position;
+    vec3 Front;
+    vec3 Up;
+    vec3 Right;
+    vec3 WorldUp;
 
     float Yaw;
     float Pitch;
@@ -48,10 +53,10 @@ public:
 
     int Mode;
 
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
-           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    Camera(vec3 position = vec3(0.0f, 0.0f, 0.0f), 
+           vec3 up = vec3(0.0f, 1.0f, 0.0f),
            float yaw = YAW, float pitch = PITCH) : 
-           Front(glm::vec3(0.0f, 0.0f, -1.0f)), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), Mode(FREE)
+           Front(vec3(0.0f, 0.0f, -1.0f)), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), Mode(FREE)
     {
         Position = position;
         WorldUp = up;
@@ -60,32 +65,50 @@ public:
         updateCameraVectors();
     }
 
-    glm::mat4 GetViewMatrix()
+    mat4 GetProjectionMatrix()
     {
-        return glm::lookAt(Position, Position + Front, Up);
+        return perspective(radians(Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+    }
+
+    mat4 GetViewMatrix()
+    {
+        return lookAt(Position, Position + Front, Up);
     }
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = 0;;
-        if(Mode == FREE)
+        float velocity = 0;
+        if(Mode == FREE || Mode == WALK)
         {
             velocity = SPEED * deltaTime;
         }
-        else if(Mode == FAST)
+        else if(Mode == FAST || Mode == SPRINT)
         {
             velocity = FASTSPEED * deltaTime;
         }
-        if(direction == FORWARD)
-            Position += Front * velocity;
-        if(direction == BACKWARD)
-            Position -= Front * velocity;
-        if(direction == LEFT)
-            Position -= Right * velocity;
-        if(direction == RIGHT)
-            Position += Right * velocity;
+        if(Mode == FREE || Mode == FAST)
+        {
+            if(direction == FORWARD)
+                Position += Front * velocity;
+            if(direction == BACKWARD)
+                Position -= Front * velocity;
+            if(direction == LEFT)
+                Position -= Right * velocity;
+            if(direction == RIGHT)
+                Position += Right * velocity;
+        }
+        else if(Mode == WALK || Mode == SPRINT)
+        {
+            if(direction == FORWARD)
+                Position += cross(WorldUp, Right) * velocity;
+            if(direction == BACKWARD)
+                Position -= cross(WorldUp, Right) * velocity;
+            if(direction == LEFT)
+                Position += cross(WorldUp, Front) * velocity;
+            if(direction == RIGHT)
+                Position -= cross(WorldUp, Front) * velocity;    
+        }
     }
-
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
@@ -116,14 +139,14 @@ public:
 private:
     void updateCameraVectors()
     {
-        glm::vec3 front;
-        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        front.y = sin(glm::radians(Pitch));
-        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        Front = glm::normalize(front); 
+        vec3 front;
+        front.x = cos(radians(Yaw)) * cos(radians(Pitch));
+        front.y = sin(radians(Pitch));
+        front.z = sin(radians(Yaw)) * cos(radians(Pitch));
+        Front = normalize(front); 
 
-        Right = glm::normalize(glm::cross(Front, WorldUp));
-        Up = glm::normalize(glm::cross(Right, Front));
+        Right = normalize(cross(Front, WorldUp));
+        Up = normalize(cross(Right, Front));
     }
 };
 #endif
