@@ -96,6 +96,7 @@ public:
         }
 
         model->Draw(*shader);
+        //cout << "drawing skull" << endl;
     }
 
     void UpdateY(Terrain *terrain)
