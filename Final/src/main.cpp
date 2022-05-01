@@ -209,7 +209,7 @@ int main(void)
     };
 
     int width, height, nrComponents;
-    unsigned char *data = stbi_load("../resources/part.png", &width, &height, &nrComponents, 0);
+    unsigned char *data = stbi_load("../resources/models/particle/part.png", &width, &height, &nrComponents, 0);
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
@@ -648,6 +648,27 @@ int main(void)
                                                  vec3(1), 1, 20, randFloat()*1.5f,  &m));
                         objectPointer = objects.size() - 1;
                     }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(16,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 0.05f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(17,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(18,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 0.05f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
                 }
 
                 ImGui::SameLine();
@@ -716,6 +737,34 @@ int main(void)
                                                  vec3(1), 1, 20, randFloat()*1.5f,  &m));
                         objectPointer = objects.size() - 1;
                     }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(19,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(20,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(21,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(22,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.0f,  &m));
+                        objectPointer = objects.size() - 1;
+                    }
                 }
                 ImGui::End();
             }
@@ -728,7 +777,7 @@ int main(void)
             model = mat4(1.0f);
             model = translate(model, vec3(0.0f, 1.0f, 0.0f));
             textureShader.setMat4("model", model);
-            //backpack.Draw(textureShader);
+
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
                 if(ImGui::Button("Save")) 
