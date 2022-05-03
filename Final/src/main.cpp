@@ -246,10 +246,10 @@ int main(void)
         GLuint TextureID  = glGetUniformLocation(m.shaders.particleShader.ID, "myTex");
         glUniform1i(TextureID, 0);
 
-        ParticleSys test1 = ParticleSys(200, vec3(0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0.9, 0.9, 0.9, 0.9), 1, 0);
+        ParticleSys test1 = ParticleSys(200, vec3(0, 10, 0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0), 1, 0);
         test1.Setup(m.shaders.particleShader, partVertices, indices);
 
-        ParticleSys test2 = ParticleSys(4000, vec3(10, 0, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.0, 0.4, 1, 0.9), 1, 0);
+        ParticleSys test2 = ParticleSys(200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
         test2.Setup(m.shaders.particleShader, partVertices, indices);
 
 
@@ -324,6 +324,11 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
+        // Render Skybox
+        if(drawSkybox)
+        {
+            m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
+        }
 
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
@@ -461,13 +466,6 @@ int main(void)
             test2.Draw(deltaTime, camera);
         }
         m.shaders.particleShader.unbind();
-
-
-        // Render Skybox
-        if(drawSkybox)
-        {
-            m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
-        }
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
