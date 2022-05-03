@@ -272,6 +272,8 @@ int main(void)
     bool snapToTerrain = false;
     bool drawTerrain = false;
     bool drawSkybox = false;
+    bool drawBoundingSpheres = false;
+    bool drawPointLights = false;
 
     bool createBackup = false;
 
@@ -323,27 +325,36 @@ int main(void)
             m.shaders.lightShader.setMat4("projection", projection);
             m.shaders.lightShader.setMat4("view", view);
 
-            for (int i = 0; i < lights.size(); ++i)
+            if(drawPointLights)
             {
-                model = mat4(1.0f);
-                model = scale(model, vec3(0.5f, 0.5f, 0.5f));
-                model = translate(model, lights[i].position);
-                m.shaders.lightShader.setMat4("model", model);
-                m.models.cube.Draw(m.shaders.lightShader);
+                for (int i = 0; i < lights.size(); ++i)
+                {
+                    model = mat4(1.0f);
+                    model = scale(model, vec3(0.5f, 0.5f, 0.5f));
+                    model = translate(model, lights[i].position);
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.cube.Draw(m.shaders.lightShader);
+                }
             }
 
-            for (int i = 0; i < objects.size(); ++i)
+            if(drawBoundingSpheres)
             {
-                if(i == selectedObject)
+                for (int i = 0; i < objects.size(); ++i)
                 {
-                    objects[i].Draw(&m.shaders.lightShader);
+                    if(i == selectedObject)
+                    {
+                        objects[i].Draw(&m.shaders.lightShader);
+                    }
+                    model = mat4(1.0f);
+                    model = scale(model, vec3(objects[i].view_radius));
+                    model = translate(model, objects[i].position);
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.sphere.Draw(m.shaders.lightShader);
                 }
-                model = mat4(1.0f);
-                model = scale(model, vec3(objects[i].view_radius));
-                model = translate(model, objects[i].position);
-                m.shaders.lightShader.setMat4("model", model);
-                m.models.sphere.Draw(m.shaders.lightShader);
             }
+
+            // Draw Selected Object
+            objects[selectedObject].Draw(&m.shaders.lightShader);
         }
         m.shaders.lightShader.unbind();
 
@@ -678,6 +689,27 @@ int main(void)
                                                  vec3(1), 1, 1, randFloat()*1.5f,  &m));
                         selectedObject = objects.size() - 1;
                     }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(16,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 0.05f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(17,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(18,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 0.0f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 0.05f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
                 }
 
                 ImGui::SameLine();
@@ -746,17 +778,50 @@ int main(void)
                                                  vec3(1), 1, 1, randFloat()*1.5f,  &m));
                         selectedObject = objects.size() - 1;
                     }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(19,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(20,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(21,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.5f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        objects.push_back(Object(22,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, randFloat()*1.0f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
                 }
                 ImGui::End();
             }
 
             ImGui::Begin("Level Editor");
                 ImGui::Checkbox("Light Editor", &showLightEditor);                
+                ImGui::SameLine();
                 ImGui::Checkbox("DirLight Editor", &showDirLightEditor);                
+                ImGui::SameLine();
                 ImGui::Checkbox("Object Editor", &showObjectEditor);                
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Skybox", &drawSkybox);
+                ImGui::SameLine();
+                ImGui::Checkbox("Draw Point Lights", &drawPointLights);
+                ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 

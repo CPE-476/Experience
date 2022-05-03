@@ -1,4 +1,4 @@
-// Author: Alex Hartford
+// Author: Alex Hartford, Lucas Li
 // Program: Experience
 // File: Manager
 // Date: April 2022
@@ -65,7 +65,6 @@ struct Model_Container
 {
     // testing
     Model backpack;
-    Model bonfire;
     Model cube;
     Model sphere;
     Model skull;
@@ -79,6 +78,9 @@ struct Model_Container
     Model rock_2;
     Model rock_3;
     Model rock_4;
+    Model campfire;
+    Model snail;
+    Model fern;
     // desert
     Model rock_5;
     Model rock_6;
@@ -87,6 +89,11 @@ struct Model_Container
     Model rock_9;
     Model rock_10;
     Model rock_11;    
+    Model cactus_1;
+    Model cactus_2;
+    Model cactus_3;
+    Model trumbleweed;
+    
 };
 
 struct Terrain_Container
@@ -121,12 +128,11 @@ struct Manager
         this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");
 
         stbi_set_flip_vertically_on_load(true);
-        this->models.backpack.init("../resources/models/backpack/backpack.obj");
+        // this->models.backpack.init("../resources/models/backpack/backpack.obj");
         stbi_set_flip_vertically_on_load(false);
         this->models.cube.init("../resources/testing/cube.obj");
         this->models.sphere.init("../resources/testing/sphere.obj");
         this->models.skull.init("../resources/testing/skull.obj");
-        this->models.bonfire.init("../resources/models/dark_souls_bonfire/scene.gltf");
         this->models.tree_1.init("../resources/models/trees/tree_1.fbx");
         this->models.tree_2.init("../resources/models/trees/tree_2.fbx");
         this->models.tree_3.init("../resources/models/trees/tree_3.fbx");
@@ -143,7 +149,13 @@ struct Manager
         this->models.rock_9.init("../resources/models/rocks/desert_rocks/rock_3.fbx");
         this->models.rock_10.init("../resources/models/rocks/desert_rocks/rock_2.fbx");
         this->models.rock_11.init("../resources/models/rocks/desert_rocks/rock_1.fbx");
-
+        this->models.campfire.init("../resources/models/environment/campfire/Campfire.fbx");
+        this->models.snail.init("../resources/models/environment/snail/snail.fbx");
+        this->models.fern.init("../resources/models/environment/fern/fern.fbx");
+        this->models.cactus_1.init("../resources/models/environment/cactus/cactus_1.fbx");
+        this->models.cactus_2.init("../resources/models/environment/cactus/cactus_2.fbx");
+        this->models.cactus_3.init("../resources/models/environment/cactus/cactus_3.fbx");
+        this->models.trumbleweed.init("../resources/models/environment/tumbleweed/Tumbleweed.fbx");
 
         this->Populate();
     }
@@ -166,6 +178,13 @@ struct Manager
         Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE};
         Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE};
         Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE};
+        Lookup[16] = {16, &this->models.campfire, &this->shaders.textureShader, TEXTURE};
+        Lookup[17] = {17, &this->models.snail, &this->shaders.textureShader, TEXTURE};
+        Lookup[18] = {18, &this->models.fern, &this->shaders.textureShader, TEXTURE};
+        Lookup[19] = {19, &this->models.cactus_1, &this->shaders.textureShader, TEXTURE};
+        Lookup[20] = {20, &this->models.cactus_2, &this->shaders.textureShader, TEXTURE};
+        Lookup[21] = {21, &this->models.cactus_3, &this->shaders.textureShader, TEXTURE};
+        Lookup[22] = {22, &this->models.trumbleweed, &this->shaders.textureShader, TEXTURE};
     }
 
     ID_Entry findbyId(int id) {
