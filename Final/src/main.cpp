@@ -4,17 +4,14 @@
 // Date: April 2022
 
 /* TODO
- *
- * Fog Shader
- *
- * ? Gamepad Support
- *
  * Editor
  *  - Compass
  *  - Point Lights Presets in ID System
  *  - Particle Presets in ID System
  *  - Color Picker
  *  - Top down view for quick editing.
+ *
+ * Fog Shader
  *
  * Volumetric Fog
  * Water
@@ -48,6 +45,12 @@
  *   - Perform processing in the shader.
  *     - glGenFramebuffers(1, frameBuffer);
  *     - glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+ *
+ * Deferred Shading
+ *   We generate the render buffers
+ *   Set them with gl calls, treat them like attributes in fragment shaders.
+ *   - glEnum DrawBuffers[3]
+ *   - glDrawBuffers()
  */
 
 #include <iostream>
@@ -112,7 +115,9 @@ vec3 selectorRay = vec3(0.0f);
 
 using namespace std;
 using namespace glm;
+
 enum EditorModes { MOVEMENT, GUI, SELECTION };
+enum Levels { ONE, TWO, THREE };
 
 int EditorMode = MOVEMENT;
 
@@ -171,6 +176,7 @@ int main(void)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -275,7 +281,7 @@ int main(void)
     bool drawBoundingSpheres = false;
     bool drawPointLights = false;
 
-    bool createBackup = false;
+    char levelName[128] = "";
 
     int selectedObject = 0;
     int lightPointer = 0;
@@ -352,13 +358,12 @@ int main(void)
                     m.models.sphere.Draw(m.shaders.lightShader);
                 }
             }
-
-            // Draw Selected Object
+            m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
             objects[selectedObject].Draw(&m.shaders.lightShader);
         }
         m.shaders.lightShader.unbind();
 
-        
+
         // Render Material Objects
         m.shaders.materialShader.bind();
         {
@@ -379,7 +384,8 @@ int main(void)
                 int id = objects[i].id;
                 if(m.findbyId(id).shader_type == MATERIAL)
                 {
-                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius))
+                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius) && 
+                        !(i == selectedObject))
                     {
                         objects[i].Draw(&m.shaders.materialShader);
                         drawnObjects++;
@@ -420,7 +426,8 @@ int main(void)
                 int id = objects[i].id;
                 if(m.findbyId(id).shader_type == TEXTURE)
                 {
-                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius))
+                    if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius) &&
+                        !(i == selectedObject))
                     {
                         objects[i].Draw(&m.shaders.textureShader);
                         drawnObjects++;
@@ -555,16 +562,9 @@ int main(void)
             if(showObjectEditor)
             {
                 ImGui::Begin("Object Editor");
-                for (int n = 0; n < objects.size(); ++n)
-                {
-                    char buffer[256];
-                    sprintf(buffer, "%d", n);
-                    if(ImGui::Button(buffer))
-                        selectedObject = n;
-                    ImGui::SameLine();
-                }
                 ImGui::NewLine();
-                ImGui::Text("Object = %d. Position = (%f %f %f)", selectedObject, objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
+                ImGui::Text("Object = %d/%lu. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(), 
+                    objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
 
                 ImGui::Checkbox("Terrain Snap", &snapToTerrain);
 
@@ -600,7 +600,7 @@ int main(void)
 
                 if(ImGui::Button("Delete All"))
                 {
-                    while (objects.size() > 0) {
+                    while (objects.size() > 1) {
                         objects.erase(objects.begin() + selectedObject);
                         selectedObject--;
                         if(selectedObject > objects.size())
@@ -811,11 +811,11 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
-                ImGui::Checkbox("Light Editor", &showLightEditor);                
+                ImGui::Checkbox("Light Editor", &showLightEditor);
                 ImGui::SameLine();
-                ImGui::Checkbox("DirLight Editor", &showDirLightEditor);                
+                ImGui::Checkbox("DirLight Editor", &showDirLightEditor);
                 ImGui::SameLine();
-                ImGui::Checkbox("Object Editor", &showObjectEditor);                
+                ImGui::Checkbox("Object Editor", &showObjectEditor);
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Skybox", &drawSkybox);
@@ -825,28 +825,24 @@ int main(void)
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
+                ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
+
                 if(ImGui::Button("Save")) 
                 {
-                    lvl.SaveLevel("../levels/level1.txt", &objects, &lights, &dirLight);
-                    if(createBackup)
-                    {
-                        char buffer[256];
-                        sprintf(buffer, "%f", glfwGetTime());
-                        string str = "../levels/level1_";
-                        str.append(buffer);
-                        str.append(".txt");
-                        lvl.SaveLevel(str, &objects, &lights, &dirLight);
-                    }
+                    string str = "../levels/";
+                    str.append(levelName);
+                    lvl.SaveLevel(str, &objects, &lights, &dirLight);
                     ImGui::Text("Level saved.");
                 }
-                ImGui::SameLine();
-                ImGui::Checkbox("Create Backup", &createBackup);
 
                 if(ImGui::Button("Load"))
                 {
-                    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight, &m);
+                    string str = "../levels/";
+                    str.append(levelName);
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight, &m);
                     ImGui::Text("Level loaded."); 
                 }
+                ImGui::SameLine();
 
             ImGui::End();
 
