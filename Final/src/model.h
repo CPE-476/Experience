@@ -169,6 +169,9 @@ private:
         // 4. height maps
         std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        // 5. opacity maps
+        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
+        textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
         
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);

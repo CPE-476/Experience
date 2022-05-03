@@ -31,6 +31,9 @@ in vec2 texCoords;
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;
+uniform sampler2D texture_opacity1;
 
 uniform float shine;
 uniform vec3 viewPos;
@@ -53,7 +56,7 @@ void main()
         PointLightColor += CalcPointLight(pointLights[i], norm, fragmentPos, viewDir);
     }
 
-    outColor = vec4(PointLightColor + DirLightColor, 1.0);
+    outColor = vec4(PointLightColor + DirLightColor, vec3(texture(texture_opacity1, texCoords)));
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

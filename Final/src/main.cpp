@@ -99,7 +99,6 @@ unsigned int frameCount = 0;
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
-
 // My Headers
 #include "shader.h"
 #include "model.h"
@@ -214,7 +213,7 @@ int main(void)
     // Manager Object. Loads all Shaders, Models, Geometry.
     Manager m;
 
-    // Particles
+	// Particles
         float partVertices[] = {
             -0.5f, -0.5f, 0.0f,
             0.5f, -0.5f, 0.0f,
@@ -865,6 +864,23 @@ int main(void)
     glfwTerminate();
 
     return 0;
+}
+
+void RenderNote(TextRenderer Text, Manager m)
+{
+    unsigned int lineNumber = 1;
+    char buffer[256];
+    sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "Drawn Objects: %d", drawnObjects);
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "This is a debug message");
+    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
 }
 
 void RenderDebugText(TextRenderer Text, Manager m)
