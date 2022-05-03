@@ -228,7 +228,7 @@ int main(void)
         };
 
         int width, height, nrComponents;
-        unsigned char *data = stbi_load("../resources/part.png", &width, &height, &nrComponents, 0);
+        unsigned char *data = stbi_load("../resources/models/particle/part.png", &width, &height, &nrComponents, 0);
         unsigned int textureID;
         glGenTextures(1, &textureID);
 
