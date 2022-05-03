@@ -22,6 +22,14 @@ using namespace std;
 using namespace glm;
 
 // NOTE(Alex): If any objects are dynamically allocated, we need to have a destructor.
+/* TODO(Alex):
+ *
+ * Objects should have some predefined radii that we find.
+ * (Culling Radius, Collision Radius)
+ * Should we put this information in the Editor or in the Manager?
+ * - Should be modified by scale.
+ *
+ */
 
 enum ShaderTypes {
     MATERIAL,
@@ -44,6 +52,7 @@ struct Shader_Container
     Shader typeShader;
     Shader skyboxShader;
     Shader lightShader;
+    Shader particleShader;
 };
 
 struct Skybox_Container
@@ -57,7 +66,8 @@ struct Model_Container
     // testing
     Model backpack;
     Model bonfire;
-    Model box;
+    Model cube;
+    Model sphere;
     Model skull;
     // forest
     Model tree_1;
@@ -76,8 +86,7 @@ struct Model_Container
     Model rock_8;
     Model rock_9;
     Model rock_10;
-    Model rock_11;
-    
+    Model rock_11;    
 };
 
 struct Terrain_Container
@@ -101,6 +110,7 @@ struct Manager
         this->shaders.typeShader.init("../shaders/type_vert.glsl", "../shaders/type_frag.glsl");
         this->shaders.skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
+        this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
 
         /* Geometry Loading */
 
@@ -113,7 +123,8 @@ struct Manager
         stbi_set_flip_vertically_on_load(true);
         this->models.backpack.init("../resources/models/backpack/backpack.obj");
         stbi_set_flip_vertically_on_load(false);
-        this->models.box.init("../resources/testing/cube.obj");
+        this->models.cube.init("../resources/testing/cube.obj");
+        this->models.sphere.init("../resources/testing/sphere.obj");
         this->models.skull.init("../resources/testing/skull.obj");
         this->models.bonfire.init("../resources/models/dark_souls_bonfire/scene.gltf");
         this->models.tree_1.init("../resources/models/trees/tree_1.fbx");
@@ -132,7 +143,6 @@ struct Manager
         this->models.rock_9.init("../resources/models/rocks/desert_rocks/rock_3.fbx");
         this->models.rock_10.init("../resources/models/rocks/desert_rocks/rock_2.fbx");
         this->models.rock_11.init("../resources/models/rocks/desert_rocks/rock_1.fbx");
-
 
 
         this->Populate();
@@ -156,7 +166,6 @@ struct Manager
         Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE};
         Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE};
         Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE};
-
     }
 
     ID_Entry findbyId(int id) {

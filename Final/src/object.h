@@ -18,9 +18,7 @@ using namespace glm;
 
 /* TODO
  * Material data in constructor.
- *
- * Culling Radius
- * Just Width Radius for collisions
+ * Material data in Loader?
  */
 
 struct Material
@@ -33,7 +31,6 @@ struct Material
 
 class Object {
 public:
-
     Manager *manager;
     int id;
     Material material;
@@ -43,18 +40,15 @@ public:
     float angleZ;
     float scaleFactor;
     vec3 velocity;
-    float height_radius;
-    float width_radius;
+    float view_radius;
+    float collision_radius;
 
-    ID_Entry entry;
-    Model *model;
-    Shader *shader;
     int shader_type;
 
 
     Object (int id,
             vec3 pos, float agl_x, float agl_y, float agl_z, 
-            vec3 vel, float rad_h, float rad_w, 
+            vec3 vel, float rad_v, float rad_c, 
             float scl, Manager* m)
     {
         this->id = id;
@@ -64,13 +58,13 @@ public:
         this->angleZ = agl_z;
         this->scaleFactor = scl;
         this->velocity = vel;
-        this->height_radius = rad_h;
-        this->width_radius = rad_w;
+        this->view_radius = rad_v;
+        this->collision_radius = rad_c;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
         this->manager = m;
     }
 
-    void Draw()
+    void Draw(Shader *shader)
     {
         mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
@@ -80,11 +74,10 @@ public:
         mat4 scl = scale(mat4(1.0f), scaleFactor * vec3(1.0f, 1.0f, 1.0f));
         matrix = pos * rotX * rotY * rotZ * scl;
 
-        entry = manager->findbyId(id);
-        model = entry.model;
-        shader = entry.shader;
-        shader_type = entry.shader_type;
-        
+        ID_Entry entry = manager->findbyId(id);
+        this->shader_type = entry.shader_type;
+        Model *model = entry.model;
+
         shader->setMat4("model", matrix);
 
         if(shader_type == MATERIAL)
@@ -94,9 +87,7 @@ public:
             shader->setVec3("material.specular", material.specular);
             shader->setFloat("material.shine", material.shine); 
         }
-
         model->Draw(*shader);
-        //cout << "drawing skull" << endl;
     }
 
     void UpdateY(Terrain *terrain)

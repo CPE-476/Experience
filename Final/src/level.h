@@ -57,8 +57,8 @@ public:
                     float angleY;
                     float angleZ;
                     vec3 vel;
-                    float rad_h;
-                    float rad_w;
+                    float rad_v;
+                    float rad_c;
                     float scaleFactor;
 
                     Type = Line.substr(0, 3);
@@ -81,10 +81,10 @@ public:
                         angleY = (float)atof(conPrt[5]);
                         angleZ = (float)atof(conPrt[6]);
                         vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
-                        rad_h = (float)atof(conPrt[10]);
-                        rad_w = (float)atof(conPrt[11]);
+                        rad_v = (float)atof(conPrt[10]);
+                        rad_c = (float)atof(conPrt[11]);
                         scaleFactor = (float)atof(conPrt[12]);
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_h, rad_w, scaleFactor, m));
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, m));
                     }
                     else if (Type == "LGT")
                     {
@@ -172,8 +172,8 @@ public:
             fp << objects->at(i).velocity.x << " ";
             fp << objects->at(i).velocity.y << " ";
             fp << objects->at(i).velocity.z << " ";
-            fp << objects->at(i).height_radius << " ";
-            fp << objects->at(i).width_radius << " ";
+            fp << objects->at(i).view_radius << " ";
+            fp << objects->at(i).collision_radius << " ";
             fp << objects->at(i).scaleFactor;
 
             fp << "\n";
