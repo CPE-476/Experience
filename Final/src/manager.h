@@ -81,6 +81,16 @@ struct Model_Container
     Model campfire;
     Model snail;
     Model fern;
+    Model grass_1;
+    Model grass_2;
+    Model grass_3;
+    Model grass_4;
+    Model grass_5;
+    Model grass_6;
+    Model grass_7;
+    Model grass_8;
+    Model grass_9;
+
     // desert
     Model rock_5;
     Model rock_6;
@@ -156,6 +166,16 @@ struct Manager
         this->models.cactus_2.init("../resources/models/environment/cactus/cactus_2.fbx");
         this->models.cactus_3.init("../resources/models/environment/cactus/cactus_3.fbx");
         this->models.trumbleweed.init("../resources/models/environment/tumbleweed/Tumbleweed.fbx");
+        this->models.grass_1.init("../resources/models/grass/grass_1.fbx");
+        this->models.grass_2.init("../resources/models/grass/grass_2.fbx");
+        this->models.grass_3.init("../resources/models/grass/grass_3.fbx");
+        this->models.grass_4.init("../resources/models/grass/grass_4.fbx");
+        this->models.grass_5.init("../resources/models/grass/grass_5.fbx");
+        this->models.grass_6.init("../resources/models/grass/grass_6.fbx");
+        this->models.grass_7.init("../resources/models/grass/grass_7.fbx");
+        this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
+        this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
+
 
         this->Populate();
     }
@@ -185,6 +205,17 @@ struct Manager
         Lookup[20] = {20, &this->models.cactus_2, &this->shaders.textureShader, TEXTURE};
         Lookup[21] = {21, &this->models.cactus_3, &this->shaders.textureShader, TEXTURE};
         Lookup[22] = {22, &this->models.trumbleweed, &this->shaders.textureShader, TEXTURE};
+        Lookup[23] = {23, &this->models.grass_1, &this->shaders.textureShader, TEXTURE};
+        Lookup[24] = {24, &this->models.grass_2, &this->shaders.textureShader, TEXTURE};
+        Lookup[25] = {25, &this->models.grass_3, &this->shaders.textureShader, TEXTURE};
+        Lookup[26] = {26, &this->models.grass_4, &this->shaders.textureShader, TEXTURE};
+        Lookup[27] = {27, &this->models.grass_5, &this->shaders.textureShader, TEXTURE};
+        Lookup[28] = {28, &this->models.grass_6, &this->shaders.textureShader, TEXTURE};
+        Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE};
+        Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
+        Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
+
+
     }
 
     ID_Entry findbyId(int id) {
