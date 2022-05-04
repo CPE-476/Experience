@@ -53,6 +53,8 @@ struct Shader_Container
     Shader skyboxShader;
     Shader lightShader;
     Shader particleShader;
+
+    Shader noteShader;
 };
 
 struct Skybox_Container
@@ -118,6 +120,7 @@ struct Manager
         this->shaders.skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
         this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
+        this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
 
         /* Geometry Loading */
 
@@ -127,6 +130,7 @@ struct Manager
 
         this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");
 
+        /*
         stbi_set_flip_vertically_on_load(true);
         // this->models.backpack.init("../resources/models/backpack/backpack.obj");
         stbi_set_flip_vertically_on_load(false);
@@ -151,11 +155,12 @@ struct Manager
         this->models.rock_11.init("../resources/models/rocks/desert_rocks/rock_1.fbx");
         this->models.campfire.init("../resources/models/environment/campfire/Campfire.fbx");
         this->models.snail.init("../resources/models/environment/snail/snail.fbx");
-        this->models.fern.init("../resources/models/environment/fern/fern.fbx");
         this->models.cactus_1.init("../resources/models/environment/cactus/cactus_1.fbx");
         this->models.cactus_2.init("../resources/models/environment/cactus/cactus_2.fbx");
         this->models.cactus_3.init("../resources/models/environment/cactus/cactus_3.fbx");
         this->models.trumbleweed.init("../resources/models/environment/tumbleweed/Tumbleweed.fbx");
+        */
+        this->models.fern.init("../resources/models/environment/fern/fern.fbx");
 
         this->Populate();
     }

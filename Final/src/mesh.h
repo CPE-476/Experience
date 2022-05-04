@@ -62,17 +62,28 @@ public:
             string number;
             string name = textures[i].type;
             if(name == "texture_diffuse")
+            {
                 number = to_string(diffuseNr++);
+            }
             else if(name == "texture_specular")
+            {
                 number = to_string(specularNr++);
+            }
             else if(name == "texture_normal")
+            {
                 number = to_string(normalNr++);
+            }
             else if(name == "texture_height")
+            {
                 number = to_string(heightNr++);
-            else if(name == "texture_opacity")
-                number = to_string(opacityNr++);
+            }
 
-            shader.setFloat((name + number).c_str(), i);
+            else if(name == "texture_opacity")
+            {
+                number = to_string(opacityNr++);
+            }
+
+            shader.setInt((name + number).c_str(), i);
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
         glBindVertexArray(VAO);

@@ -4,12 +4,14 @@
 // Date: April 2022
 
 /* TODO
+ * Note Pickup Render Text to Screen.
+ *   - Text to a texture
+ *   - Render Texture to the screen.
+ *
  * Editor
  *  - Compass
  *  - Point Lights Presets in ID System
  *  - Particle Presets in ID System
- *  - Color Picker
- *  - Top down view for quick editing.
  *
  * Fog Shader
  *
@@ -21,13 +23,11 @@
  *  - Fog at the edges of each level.
  *  - Fade to White, then load other level, then fade back in.
  *
- * Instanced Rendering
+ * Instanced Rendering with Noise
  *  - Grass
- *  - Flowers with Noise
+ *  - Flowers
  *
  * Collisions
- *
- * Note Pickup Render Text to Screen.
  *
  * Soundtrack
  * NOTE: Look into MiniAudio's Extended Functionality
@@ -85,6 +85,7 @@ const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
+const unsigned int NOTE_TEXT_SIZE = 32;
 
 #include "camera.h"
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
@@ -194,6 +195,9 @@ int main(void)
     /* Text Rendering */
     TextRenderer Text = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
     Text.Load("../resources/verdanab.ttf", TEXT_SIZE);
+
+    TextRenderer NoteText = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    NoteText.Load("../resources/Arvo_BoldItalic.ttf", NOTE_TEXT_SIZE);
 
     /* Miniaudio */
     ma_result result;
@@ -322,6 +326,10 @@ int main(void)
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
+
+	m.shaders.noteShader.bind();
+	    
+	m.shaders.noteShader.unbind();
 
 
         // Render Light Positions (DEBUG)
@@ -864,23 +872,6 @@ int main(void)
     glfwTerminate();
 
     return 0;
-}
-
-void RenderNote(TextRenderer Text, Manager m)
-{
-    unsigned int lineNumber = 1;
-    char buffer[256];
-    sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "Drawn Objects: %d", drawnObjects);
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "This is a debug message");
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
 }
 
 void RenderDebugText(TextRenderer Text, Manager m)
