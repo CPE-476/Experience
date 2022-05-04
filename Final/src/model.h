@@ -158,19 +158,19 @@ private:
         // normal: texture_normalN
 
         // 1. diffuse maps
-        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. specular maps
-        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         // 4. height maps
-        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
         // 5. opacity maps
-        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
+        std::vector<Texture> opacityMaps = loadMaterialTextures(material, aiTextureType_OPACITY, "opacity");
         textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
         
         // return a mesh object created from the extracted mesh data

@@ -11,5 +11,8 @@ void main()
 {
     //outColor = vec4(1.0, 0.0, 0.0, 1.0);
     //outColor = partColor;
-    outColor = texture(myTex, UV) * partColor;
+    vec4 color = texture(myTex, UV) * partColor;
+    if(color.a < 0.1)
+        discard;
+    outColor = color;
 }

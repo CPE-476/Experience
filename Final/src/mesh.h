@@ -56,34 +56,43 @@ public:
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
         unsigned int opacityNr = 1;
+
+        shader.setInt("sample_diffuse1", 0);
+        shader.setInt("sample_specular1", 0);
+        shader.setInt("sample_normal1", 0);
+        shader.setInt("sample_height1", 0);
+        shader.setInt("sample_opacity1", 0);
         for(unsigned int i = 0; i < textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i);
             string number;
             string name = textures[i].type;
-            if(name == "texture_diffuse")
+            if(name == "diffuse")
             {
                 number = to_string(diffuseNr++);
             }
-            else if(name == "texture_specular")
+            else if(name == "specular")
             {
                 number = to_string(specularNr++);
             }
-            else if(name == "texture_normal")
+            else if(name == "normal")
             {
                 number = to_string(normalNr++);
             }
-            else if(name == "texture_height")
+            else if(name == "height")
             {
                 number = to_string(heightNr++);
             }
 
-            else if(name == "texture_opacity")
+            else if(name == "opacity")
             {
                 number = to_string(opacityNr++);
             }
 
-            shader.setInt((name + number).c_str(), i);
+            shader.setInt(("texture_" + name + number).c_str(), i);
+            shader.setInt(("sample_" + name + number).c_str(), 1);
+            //cout << "texture_" + name + number << "\n";
+            //cout << "sample_" + name + number << "\n";
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
         glBindVertexArray(VAO);

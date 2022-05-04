@@ -217,45 +217,13 @@ int main(void)
     // Manager Object. Loads all Shaders, Models, Geometry.
     Manager m;
 
-	// Particles
-        float partVertices[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-        };
+    // Particles
+    ParticleSys firePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(-10, 10, 0), 2.0f, vec4(1.0, 0.4f, 0, 1), vec4(1, 1, 1, 0), 1, 0);
 
-        int indices[] = {
-            0, 1, 2,
-            3, 2, 1,
-        };
+    ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png",  200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
 
-        int width, height, nrComponents;
-        unsigned char *data = stbi_load("../resources/models/particle/part.png", &width, &height, &nrComponents, 0);
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        GLuint TextureID  = glGetUniformLocation(m.shaders.particleShader.ID, "myTex");
-        glUniform1i(TextureID, 0);
-
-        ParticleSys test1 = ParticleSys(200, vec3(0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0.9, 0.9, 0.9, 0.9), 1, 0);
-        test1.Setup(m.shaders.particleShader, partVertices, indices);
-
-        ParticleSys test2 = ParticleSys(4000, vec3(10, 0, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.0, 0.4, 1, 0.9), 1, 0);
-        test2.Setup(m.shaders.particleShader, partVertices, indices);
-
-
+    ParticleSys generalPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(0, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
+        
     vector<Object> objects;
     vector<Light> lights;
 
@@ -327,10 +295,16 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
-	m.shaders.noteShader.bind();
-	    
+	/*
+	m.shaders.noteShader.bind(); 
 	m.shaders.noteShader.unbind();
+	*/
 
+        // Render Skybox
+        if(drawSkybox)
+        {
+            m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
+        }
 
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
@@ -444,37 +418,10 @@ int main(void)
         }
         m.shaders.textureShader.unbind();
 
-
-        m.shaders.particleShader.bind();
-        {
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glUniform1i(TextureID, 0);
-
-            // for billboarding
-            m.shaders.particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
-            m.shaders.particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
-
-            m.shaders.particleShader.setMat4("Projection", projection);
-            m.shaders.particleShader.setMat4("View", view);
-            m.shaders.particleShader.setVec3("viewPos", camera.Position);
-
-            //lightSystem.Render(m.shaders.particleShader);
-
-            model = mat4(1.0f);
-            m.shaders.particleShader.setMat4("Model", model);
-            test1.Draw(deltaTime, camera);
-            test2.Draw(deltaTime, camera);
-        }
-        m.shaders.particleShader.unbind();
-
-
-        // Render Skybox
-        if(drawSkybox)
-        {
-            m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
-        }
+        // Draw Particle Systems
+        firePart.Draw(deltaTime, camera);
+        bugPart.Draw(deltaTime, camera);
+        generalPart.Draw(deltaTime, camera);
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -716,6 +663,16 @@ int main(void)
                                                  0.0f, 0.0f, 0.0f, 
                                                  vec3(1), 1, 20, 0.05f,  &m));
                         selectedObject = objects.size() - 1;
+                    }
+                    for(int i=0;i<10;i++){
+                        for (int j=23; j < 32; j++)
+                        {
+                        objects.push_back(Object(j,
+                                                 vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 1,  &m));
+                        selectedObject = objects.size() - 1;
+                        }
                     }
                 }
 
