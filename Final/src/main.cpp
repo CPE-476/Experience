@@ -710,11 +710,13 @@ int main(void)
                     }
                     for(int i=0;i<10;i++){
                         for (int j=23; j < 32; j++)
+                        {
                         objects.push_back(Object(j,
                                                  vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
-                                                 0.0f, 0.0f, 0.0f, 
-                                                 vec3(1), 1, 20, 0.05f,  &m));
+                                                 -1.6f, 0.0f, 0.0f, 
+                                                 vec3(1), 1, 20, 1,  &m));
                         selectedObject = objects.size() - 1;
+                        }
                     }
                 }
 
