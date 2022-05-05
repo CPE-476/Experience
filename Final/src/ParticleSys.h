@@ -15,17 +15,25 @@ class ParticleSys {
 
 public:
     float lifeSpan;
-    vec3 startPosition;
+    float gravity;
+    vec3 startPosition, startVelocity;
+    float radius, radiusTop, height;
     vec4 startColor, endColor;
     float startScale, endScale;
     int particleAmount;
     Shader particleShader;
     char const *path;
+    int bugMode;
 
-    ParticleSys(Shader &particleShader, char const* path, int partAmt, vec3 pos, float life, vec4 startCol, vec4 endCol, float startScl, float endScl)
+    ParticleSys(Shader &particleShader, char const* path, int partAmt, vec3 pos, float rad1, float rad2, float height, vec3 vel, float life, float grav, vec4 startCol, vec4 endCol, float startScl, float endScl)
     {
         this->startPosition = pos;
+        this->radius = rad1;
+        this->radiusTop = rad2;
+        this->height = height;
+        this->startVelocity = vel;
         this->lifeSpan = life;
+        this->gravity = grav;
         this->startColor = startCol;
         this->endColor = endCol;
         this->startScale = startScl;
@@ -33,6 +41,7 @@ public:
         this->particleAmount = partAmt;
         this->particleShader = particleShader;
         this->path = path;
+        this->bugMode = 0;
         this->Setup(particleShader);
     }
 
@@ -78,7 +87,8 @@ private:
     vec3 posOffsets[MaxParticles];
     float scaleOffsets[MaxParticles];
     GLuint TextureID;
-    unsigned int textureID;
+    int spawned = 1;
+    unsigned int textureID, counter;
     unsigned int instanceVBO, colorVBO, scaleVBO, quadVAO, quadVBO, EBO;
 
     float partVertices[12] = {
@@ -92,12 +102,17 @@ private:
         0, 1, 2,
         3, 2, 1,
     };
-    
 
     float randFloat(float Low, float High)
     {
         float r = rand() / (float) RAND_MAX;
         return (1.0f - r) * Low + r * High;
+    }
+
+    float magnitude(vec3 v)
+    {
+        int sum = v.x * v.x + v.y * v.y + v.z * v.z;
+        return sqrt(sum);
     }
 
     void SortParticles()
@@ -109,9 +124,17 @@ private:
     {
         for(int i=0;i<particleAmount;i++)
         {
-            vec3 vel = vec3(randFloat(-2, 2), randFloat(2, 3), randFloat(-2, 2));
-            Particles.push_back(Particle(startPosition, vel, lifeSpan, startScale));
-            posOffsets[i] = startPosition;
+            float r = radius * sqrt(randFloat(0, 1));
+            float theta = randFloat(0, 1) * 2.0f * M_PI;
+            vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
+            vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
+            float rTop = radiusTop * sqrt(randFloat(0, 1));
+            float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
+            vec3 V = vec3(startPosition.x + rTop * cos(thetaTop), startPosition.y+height, startPosition.z + rTop * sin(thetaTop)) - startPosition; 
+            vec3 G = cross(vel, cross(V, vel));
+            vel = (magnitude(vel)/magnitude(V)) * V;
+            Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
+            posOffsets[i] = startPos;
             colorOffsets[i] = startColor;
             scaleOffsets[i] = startScale;
         }
@@ -119,29 +142,50 @@ private:
 
     void update(float delta, Camera &camera)
     {
+        ++counter;
         for(int i=0;i<particleAmount;i++)
         {
+            if(bugMode)
+                startPosition.y = randFloat(0, 20);
             Particle& p = Particles[i];
-            if(p.life > 0)
+            if(p.alive == 1)
             {
-                p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float)delta * 0.5f;
-                p.pos += p.speed * (float)delta;
-                p.size = mix(endScale, startScale, p.life/lifeSpan);
-                p.color = mix(endColor, startColor, p.life/lifeSpan);
-                p.cameradistance = distance(p.pos, camera.Position);
-                posOffsets[i] = p.pos;
-                scaleOffsets[i] = p.size;
-                colorOffsets[i] = p.color;
-                p.life -= delta;
+                if(p.life > 0)
+                {
+                    p.speed += glm::vec3(0.0f, gravity, 0.0f) * (float)delta * 0.5f;
+                    p.pos += p.speed * (float)delta;
+                    p.size = mix(endScale, startScale, p.life/lifeSpan);
+                    p.color = mix(endColor, startColor, p.life/lifeSpan);
+                    p.cameradistance = distance(p.pos, camera.Position);
+                    posOffsets[i] = p.pos;
+                    scaleOffsets[i] = p.size;
+                    colorOffsets[i] = p.color;
+                    p.life -= delta;
+                }
+                else
+                {
+                    p.life = lifeSpan;
+                    p.size = startScale;
+                    float r = radius * sqrt(randFloat(0, 1));
+                    float theta = randFloat(0, 1) * 2.0f * M_PI;
+                    p.pos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
+                    vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
+                    float rTop = radiusTop * sqrt(randFloat(0, 1));
+                    float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
+                    vec3 V = vec3(startPosition.x + rTop * cos(thetaTop), startPosition.y+height, startPosition.z + rTop * sin(thetaTop)) - p.pos; 
+                    vec3 G = cross(vel, cross(V, vel));
+                    G = (magnitude(vel)/magnitude(V)) * V;
+                    p.speed = G;
+                    p.cameradistance = distance(p.pos, camera.Position);
+                    posOffsets[i] = p.pos;
+                    scaleOffsets[i] = p.size;
+                    colorOffsets[i] = startColor;
+                }
             }
-            else
+            else if(counter % 2 == 1)
             {
-                p.life = randFloat(0, lifeSpan);
-                p.pos = startPosition;
-                vec3 vel = vec3(randFloat(-2, 2), randFloat(5, 10), randFloat(-2, 2));
-                p.speed = vel;
-                p.cameradistance = distance(p.pos, camera.Position);
-                posOffsets[i] = p.pos;
+                p.alive = 1;
+                break;
             }
         }
 

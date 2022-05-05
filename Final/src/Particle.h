@@ -14,7 +14,7 @@ class Particle {
 public:
     vec3 pos, speed;
     vec4 color;
-    float size, angle, weight;
+    float size;
     float life;
     int alive;
     float cameradistance;

@@ -105,7 +105,9 @@ struct Model_Container
     Model cactus_2;
     Model cactus_3;
     Model trumbleweed;
-    
+
+    // street
+    Model road;
 };
 
 struct Terrain_Container
@@ -184,6 +186,7 @@ struct Manager
         this->models.grass_7.init("../resources/models/grass/grass_7.fbx");
         this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
+        this->models.road.init("../resources/models/environment/road/road.fbx");
 
         this->Populate();
     }
@@ -222,6 +225,9 @@ struct Manager
         Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE};
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
+        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
+
+
     }
 
     ID_Entry findbyId(int id) {

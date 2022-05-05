@@ -213,15 +213,15 @@ int main(void)
     Manager m;
 
     // Particles
-    ParticleSys firePart = ParticleSys(m.shaders.particleShader, 
-            "../resources/models/particle/part.png", 200, 
-            vec3(-10, 10, 0), 2.0f, vec4(1.0, 0.4f, 0, 1), 
-            vec4(1, 1, 1, 0), 1, 0);
+    ParticleSys firePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 1000, vec3(6.32, 0, 13.7), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0);
+    ParticleSys smokePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(6.32, 0, 13.7), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5);
 
-    ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png",  200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
+    ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 1000, vec3(10, 10, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5);
 
-    ParticleSys generalPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(0, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
+    ParticleSys generalPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0);
         
+    ParticleSys rainPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 10000, vec3(0, 100, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5);
+
     vector<Object> objects;
     vector<Light> lights;
 
@@ -278,7 +278,7 @@ int main(void)
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
         mat4 view = camera.GetViewMatrix();
@@ -406,8 +406,11 @@ int main(void)
 
         // Draw Particle Systems
         firePart.Draw(deltaTime, camera);
-        bugPart.Draw(deltaTime, camera);
+        smokePart.Draw(deltaTime, camera);
         generalPart.Draw(deltaTime, camera);
+        bugPart.bugMode = 1;
+        bugPart.Draw(deltaTime, camera);
+        //rainPart.Draw(deltaTime, camera);
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -535,18 +538,18 @@ int main(void)
                 if(ImGui::Button("Delete Object"))
                 {
                     objects.erase(objects.begin() + selectedObject);
-                    selectedObject--;
-                    if(selectedObject > objects.size())
-                        selectedObject = objects.size() - 2;
+                    // selectedObject--;
+                    // if(selectedObject > objects.size())
+                    //     selectedObject = objects.size() - 2;
                 }
 
                 if(ImGui::Button("Delete All"))
                 {
                     while (objects.size() > 1) {
-                        objects.erase(objects.begin() + selectedObject);
-                        selectedObject--;
-                        if(selectedObject > objects.size())
-                            selectedObject = objects.size() - 2;
+                        objects.erase(objects.begin() + objects.size() - 1);
+                        // selectedObject--;
+                        // if(selectedObject > objects.size())
+                        //     selectedObject = objects.size() - 2;
                     }
                 }
                 
@@ -756,6 +759,17 @@ int main(void)
                                                  vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                  -1.6f, 0.0f, 0.0f, 
                                                  vec3(1), 1, 20, randFloat()*1.0f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Street"))
+                {
+                    for(int i=0;i<3;i++){
+                        objects.push_back(Object(32,
+                                                vec3(0.0f, 0.0f, 0.0f + i * 250.0f), 
+                                                0.0f, 0.0f, 0.0f, 
+                                                vec3(1), 1, 20, 1.0f,  &m));
                         selectedObject = objects.size() - 1;
                     }
                 }
