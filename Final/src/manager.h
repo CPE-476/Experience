@@ -225,12 +225,9 @@ struct Manager
         Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE};
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
-<<<<<<< HEAD
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
 
 
-=======
->>>>>>> 45ae62aafe29ca3b61776c1b3ddd423f5900a64c
     }
 
     ID_Entry findbyId(int id) {
