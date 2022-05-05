@@ -4,12 +4,14 @@
 // Date: April 2022
 
 /* TODO
+ * Note Pickup Render Text to Screen.
+ *   - Text to a texture
+ *   - Render Texture to the screen.
+ *
  * Editor
  *  - Compass
  *  - Point Lights Presets in ID System
  *  - Particle Presets in ID System
- *  - Color Picker
- *  - Top down view for quick editing.
  *
  * Fog Shader
  *
@@ -21,13 +23,11 @@
  *  - Fog at the edges of each level.
  *  - Fade to White, then load other level, then fade back in.
  *
- * Instanced Rendering
+ * Instanced Rendering with Noise
  *  - Grass
- *  - Flowers with Noise
+ *  - Flowers
  *
  * Collisions
- *
- * Note Pickup Render Text to Screen.
  *
  * Soundtrack
  * NOTE: Look into MiniAudio's Extended Functionality
@@ -99,7 +99,6 @@ unsigned int frameCount = 0;
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
-
 // My Headers
 #include "shader.h"
 #include "model.h"
@@ -112,6 +111,7 @@ vec3 selectorRay = vec3(0.0f);
 #include "frustum.h"
 #include "particle.h"
 #include "particleSys.h"
+#include "note.h"
 
 using namespace std;
 using namespace glm;
@@ -215,44 +215,12 @@ int main(void)
     Manager m;
 
     // Particles
-        float partVertices[] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-        };
+    ParticleSys firePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(-10, 10, 0), 2.0f, vec4(1.0, 0.4f, 0, 1), vec4(1, 1, 1, 0), 1, 0);
 
-        int indices[] = {
-            0, 1, 2,
-            3, 2, 1,
-        };
+    ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png",  200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
 
-        int width, height, nrComponents;
-        unsigned char *data = stbi_load("../resources/models/particle/part.png", &width, &height, &nrComponents, 0);
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        GLuint TextureID  = glGetUniformLocation(m.shaders.particleShader.ID, "myTex");
-        glUniform1i(TextureID, 0);
-
-        ParticleSys test1 = ParticleSys(200, vec3(0, 10, 0), 2.0f, vec4(0.4, 1.0f, 0, 1), vec4(0), 1, 0);
-        test1.Setup(m.shaders.particleShader, partVertices, indices);
-
-        ParticleSys test2 = ParticleSys(200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
-        test2.Setup(m.shaders.particleShader, partVertices, indices);
-
-
+    ParticleSys generalPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(0, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
+        
     vector<Object> objects;
     vector<Light> lights;
 
@@ -280,6 +248,7 @@ int main(void)
     bool drawSkybox = false;
     bool drawBoundingSpheres = false;
     bool drawPointLights = false;
+    bool drawNote = false;
 
     char levelName[128] = "";
 
@@ -442,34 +411,20 @@ int main(void)
         }
         m.shaders.textureShader.unbind();
 
-
-        m.shaders.particleShader.bind();
-        {
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glUniform1i(TextureID, 0);
-
-            // for billboarding
-            m.shaders.particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
-            m.shaders.particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
-
-            m.shaders.particleShader.setMat4("Projection", projection);
-            m.shaders.particleShader.setMat4("View", view);
-            m.shaders.particleShader.setVec3("viewPos", camera.Position);
-
-            //lightSystem.Render(m.shaders.particleShader);
-
-            model = mat4(1.0f);
-            m.shaders.particleShader.setMat4("Model", model);
-            test1.Draw(deltaTime, camera);
-            test2.Draw(deltaTime, camera);
-        }
-        m.shaders.particleShader.unbind();
+        // Draw Particle Systems
+        firePart.Draw(deltaTime, camera);
+        bugPart.Draw(deltaTime, camera);
+        generalPart.Draw(deltaTime, camera);
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text, m);
+
+        // Render Note
+        if(drawNote)
+        {
+            m.notes.aurelius1.Draw(m.shaders.noteShader);
+        }
 
         if(EditorMode == SELECTION)
         {
@@ -491,10 +446,6 @@ int main(void)
                     continue; // No collision.
                 
                 selectedObject = i;
-                // TODO(alex):
-                // Create some selected structure so multiple objects can't be selected
-                // (simplest possible thing)
-                // Arrow keys to move object
             }
         }
 
@@ -841,6 +792,8 @@ int main(void)
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Point Lights", &drawPointLights);
                 ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+                ImGui::SameLine();
+                ImGui::Checkbox("Draw Note", &drawNote);
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
