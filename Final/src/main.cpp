@@ -4,9 +4,10 @@
 // Date: April 2022
 
 /* TODO
- * Note Pickup Render Text to Screen.
- *   - Text to a texture
- *   - Render Texture to the screen.
+ *
+ * Level Transitions
+ *  - Fog at the edges of each level.
+ *  - Fade to White, then load other level, then fade back in.
  *
  * Editor
  *  - Compass
@@ -16,12 +17,9 @@
  * Fog Shader
  *
  * Volumetric Fog
+ *
  * Water
  *  - Moving with noise
- *
- * Level Transitions
- *  - Fog at the edges of each level.
- *  - Fade to White, then load other level, then fade back in.
  *
  * Instanced Rendering with Noise
  *  - Grass
@@ -78,16 +76,16 @@
 using namespace std;
 using namespace glm;
 
-// NOTE(Alex): Global State!
-#define PI 3.1415
+#define PI 3.14159265
 
+// NOTE(Alex): Global State!
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
 
 #include "camera.h"
-Camera camera(vec3(0.0f, 0.0f, 3.0f));
+Camera camera(vec3(0.0f, 0.0f, 1.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_WIDTH / 2.0f;
 bool firstMouse = true;
@@ -98,6 +96,16 @@ unsigned int frameCount = 0;
 
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
+
+enum EditorModes { MOVEMENT, GUI, SELECTION };
+enum Levels { ONE, TWO, THREE };
+
+int EditorMode = MOVEMENT;
+
+const float MusicVolume = 0.1f;
+const float SFXVolume = 0.1f;
+
+int drawnObjects;
 
 // My Headers
 #include "shader.h"
@@ -115,16 +123,6 @@ vec3 selectorRay = vec3(0.0f);
 
 using namespace std;
 using namespace glm;
-
-enum EditorModes { MOVEMENT, GUI, SELECTION };
-enum Levels { ONE, TWO, THREE };
-
-int EditorMode = MOVEMENT;
-
-const float MusicVolume = 0.1f;
-const float SFXVolume = 0.1f;
-
-int drawnObjects;
 
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
@@ -215,7 +213,10 @@ int main(void)
     Manager m;
 
     // Particles
-    ParticleSys firePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(-10, 10, 0), 2.0f, vec4(1.0, 0.4f, 0, 1), vec4(1, 1, 1, 0), 1, 0);
+    ParticleSys firePart = ParticleSys(m.shaders.particleShader, 
+            "../resources/models/particle/part.png", 200, 
+            vec3(-10, 10, 0), 2.0f, vec4(1.0, 0.4f, 0, 1), 
+            vec4(1, 1, 1, 0), 1, 0);
 
     ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png",  200, vec3(10, 10, 0), 2.0f, vec4(1.0f, 0.4f, 0, 1), vec4(0.5, 0.4, 0.4, 0.4), 1, 0);
 
@@ -244,7 +245,7 @@ int main(void)
     bool showObjectEditor = false;
 
     bool snapToTerrain = false;
-    bool drawTerrain = false;
+    bool drawTerrain = true;
     bool drawSkybox = false;
     bool drawBoundingSpheres = false;
     bool drawPointLights = false;
@@ -271,15 +272,7 @@ int main(void)
         // TODO(Alex): Find a better Interpolation.
         if(camera.Mode == WALK || camera.Mode == SPRINT)
         {
-            float xPosY = lerp(m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f,
-                        m.terrains.dunes.heightAt(camera.Position.x + 128.0f + 1.0f, camera.Position.z + 128.0f) + 5.0f,
-                        camera.Position.x - (int)camera.Position.x);
-
-            float zPosY = lerp(m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f) + 5.0f,
-                        m.terrains.dunes.heightAt(camera.Position.x + 128.0f, camera.Position.z + 128.0f + 1.0f) + 5.0f,
-                        camera.Position.z - (int)camera.Position.z);
-
-            camera.Position.y = lerp(xPosY, zPosY, 0.5);
+            camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
         }
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);

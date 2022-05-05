@@ -128,4 +128,4 @@ COM Light: <LGT id pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x 
 LGT 0 0 -6.919 0 0.05 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 0.032 
 
 COM DirLight: <DIR id dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
-DIR 0.203 -0.034 -0.183 0.076 0.076 0.067 0.78 0.754 0.7 0.059 0.11 0.142 
+DIR 0.203 -0.034 -0.183 0.324 0.324 0.307 0.78 0.754 0.7 0.059 0.11 0.142 
