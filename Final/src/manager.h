@@ -17,18 +17,19 @@
 #include "model.h"
 #include "skybox.h"
 #include "terrain.h"
+#include "note.h"
 
 using namespace std;
 using namespace glm;
 
 // NOTE(Alex): If any objects are dynamically allocated, we need to have a destructor.
+
 /* TODO(Alex):
  *
- * Objects should have some predefined radii that we find.
+ * Objects should have some predefined radii that we define.
  * (Culling Radius, Collision Radius)
  * Should we put this information in the Editor or in the Manager?
  * - Should be modified by scale.
- *
  */
 
 enum ShaderTypes {
@@ -53,7 +54,7 @@ struct Shader_Container
     Shader skyboxShader;
     Shader lightShader;
     Shader particleShader;
-    //Shader noteShader;
+    Shader noteShader;
 };
 
 struct Skybox_Container
@@ -112,12 +113,18 @@ struct Terrain_Container
     Terrain dunes;
 };
 
+struct Note_Container
+{
+    Note aurelius1;
+};
+
 struct Manager
 {
     Shader_Container shaders;
     Skybox_Container skyboxes;
     Model_Container models;
     Terrain_Container terrains;
+    Note_Container notes;
     ID_Entry Lookup[100];
 
     Manager()
@@ -129,12 +136,12 @@ struct Manager
         this->shaders.skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
         this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
-        //this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
+        this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
+
+        this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
         /* Geometry Loading */
-
         this->skyboxes.daySkybox.init("../resources/skyboxes/daysky/", false);
-
         this->skyboxes.nightSkybox.init("../resources/skyboxes/nightsky/", false);
 
         this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");

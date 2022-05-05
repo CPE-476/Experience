@@ -85,7 +85,6 @@ const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 
 const unsigned int TEXT_SIZE = 16;
-const unsigned int NOTE_TEXT_SIZE = 32;
 
 #include "camera.h"
 Camera camera(vec3(0.0f, 0.0f, 3.0f));
@@ -112,6 +111,7 @@ vec3 selectorRay = vec3(0.0f);
 #include "frustum.h"
 #include "particle.h"
 #include "particleSys.h"
+#include "note.h"
 
 using namespace std;
 using namespace glm;
@@ -196,9 +196,6 @@ int main(void)
     TextRenderer Text = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
     Text.Load("../resources/verdanab.ttf", TEXT_SIZE);
 
-    TextRenderer NoteText = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    NoteText.Load("../resources/Arvo_BoldItalic.ttf", NOTE_TEXT_SIZE);
-
     /* Miniaudio */
     ma_result result;
     ma_engine musicEngine;
@@ -251,6 +248,7 @@ int main(void)
     bool drawSkybox = false;
     bool drawBoundingSpheres = false;
     bool drawPointLights = false;
+    bool drawNote = false;
 
     char levelName[128] = "";
 
@@ -294,11 +292,6 @@ int main(void)
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
-
-	/*
-	m.shaders.noteShader.bind(); 
-	m.shaders.noteShader.unbind();
-	*/
 
         // Render Skybox
         if(drawSkybox)
@@ -427,6 +420,12 @@ int main(void)
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text, m);
 
+        // Render Note
+        if(drawNote)
+        {
+            m.notes.aurelius1.Draw(m.shaders.noteShader);
+        }
+
         if(EditorMode == SELECTION)
         {
             for(int i = 0; i < objects.size(); ++i)
@@ -447,10 +446,6 @@ int main(void)
                     continue; // No collision.
                 
                 selectedObject = i;
-                // TODO(alex):
-                // Create some selected structure so multiple objects can't be selected
-                // (simplest possible thing)
-                // Arrow keys to move object
             }
         }
 
@@ -786,6 +781,8 @@ int main(void)
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Point Lights", &drawPointLights);
                 ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+                ImGui::SameLine();
+                ImGui::Checkbox("Draw Note", &drawNote);
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
