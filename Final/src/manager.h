@@ -17,18 +17,19 @@
 #include "model.h"
 #include "skybox.h"
 #include "terrain.h"
+#include "note.h"
 
 using namespace std;
 using namespace glm;
 
 // NOTE(Alex): If any objects are dynamically allocated, we need to have a destructor.
+
 /* TODO(Alex):
  *
- * Objects should have some predefined radii that we find.
+ * Objects should have some predefined radii that we define.
  * (Culling Radius, Collision Radius)
  * Should we put this information in the Editor or in the Manager?
  * - Should be modified by scale.
- *
  */
 
 enum ShaderTypes {
@@ -53,6 +54,7 @@ struct Shader_Container
     Shader skyboxShader;
     Shader lightShader;
     Shader particleShader;
+    Shader noteShader;
 };
 
 struct Skybox_Container
@@ -103,12 +105,19 @@ struct Model_Container
     Model cactus_2;
     Model cactus_3;
     Model trumbleweed;
-    
+
+    // street
+    Model road;
 };
 
 struct Terrain_Container
 {
     Terrain dunes;
+};
+
+struct Note_Container
+{
+    Note aurelius1;
 };
 
 struct Manager
@@ -117,6 +126,7 @@ struct Manager
     Skybox_Container skyboxes;
     Model_Container models;
     Terrain_Container terrains;
+    Note_Container notes;
     ID_Entry Lookup[100];
 
     Manager()
@@ -128,11 +138,12 @@ struct Manager
         this->shaders.skyboxShader.init("../shaders/cubemap_vert.glsl", "../shaders/cubemap_frag.glsl");
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
         this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
+        this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
+
+        this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
         /* Geometry Loading */
-
         this->skyboxes.daySkybox.init("../resources/skyboxes/daysky/", false);
-
         this->skyboxes.nightSkybox.init("../resources/skyboxes/nightsky/", false);
 
         this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");
@@ -161,11 +172,11 @@ struct Manager
         this->models.rock_11.init("../resources/models/rocks/desert_rocks/rock_1.fbx");
         this->models.campfire.init("../resources/models/environment/campfire/Campfire.fbx");
         this->models.snail.init("../resources/models/environment/snail/snail.fbx");
-        this->models.fern.init("../resources/models/environment/fern/fern.fbx");
         this->models.cactus_1.init("../resources/models/environment/cactus/cactus_1.fbx");
         this->models.cactus_2.init("../resources/models/environment/cactus/cactus_2.fbx");
         this->models.cactus_3.init("../resources/models/environment/cactus/cactus_3.fbx");
         this->models.trumbleweed.init("../resources/models/environment/tumbleweed/Tumbleweed.fbx");
+        this->models.fern.init("../resources/models/environment/fern/fern.fbx");
         this->models.grass_1.init("../resources/models/grass/grass_1.fbx");
         this->models.grass_2.init("../resources/models/grass/grass_2.fbx");
         this->models.grass_3.init("../resources/models/grass/grass_3.fbx");
@@ -175,7 +186,7 @@ struct Manager
         this->models.grass_7.init("../resources/models/grass/grass_7.fbx");
         this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
-
+        this->models.road.init("../resources/models/environment/road/road.fbx");
 
         this->Populate();
     }
@@ -214,8 +225,12 @@ struct Manager
         Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE};
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
+<<<<<<< HEAD
+        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
 
 
+=======
+>>>>>>> 45ae62aafe29ca3b61776c1b3ddd423f5900a64c
     }
 
     ID_Entry findbyId(int id) {

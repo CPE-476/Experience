@@ -4,12 +4,14 @@
 // Date: April 2022
 
 /* TODO
+ * Note Pickup Render Text to Screen.
+ *   - Text to a texture
+ *   - Render Texture to the screen.
+ *
  * Editor
  *  - Compass
  *  - Point Lights Presets in ID System
  *  - Particle Presets in ID System
- *  - Color Picker
- *  - Top down view for quick editing.
  *
  * Fog Shader
  *
@@ -21,13 +23,11 @@
  *  - Fog at the edges of each level.
  *  - Fade to White, then load other level, then fade back in.
  *
- * Instanced Rendering
+ * Instanced Rendering with Noise
  *  - Grass
- *  - Flowers with Noise
+ *  - Flowers
  *
  * Collisions
- *
- * Note Pickup Render Text to Screen.
  *
  * Soundtrack
  * NOTE: Look into MiniAudio's Extended Functionality
@@ -99,7 +99,6 @@ unsigned int frameCount = 0;
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
-
 // My Headers
 #include "shader.h"
 #include "model.h"
@@ -112,6 +111,7 @@ vec3 selectorRay = vec3(0.0f);
 #include "frustum.h"
 #include "particle.h"
 #include "particleSys.h"
+#include "note.h"
 
 using namespace std;
 using namespace glm;
@@ -252,6 +252,7 @@ int main(void)
     bool drawSkybox = false;
     bool drawBoundingSpheres = false;
     bool drawPointLights = false;
+    bool drawNote = false;
 
     char levelName[128] = "";
 
@@ -426,6 +427,12 @@ int main(void)
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         RenderDebugText(Text, m);
 
+        // Render Note
+        if(drawNote)
+        {
+            m.notes.aurelius1.Draw(m.shaders.noteShader);
+        }
+
         if(EditorMode == SELECTION)
         {
             for(int i = 0; i < objects.size(); ++i)
@@ -446,10 +453,6 @@ int main(void)
                     continue; // No collision.
                 
                 selectedObject = i;
-                // TODO(alex):
-                // Create some selected structure so multiple objects can't be selected
-                // (simplest possible thing)
-                // Arrow keys to move object
             }
         }
 
@@ -546,18 +549,18 @@ int main(void)
                 if(ImGui::Button("Delete Object"))
                 {
                     objects.erase(objects.begin() + selectedObject);
-                    selectedObject--;
-                    if(selectedObject > objects.size())
-                        selectedObject = objects.size() - 2;
+                    // selectedObject--;
+                    // if(selectedObject > objects.size())
+                    //     selectedObject = objects.size() - 2;
                 }
 
                 if(ImGui::Button("Delete All"))
                 {
                     while (objects.size() > 1) {
-                        objects.erase(objects.begin() + selectedObject);
-                        selectedObject--;
-                        if(selectedObject > objects.size())
-                            selectedObject = objects.size() - 2;
+                        objects.erase(objects.begin() + objects.size() - 1);
+                        // selectedObject--;
+                        // if(selectedObject > objects.size())
+                        //     selectedObject = objects.size() - 2;
                     }
                 }
                 
@@ -770,6 +773,17 @@ int main(void)
                         selectedObject = objects.size() - 1;
                     }
                 }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Street"))
+                {
+                    for(int i=0;i<3;i++){
+                        objects.push_back(Object(32,
+                                                vec3(0.0f, 0.0f, 0.0f + i * 250.0f), 
+                                                0.0f, 0.0f, 0.0f, 
+                                                vec3(1), 1, 20, 1.0f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                }
                 ImGui::End();
             }
 
@@ -785,6 +799,8 @@ int main(void)
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Point Lights", &drawPointLights);
                 ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+                ImGui::SameLine();
+                ImGui::Checkbox("Draw Note", &drawNote);
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
 
