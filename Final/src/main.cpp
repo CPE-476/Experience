@@ -591,18 +591,18 @@ int main(void)
                 if(ImGui::Button("Delete Object"))
                 {
                     objects.erase(objects.begin() + selectedObject);
-                    selectedObject--;
-                    if(selectedObject > objects.size())
-                        selectedObject = objects.size() - 2;
+                    // selectedObject--;
+                    // if(selectedObject > objects.size())
+                    //     selectedObject = objects.size() - 2;
                 }
 
                 if(ImGui::Button("Delete All"))
                 {
                     while (objects.size() > 1) {
-                        objects.erase(objects.begin() + selectedObject);
-                        selectedObject--;
-                        if(selectedObject > objects.size())
-                            selectedObject = objects.size() - 2;
+                        objects.erase(objects.begin() + objects.size() - 1);
+                        // selectedObject--;
+                        // if(selectedObject > objects.size())
+                        //     selectedObject = objects.size() - 2;
                     }
                 }
                 
@@ -812,6 +812,17 @@ int main(void)
                                                  vec3((randFloat()*200.0f)-100.0f, 0.0f, (randFloat()*200.0f)-100.0f), 
                                                  -1.6f, 0.0f, 0.0f, 
                                                  vec3(1), 1, 20, randFloat()*1.0f,  &m));
+                        selectedObject = objects.size() - 1;
+                    }
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Create Street"))
+                {
+                    for(int i=0;i<3;i++){
+                        objects.push_back(Object(32,
+                                                vec3(0.0f, 0.0f, 0.0f + i * 250.0f), 
+                                                0.0f, 0.0f, 0.0f, 
+                                                vec3(1), 1, 20, 1.0f,  &m));
                         selectedObject = objects.size() - 1;
                     }
                 }
