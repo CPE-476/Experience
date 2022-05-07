@@ -19,6 +19,7 @@
 #include "camera.h"
 #include "object.h"
 #include "light.h"
+#include "particles.h"
 
 using namespace std;
 using namespace glm;
@@ -30,11 +31,12 @@ public:
     }
 
     void LoadLevel(string Filename, vector<Object> *objects, vector<Light> *lights, 
-            DirLight *dirLight)
+            DirLight *dirLight, vector<ParticleSys> *particleSystems)
     {
         // Clear the current level.
         objects->clear();
         lights->clear();
+        particleSystems->clear();
 
         string Line;
         string Type;
@@ -50,16 +52,6 @@ public:
             {
                 if(!Line.empty())
                 {
-                    int id;
-                    vec3 pos;
-                    float angleX;
-                    float angleY;
-                    float angleZ;
-                    vec3 vel;
-                    float rad_v;
-                    float rad_c;
-                    float scaleFactor;
-
                     Type = Line.substr(0, 3);
                     cont = Line.substr(4);
 
@@ -73,6 +65,16 @@ public:
 
                     if (Type == "OBJ")
                     {
+                        int id;
+                        vec3 pos;
+                        float angleX;
+                        float angleY;
+                        float angleZ;
+                        vec3 vel;
+                        float rad_v;
+                        float rad_c;
+                        float scaleFactor;
+
                         // get the id and other data
                         id = (int)atof(conPrt[0]);
                         pos = vec3((float)atof(conPrt[1]), (float)atof(conPrt[2]), (float)atof(conPrt[3]));
@@ -121,6 +123,39 @@ public:
                         dirLight->diffuse = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
                         dirLight->specular = vec3((float)atof(conPrt[9]), (float)atof(conPrt[10]), (float)atof(conPrt[11]));
                     }
+                    else if (Type == "PAR")
+                    {
+                        string path;
+                        int partAmt;
+                        vec3 pos;
+                        float rad1;
+                        float rad2;
+                        float height;
+                        vec3 vel;
+                        float life;
+                        float grav;
+                        vec4 startCol;
+                        vec4 endCol;
+                        float startScl;
+                        float endScl;
+
+                        // get the id and other data
+                        path = conPrt[0];
+                        partAmt = (int)atof(conPrt[1]);
+                        pos = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
+                        rad1 = (float)atof(conPrt[5]);
+                        rad2 = (float)atof(conPrt[6]);
+                        height = (float)atof(conPrt[7]);
+                        vel = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
+                        life = (float)atof(conPrt[11]);
+                        grav = (float)atof(conPrt[12]);
+                        startCol = vec4((float)atof(conPrt[13]), (float)atof(conPrt[14]), (float)atof(conPrt[15]), (float)atof(conPrt[16]));
+                        endCol = vec4((float)atof(conPrt[17]), (float)atof(conPrt[18]), (float)atof(conPrt[19]), (float)atof(conPrt[20]));
+                        startScl = (float)atof(conPrt[21]);
+                        endScl = (float)atof(conPrt[22]);
+                        particleSystems->push_back(ParticleSys(path, partAmt, pos, rad1, rad2, height, vel, life, grav, startCol, endCol, startScl, endScl));
+                    }
+
                     /*
                     else if (Type == "POV"){
                         cout << conPrt[0] << "\n";
@@ -152,11 +187,12 @@ public:
     }
 
     void SaveLevel(string Filename, vector<Object> *objects, vector<Light> *lights,
-            DirLight *dirLight)
+            DirLight *dirLight, vector<ParticleSys> *particleSystems)
     {
         ofstream fp;
         fp.open(Filename);
 
+        // Save Object Data
         fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
         for(int i = 0; i < objects->size(); ++i)
         {
@@ -178,6 +214,7 @@ public:
             fp << "\n";
         }
 
+        // Save Point Light Data
         fp << "\nCOM Light: <LGT id pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>\n";
         for(int i = 0; i < lights->size(); ++i)
         {
@@ -202,6 +239,7 @@ public:
             fp << "\n";
         }
 
+        // Save Directional Light Data
         fp << "\nCOM DirLight: <DIR id dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
         fp << "DIR ";
         fp << dirLight->direction.x << " ";
@@ -218,6 +256,38 @@ public:
         fp << dirLight->specular.z << " ";
 
         fp << "\n";
+
+        // Save Particle System Data
+        fp << "\nCOM ParticleSys: <PAR id partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
+        for(int i = 0; i < particleSystems->size(); ++i){
+            fp << "PAR ";
+            fp << particleSystems->at(i).path << " ";
+            fp << particleSystems->at(i).particleAmount << " ";
+            fp << particleSystems->at(i).startPosition.x << " ";
+            fp << particleSystems->at(i).startPosition.y << " ";
+            fp << particleSystems->at(i).startPosition.z << " ";
+            fp << particleSystems->at(i).radius << " ";
+            fp << particleSystems->at(i).radiusTop << " ";
+            fp << particleSystems->at(i).height << " ";
+            fp << particleSystems->at(i).startVelocity.x << " ";
+            fp << particleSystems->at(i).startVelocity.y << " ";
+            fp << particleSystems->at(i).startVelocity.z << " ";
+            fp << particleSystems->at(i).lifeSpan << " ";
+            fp << particleSystems->at(i).gravity << " ";
+            fp << particleSystems->at(i).startColor.x << " ";
+            fp << particleSystems->at(i).startColor.y << " ";
+            fp << particleSystems->at(i).startColor.z << " ";
+            fp << particleSystems->at(i).startColor.a << " ";
+            fp << particleSystems->at(i).endColor.x << " ";
+            fp << particleSystems->at(i).endColor.y << " ";
+            fp << particleSystems->at(i).endColor.z << " ";
+            fp << particleSystems->at(i).endColor.a << " ";
+            fp << particleSystems->at(i).startScale << " ";
+            fp << particleSystems->at(i).endScale;
+
+            fp << "\n";
+        }
+
 
         fp.close();
     }

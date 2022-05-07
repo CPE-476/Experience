@@ -217,18 +217,26 @@ int main(void)
     // Manager Object. Loads all Shaders, Models, Geometry.
     Manager m;
 
-    // Particles
-    ParticleSys firePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 1000, vec3(6.32, 0, 13.7), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0);
-    ParticleSys smokePart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(6.32, 0, 13.7), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5);
-
-    ParticleSys bugPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 1000, vec3(10, 10, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5);
-
-    ParticleSys generalPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0);
-        
-    ParticleSys rainPart = ParticleSys(m.shaders.particleShader, "../resources/models/particle/part.png", 10000, vec3(0, 100, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5);
-
     vector<Object> objects;
     vector<Light> lights;
+    vector<ParticleSys> particleSystems;
+
+    ParticleSys firePart = ParticleSys("../resources/models/particle/part.png", 1000, vec3(6.32, 0, 13.7), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0);
+    ParticleSys smokePart = ParticleSys("../resources/models/particle/part.png", 200, vec3(6.32, 0, 13.7), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5);
+
+    ParticleSys bugPart = ParticleSys("../resources/models/particle/part.png", 1000, vec3(10, 10, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5);
+    bugPart.bugMode = 1;
+
+    ParticleSys generalPart = ParticleSys("../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0);
+        
+    ParticleSys rainPart = ParticleSys("../resources/models/particle/part.png", 10000, vec3(0, 100, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5);
+
+    particleSystems.push_back(firePart);
+    particleSystems.push_back(smokePart);
+    particleSystems.push_back(bugPart);
+    particleSystems.push_back(generalPart);
+    particleSystems.push_back(rainPart);
+
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
@@ -237,7 +245,7 @@ int main(void)
                                  vec3(0.5f, 0.3f, 0.3f));  // Specular
 
     level lvl;
-    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight);
+    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight, &particleSystems);
 
     Frustum frustum;
 
@@ -409,13 +417,13 @@ int main(void)
         }
         m.shaders.textureShader.unbind();
 
-        // Draw Particle Systems
-        firePart.Draw(deltaTime, camera);
-        smokePart.Draw(deltaTime, camera);
-        generalPart.Draw(deltaTime, camera);
-        bugPart.bugMode = 1;
-        bugPart.Draw(deltaTime, camera);
-        //rainPart.Draw(deltaTime, camera);
+
+	// Draw Particle Systems
+	for(int i = 0; i < particleSystems.size(); ++i)
+        {
+	    particleSystems[i].Draw(m.shaders.particleShader, deltaTime);
+        }
+
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
@@ -806,7 +814,7 @@ int main(void)
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.SaveLevel(str, &objects, &lights, &dirLight);
+                    lvl.SaveLevel(str, &objects, &lights, &dirLight, &particleSystems);
                     ImGui::Text("Level saved.");
                 }
 
@@ -814,7 +822,7 @@ int main(void)
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight);
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight, &particleSystems);
                     ImGui::Text("Level loaded."); 
                 }
                 ImGui::SameLine();
