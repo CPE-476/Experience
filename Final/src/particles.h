@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "shader.h"
-#include "particle.h"
+#include "part.h"
 #include "camera.h"
 
 using namespace std;

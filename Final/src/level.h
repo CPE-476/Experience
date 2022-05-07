@@ -19,7 +19,6 @@
 #include "camera.h"
 #include "object.h"
 #include "light.h"
-#include "manager.h"
 
 using namespace std;
 using namespace glm;
@@ -31,7 +30,7 @@ public:
     }
 
     void LoadLevel(string Filename, vector<Object> *objects, vector<Light> *lights, 
-            DirLight *dirLight, Manager* m)
+            DirLight *dirLight)
     {
         // Clear the current level.
         objects->clear();
@@ -84,7 +83,7 @@ public:
                         rad_v = (float)atof(conPrt[10]);
                         rad_c = (float)atof(conPrt[11]);
                         scaleFactor = (float)atof(conPrt[12]);
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, m));
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor));
                     }
                     else if (Type == "LGT")
                     {

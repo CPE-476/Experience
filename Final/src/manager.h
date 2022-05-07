@@ -32,11 +32,6 @@ using namespace glm;
  * - Should be modified by scale.
  */
 
-enum ShaderTypes {
-    MATERIAL,
-    TEXTURE
-};
-
 struct ID_Entry
 {
     int ID;
