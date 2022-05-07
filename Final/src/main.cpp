@@ -5,16 +5,20 @@
 
 /* TODO
  *
+ * QUICK
+ * - Terrain Color/Texture in Editor
+ * - Terrain in Loader
+ * - Bounding Sphere Editing in Editor
+ *
+ * BUGS
+ *  - Smoother Terrain Movement
+ *
  * Level Transitions
  *  - Fog at the edges of each level.
  *  - Fade to White, then load other level, then fade back in.
  *
  * Editor
  *  - Compass
- *  - Point Lights Presets in ID System
- *  - Particle Presets in ID System
- *
- * Fog Shader
  *
  * Volumetric Fog
  *
@@ -28,12 +32,12 @@
  * Collisions
  *
  * Soundtrack
- * NOTE: Look into MiniAudio's Extended Functionality
  *  - Ambient Sounds.
  *  - Spatial Sounds.
  *    - Birds
  *    - Water
  *    - Note Makes a directional Sound.
+ *    - Adding textures to the soundtrack based on position.
  *    - Fog Wall sound.
  *
  * FBO
@@ -110,6 +114,12 @@ int drawnObjects;
 enum ShaderTypes {
     MATERIAL,
     TEXTURE
+};
+
+struct FogSystem {
+    float maxDistance;
+    float minDistance;
+    vec4 color;
 };
 
 // My Headers
@@ -219,24 +229,7 @@ int main(void)
 
     vector<Object> objects;
     vector<Light> lights;
-    vector<ParticleSys> particleSystems;
-
-    ParticleSys firePart = ParticleSys("../resources/models/particle/part.png", 1000, vec3(6.32, 0, 13.7), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0);
-    ParticleSys smokePart = ParticleSys("../resources/models/particle/part.png", 200, vec3(6.32, 0, 13.7), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5);
-
-    ParticleSys bugPart = ParticleSys("../resources/models/particle/part.png", 1000, vec3(10, 10, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5);
-    bugPart.bugMode = 1;
-
-    ParticleSys generalPart = ParticleSys("../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0);
-        
-    ParticleSys rainPart = ParticleSys("../resources/models/particle/part.png", 10000, vec3(0, 100, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5);
-
-    particleSystems.push_back(firePart);
-    particleSystems.push_back(smokePart);
-    particleSystems.push_back(bugPart);
-    particleSystems.push_back(generalPart);
-    particleSystems.push_back(rainPart);
-
+    vector<Emitter> emitters;
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
@@ -244,8 +237,11 @@ int main(void)
                                  vec3(0.8f, 0.6f, 0.6f),   // Diffuse
                                  vec3(0.5f, 0.3f, 0.3f));  // Specular
 
+    // Default value
+    FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
+
     level lvl;
-    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, &dirLight, &particleSystems);
+    lvl.LoadLevel("../levels/parttest.txt", &objects, &lights, &dirLight, &emitters, &fog);
 
     Frustum frustum;
 
@@ -253,8 +249,10 @@ int main(void)
     ma_engine_play_sound(&musicEngine, "../resources/audio/bach.mp3", NULL);
 
     // Editor Settings
+    bool showParticleEditor = false;
     bool showLightEditor = false;
     bool showDirLightEditor = false;
+    bool showFogEditor = false;
     bool showObjectEditor = false;
 
     bool snapToTerrain = false;
@@ -267,7 +265,8 @@ int main(void)
     char levelName[128] = "";
 
     int selectedObject = 0;
-    int lightPointer = 0;
+    int selectedLight = 0;
+    int selectedParticle = 0;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -351,6 +350,10 @@ int main(void)
             m.shaders.materialShader.setMat4("view", view);
             m.shaders.materialShader.setVec3("viewPos", camera.Position);
 
+            m.shaders.materialShader.setFloat("maxFogDistance", fog.maxDistance);
+            m.shaders.materialShader.setFloat("minFogDistance", fog.minDistance);
+            m.shaders.materialShader.setVec4("fogColor", fog.color);
+
             dirLight.Render(m.shaders.materialShader);
 
             m.shaders.materialShader.setInt("size", lights.size());
@@ -386,12 +389,17 @@ int main(void)
         }
         m.shaders.materialShader.unbind();
 
+
         // Render Textured Objects
         m.shaders.textureShader.bind();
         {
             m.shaders.textureShader.setMat4("projection", projection);
             m.shaders.textureShader.setMat4("view", view);
             m.shaders.textureShader.setVec3("viewPos", camera.Position);
+
+            m.shaders.textureShader.setFloat("maxFogDistance", fog.maxDistance);
+            m.shaders.textureShader.setFloat("minFogDistance", fog.minDistance);
+            m.shaders.textureShader.setVec4("fogColor", fog.color);
 
             dirLight.Render(m.shaders.textureShader);
 
@@ -418,10 +426,10 @@ int main(void)
         m.shaders.textureShader.unbind();
 
 
-	// Draw Particle Systems
-	for(int i = 0; i < particleSystems.size(); ++i)
+        // Draw Particle Systems
+        for(int i = 0; i < emitters.size(); ++i)
         {
-	    particleSystems[i].Draw(m.shaders.particleShader, deltaTime);
+            emitters[i].Draw(m.shaders.particleShader, deltaTime);
         }
 
 
@@ -434,6 +442,7 @@ int main(void)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
+
 
         if(EditorMode == SELECTION)
         {
@@ -465,6 +474,79 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
+            if(showParticleEditor)
+            {
+                ImGui::Begin("Particle Editor");
+                for (int n = 0; n < emitters.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if(ImGui::Button(buffer))
+                        selectedParticle = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+                ImGui::Text("Particle = %d. Position = (%.02f %.02f %.02f)", selectedParticle, emitters[selectedParticle].startPosition.x, emitters[selectedParticle].startPosition.y, emitters[selectedParticle].startPosition.z);
+
+                ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Velocity", (float *)&emitters[selectedParticle].startVelocity, -50.0f, 50.0f);
+                ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
+                ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
+                ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
+                ImGui::SliderFloat3("Start Color", (float *)&emitters[selectedParticle].startColor, 0.0f, 1.0f);
+                ImGui::SliderFloat3("End Color", (float *)&emitters[selectedParticle].endColor, 0.0f, 1.0f);
+                ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 1.0f);
+                ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 1.0f);
+                // NOTE(Alex): Broken, for some reason.
+                //ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
+                ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
+
+                if(ImGui::Button("Create Emitter"))
+                {
+                    emitters.push_back(
+                        Emitter("../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
+                    selectedParticle = emitters.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Delete Emitter"))
+                {
+                    emitters.erase(emitters.begin() + selectedParticle);
+                    selectedParticle--;
+                    if(selectedParticle > emitters.size())
+                        selectedParticle = emitters.size() - 2;
+                }
+
+                if(ImGui::Button("Fire"))
+                {
+                    emitters.push_back(
+                        Emitter("../resources/models/particle/part.png", 1000, vec3(0, 0, 0), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0));
+                    selectedParticle = emitters.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Smoke"))
+                {
+                    emitters.push_back(
+                        Emitter("../resources/models/particle/part.png", 200, vec3(0, 0, 0), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5));
+                    selectedParticle = emitters.size() - 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Bugs"))
+                {
+                    emitters.push_back(
+                        Emitter("../resources/models/particle/part.png", 1000, vec3(0, 0, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5));
+                    selectedParticle = emitters.size() - 1;
+                    emitters[selectedParticle].bugMode = 1;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Rain"))
+                {
+                    emitters.push_back(
+                        Emitter("../resources/models/particle/part.png", 10000, vec3(0, 0, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5));
+                    selectedParticle = emitters.size() - 1;
+                }
+                ImGui::End();
+            }
+
             if(showLightEditor)
             {
                 ImGui::Begin("Light Editor");
@@ -473,35 +555,43 @@ int main(void)
                     char buffer[256];
                     sprintf(buffer, "%d", n);
                     if(ImGui::Button(buffer))
-                        lightPointer = n;
+                        selectedLight = n;
                     ImGui::SameLine();
                 }
                 ImGui::NewLine();
-                ImGui::Text("Light = %d. Position = (%f %f %f)", lightPointer, lights[lightPointer].position.x, lights[lightPointer].position.y, lights[lightPointer].position.z);
+                ImGui::Text("Light = %d. Position = (%.02f %.02f %.02f)", selectedLight, lights[selectedLight].position.x, lights[selectedLight].position.y, lights[selectedLight].position.z);
 
-                ImGui::SliderFloat3("Position", (float *)&lights[lightPointer].position, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -128.0f, 128.0f);
 
-                ImGui::SliderFloat3("Ambient", (float *)&lights[lightPointer].ambient, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Diffuse", (float *)&lights[lightPointer].diffuse, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Specular", (float *)&lights[lightPointer].specular, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Ambient", (float *)&lights[selectedLight].ambient, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Diffuse", (float *)&lights[selectedLight].diffuse, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Specular", (float *)&lights[selectedLight].specular, 0.0f, 1.0f);
 
-                ImGui::SliderFloat("Constant", (float *)&lights[lightPointer].constant, 0.0f, 1.0f);
-                ImGui::SliderFloat("Linear", (float *)&lights[lightPointer].linear, 0.0f, 1.0f);
-                ImGui::SliderFloat("Quadratic", (float *)&lights[lightPointer].quadratic, 0.0f, 1.0f);
+                ImGui::SliderFloat("Constant", (float *)&lights[selectedLight].constant, 0.0f, 1.0f);
+                ImGui::SliderFloat("Linear", (float *)&lights[selectedLight].linear, 0.0f, 1.0f);
+                ImGui::SliderFloat("Quadratic", (float *)&lights[selectedLight].quadratic, 0.0f, 1.0f);
 
                 if(ImGui::Button("Delete Light"))
                 {
-                    lights.erase(lights.begin() + lightPointer);
-                    lightPointer--;
-                    if(lightPointer > lights.size())
-                        lightPointer = lights.size() - 2;
+                    lights.erase(lights.begin() + selectedLight);
+                    selectedLight--;
+                    if(selectedLight > lights.size())
+                        selectedLight = lights.size() - 2;
                 }
-                
+                ImGui::SameLine();
                 if(ImGui::Button("Create Light"))
                 {
-                    lights.push_back(Light(0, vec3(0.0f), vec3(0.05f), vec3(1.0f), vec3(0.4f),
+                    lights.push_back(Light(vec3(0.0f), vec3(0.05f), vec3(1.0f), vec3(0.4f),
                                            1.0f, 0.09f, 0.032f));
-                    lightPointer = lights.size() - 1;
+                    selectedLight = lights.size() - 1;
+                }
+
+                if(ImGui::Button("Firelight"))
+                {
+                    lights.push_back(Light(vec3(0.0f), vec3(0.05f), 
+                                           vec3(1.0f, 0.3f, 0.0f), vec3(0.4f, 0.2f, 0.0f),
+                                           0.5f, 1.0f, 1.0f));
+                    selectedLight = lights.size() - 1;
                 }
                 ImGui::End();
             }
@@ -517,10 +607,19 @@ int main(void)
                 ImGui::End();
             }
 
+            if(showFogEditor)
+            {
+                ImGui::Begin("Fog Editor");
+
+                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 1.0f, 400.0f);
+                ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 400.0f);
+                ImGui::SliderFloat4("Color", (float *)&fog.color, 0.0f, 1.0f);
+                ImGui::End();
+            }
+
             if(showObjectEditor)
             {
                 ImGui::Begin("Object Editor");
-                ImGui::NewLine();
                 ImGui::Text("Object = %d/%lu. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(), 
                     objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
 
@@ -530,8 +629,8 @@ int main(void)
                 {
                     if(snapToTerrain)
                     {
-			objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
-										       objects[selectedObject].position.z);
+                        objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
+                                                                                       objects[selectedObject].position.z);
                     }
                 }
                 ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f);
@@ -539,8 +638,8 @@ int main(void)
                 {
                     if(snapToTerrain)
                     {
-			objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
-										       objects[selectedObject].position.z);
+                        objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
+                                                                                       objects[selectedObject].position.z);
                     }
                 }
 
@@ -568,7 +667,7 @@ int main(void)
                     }
                 }
                 
-                if(ImGui::Button("Create Tree"))
+                if(ImGui::Button("Tree"))
                 {
                     objects.push_back(Object(0,
                                              vec3(0.0f), -1.6f, 0.0f, 0.0f, 
@@ -576,7 +675,7 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Create Rock"))
+                if(ImGui::Button("Rock"))
                 {
                     objects.push_back(Object(3,
                                              vec3(0.0f), 0.0f, 0.0f, 0.0f, 
@@ -584,7 +683,7 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Create Forest"))
+                if(ImGui::Button("Forest"))
                 {
                     for(int i=0;i<10;i++){
                         objects.push_back(Object(0,
@@ -683,7 +782,7 @@ int main(void)
                 }
 
                 ImGui::SameLine();
-                if(ImGui::Button("Create Desert"))
+                if(ImGui::Button("Desert"))
                 {
                     for(int i=0;i<10;i++){
                         objects.push_back(Object(9,
@@ -778,7 +877,7 @@ int main(void)
                     }
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Create Street"))
+                if(ImGui::Button("Street"))
                 {
                     for(int i=0;i<3;i++){
                         objects.push_back(Object(32,
@@ -792,16 +891,23 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
-                ImGui::Checkbox("Light Editor", &showLightEditor);
+                ImGui::Checkbox("Particle", &showParticleEditor);
                 ImGui::SameLine();
-                ImGui::Checkbox("DirLight Editor", &showDirLightEditor);
+                ImGui::Checkbox("Light", &showLightEditor);
                 ImGui::SameLine();
-                ImGui::Checkbox("Object Editor", &showObjectEditor);
+                ImGui::Checkbox("DirLight", &showDirLightEditor);
+                ImGui::SameLine();
+                ImGui::Checkbox("Fog", &showFogEditor);
+                ImGui::SameLine();
+                ImGui::Checkbox("Object", &showObjectEditor);
+                ImGui::NewLine();
+
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Skybox", &drawSkybox);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Point Lights", &drawPointLights);
+
                 ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Note", &drawNote);
@@ -814,15 +920,16 @@ int main(void)
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.SaveLevel(str, &objects, &lights, &dirLight, &particleSystems);
+                    lvl.SaveLevel(str, &objects, &lights, &dirLight, &emitters, &fog);
                     ImGui::Text("Level saved.");
                 }
+                ImGui::SameLine();
 
                 if(ImGui::Button("Load"))
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight, &particleSystems);
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight, &emitters, &fog);
                     ImGui::Text("Level loaded."); 
                 }
                 ImGui::SameLine();

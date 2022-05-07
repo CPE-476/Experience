@@ -34,21 +34,26 @@ out vec4 outColor;
 in vec3 normal;
 in vec3 fragmentPos;
 
-uniform float shine;
-
 uniform DirLight dirLight;
 #define MAX_LIGHTS 128
 uniform PointLight pointLights[MAX_LIGHTS];
 uniform int size;
 
-uniform vec3 viewPos;
 uniform Material material;
+uniform vec3 viewPos;
+
+uniform float maxFogDistance;
+uniform float minFogDistance;
+uniform vec4 fogColor;
 
 void main()
 {
+    float distanceToCamera = length(fragmentPos - viewPos);
+    float fogFactor = (maxFogDistance - distanceToCamera) / (maxFogDistance - minFogDistance);
+    fogFactor = clamp(fogFactor, 0.0f, 1.0f);
+
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragmentPos);
-
 
     vec3 DirLightColor = CalcDirLight(dirLight, norm, viewDir);
 
@@ -58,7 +63,7 @@ void main()
         PointLightColor += CalcPointLight(pointLights[i], norm, fragmentPos, viewDir);
     }
 
-    outColor = vec4(PointLightColor + DirLightColor, 1.0);
+    outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

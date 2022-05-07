@@ -47,7 +47,6 @@ struct DirLight {
 
 struct Light
 {
-    int id;
     vec3 position;
 
     vec3 ambient;
@@ -58,10 +57,9 @@ struct Light
     float linear;
     float quadratic;
 
-    Light(int id, vec3 pos, vec3 amb, vec3 dif, vec3 spec,
+    Light(vec3 pos, vec3 amb, vec3 dif, vec3 spec,
           float con, float lin, float quad)
     {
-        this->id = id;
         this->position = pos;
         this->ambient = amb;
         this->diffuse = dif;

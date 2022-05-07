@@ -41,16 +41,24 @@ uniform int sample_normal1 = 0;
 uniform int sample_height1 = 0;
 uniform int sample_opacity1 = 0;
 
-uniform float shine;
-uniform vec3 viewPos;
-
 uniform DirLight dirLight;
 #define MAX_LIGHTS 128
 uniform PointLight pointLights[MAX_LIGHTS];
 uniform int size;
 
+uniform float shine;
+uniform vec3 viewPos;
+
+uniform float maxFogDistance;
+uniform float minFogDistance;
+uniform vec4 fogColor;
+
 void main()
 {
+    float distanceToCamera = length(fragmentPos - viewPos);
+    float fogFactor = (maxFogDistance - distanceToCamera) / (maxFogDistance - minFogDistance);
+    fogFactor = clamp(fogFactor, 0.0f, 1.0f);
+
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragmentPos);
     
@@ -69,7 +77,7 @@ void main()
         }
     }
 
-    outColor = vec4(PointLightColor + DirLightColor, 1.0);
+    outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
