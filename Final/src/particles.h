@@ -1,18 +1,45 @@
-#ifndef PARTICLESYS_H
-#define PARTICLESYS_H
+// Author: Brett Hickman 
+// Program: Experience
+// File: Particle System
+// Date: May 2022
+
+#ifndef PARTICLES_H
+#define PARTICLES_H
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "shader.h"
-#include "particle.h"
 #include "camera.h"
 
 using namespace std;
 
-class ParticleSys {
+class Particle {
 
+public:
+    vec3 pos, speed;
+    vec4 color;
+    float size;
+    float life;
+    int alive;
+    float cameradistance;
+
+    bool operator<(const Particle& that) const {
+		return this->cameradistance > that.cameradistance;
+    }
+
+    Particle(vec3 pos, vec3 speed, float life, float size){
+        this->pos = pos;
+        this->speed = speed;
+        this->life = life;
+        this->size = size;
+        this->alive = 0;
+    }
+};
+
+
+class ParticleSys {
 public:
     float lifeSpan;
     float gravity;
@@ -21,11 +48,12 @@ public:
     vec4 startColor, endColor;
     float startScale, endScale;
     int particleAmount;
-    Shader particleShader;
-    char const *path;
+    string path;
     int bugMode;
 
-    ParticleSys(Shader &particleShader, char const* path, int partAmt, vec3 pos, float rad1, float rad2, float height, vec3 vel, float life, float grav, vec4 startCol, vec4 endCol, float startScl, float endScl)
+    ParticleSys(string path, int partAmt, vec3 pos, float rad1, float rad2, 
+	        float height, vec3 vel, float life, float grav, vec4 startCol, 
+		vec4 endCol, float startScl, float endScl)
     {
         this->startPosition = pos;
         this->radius = rad1;
@@ -39,46 +67,60 @@ public:
         this->startScale = startScl;
         this->endScale = endScl;
         this->particleAmount = partAmt;
-        this->particleShader = particleShader;
         this->path = path;
         this->bugMode = 0;
-        this->Setup(particleShader);
+        this->Setup();
     }
 
-    void Setup(Shader &particleShader)
+    void Setup()
     {
-        init();
-        gpuSetup(particleShader);
+        for(int i=0;i<particleAmount;i++)
+        {
+            float r = radius * sqrt(randFloat(0, 1));
+            float theta = randFloat(0, 1) * 2.0f * M_PI;
+            vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
+            vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
+            float rTop = radiusTop * sqrt(randFloat(0, 1));
+            float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
+            vec3 V = vec3(startPosition.x + rTop * cos(thetaTop), startPosition.y+height, startPosition.z + rTop * sin(thetaTop)) - startPosition; 
+            vec3 G = cross(vel, cross(V, vel));
+            vel = (magnitude(vel)/magnitude(V)) * V;
+            Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
+            posOffsets[i] = startPos;
+            colorOffsets[i] = startColor;
+            scaleOffsets[i] = startScale;
+        }
+        gpuSetup();
     }
 
-    void Draw(float delta, Camera &camera)
+    void Draw(Shader &shader, float delta)
     {
-        mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+        mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
-        particleShader.bind();
+        shader.bind();
+	{
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, textureID);
             glUniform1i(TextureID, 0);
 
             // for billboarding
-            particleShader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
-            particleShader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
+            shader.setVec3("CameraRight", view[0][0], view[1][0], view[2][0]);
+            shader.setVec3("CameraUp", view[0][1], view[1][1], view[2][1]);
 
-            particleShader.setMat4("Projection", projection);
-            particleShader.setMat4("View", view);
-            particleShader.setVec3("viewPos", camera.Position);
-
-            //lightSystem.Render(m.shaders.particleShader);
+            shader.setMat4("Projection", projection);
+            shader.setMat4("View", view);
+            shader.setVec3("viewPos", camera.Position);
 
             model = mat4(1.0f);
-            particleShader.setMat4("Model", model);
+            shader.setMat4("Model", model);
 
-            update(delta, camera);
-        particleShader.unbind();
-    }
-    
+	    // Where the actual draw calls are, involves instancing.
+            update(delta);
+	}
+        shader.unbind();
+    } 
 
 private:
     static const int MaxParticles = 10000;
@@ -120,27 +162,7 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void init()
-    {
-        for(int i=0;i<particleAmount;i++)
-        {
-            float r = radius * sqrt(randFloat(0, 1));
-            float theta = randFloat(0, 1) * 2.0f * M_PI;
-            vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
-            vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
-            float rTop = radiusTop * sqrt(randFloat(0, 1));
-            float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
-            vec3 V = vec3(startPosition.x + rTop * cos(thetaTop), startPosition.y+height, startPosition.z + rTop * sin(thetaTop)) - startPosition; 
-            vec3 G = cross(vel, cross(V, vel));
-            vel = (magnitude(vel)/magnitude(V)) * V;
-            Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
-            posOffsets[i] = startPos;
-            colorOffsets[i] = startColor;
-            scaleOffsets[i] = startScale;
-        }
-    }
-
-    void update(float delta, Camera &camera)
+    void update(float delta)
     {
         ++counter;
         for(int i=0;i<particleAmount;i++)
@@ -200,13 +222,12 @@ private:
 
         glBindVertexArray(quadVAO);
         glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(sizeof(indices)), GL_UNSIGNED_INT, 0, particleAmount);
-        }
+    }
 
-    void gpuSetup(Shader &particleShader)
+    void gpuSetup()
     {
-
         int width, height, nrComponents;
-        unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
         glGenTextures(1, &textureID);
 
         glBindTexture(GL_TEXTURE_2D, textureID);
@@ -217,11 +238,6 @@ private:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        TextureID  = glGetUniformLocation(particleShader.ID, "myTex");
-        glUniform1i(TextureID, 0);
 
         glGenBuffers(1, &instanceVBO);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);

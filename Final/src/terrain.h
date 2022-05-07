@@ -5,7 +5,6 @@
 
 /* TODO(Alex)
  * Interpolate Values
- * Generalize Sizes
  */
 
 #ifndef TERRAIN_H
@@ -23,21 +22,40 @@ using namespace std;
 using namespace glm;
 
 // Tweak these values for different terrain types.
-const float Y_SCALE = 32.0f / 256.0f; // Desired Size / Original Image size.
-const float Y_SHIFT = 16.0f;          // Height of Mesh. Should be half of Desired Size.
+const float Y_SCALE = 32.0f;  // Desired Size
+const float Y_SHIFT = 16.0f;  // Height of Mesh. Should be half of Desired Size.
 
 class Terrain
 {
 public:
-    Terrain()
+    // Takes an x and z value in world space.
+    float heightAt(float x, float z)
     {
-    }
+        float lam1, lam2, lam3;
+        vec3 p1, p2, p3;
+        int leftSide = (int)x + height / 2;
+        int bottomSide = (int)z + width / 2;
+        float xamt = (x - (int)x);
+        float zamt = (z - (int)z);
+        if(zamt - xamt < 0)  // On the right triangle.
+        {
+            p1 = vec3(leftSide, pointsData[leftSide][bottomSide], bottomSide);
+            p2 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide], bottomSide);
+            p3 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide+1], bottomSide + 1);
+        }
+        else // On the left triangle.
+        {
+            p1 = vec3(leftSide, pointsData[leftSide][bottomSide], bottomSide);
+            p2 = vec3(leftSide, pointsData[leftSide][bottomSide+1], bottomSide + 1);
+            p3 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide+1], bottomSide + 1); 
+        }
 
-    float pointsData[256][256];
+        lam1 = ((p2.z - p3.z) * ((x + height / 2.0f) - p3.x) + (p3.x - p2.x) * ((z + width / 2.0f) - p3.z)) / ((p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z));
+        lam2 = ((p3.z - p1.z) * ((x + height / 2.0f) - p3.x) + (p1.x - p3.x) * ((z + width / 2.0f) - p3.z)) / ((p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z));
+        lam3 = 1 - lam1 - lam2;
+        //cout << lam1 << "=" << lam2 << "=" << lam3 << "\n";
 
-    float heightAt(float x, float y)
-    {
-        return pointsData[(int)x][(int)y];
+        return p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
     }
 
     void init(string path)
@@ -45,18 +63,36 @@ public:
         // Load Heightmap
         int nrChannels;
         unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        if(!data)
+        {
+            cout << "Unable to load Heightmap: " << path << "\n";
+        }
+
+        float yScale = Y_SCALE / height;
 
         for(int i = 0; i < height; ++i)
         {
+            vector<float> row;
             for(int j = 0; j < width; ++j)
             {
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
-                float vy = (y * Y_SCALE - Y_SHIFT);
-                pointsData[i][j] = vy;
+                float vy = (y * yScale - Y_SHIFT);
+                row.push_back(vy);
             }
+            pointsData.push_back(row);
         }
         stbi_image_free(data);
+
+        // Generate Indices
+        for(int i = 0; i < height - 1; ++i)             // For each strip
+        {
+            for(int j = width - 1; j >= 0; --j)         // For each column (backwards for CCW data)
+            {
+                indices.push_back(j + width * (i + 0)); // For each side of the strip
+                indices.push_back(j + width * (i + 1));
+            }
+        }
  
         // Generate Vertices
         for(int i = 0; i < height; ++i)
@@ -70,8 +106,24 @@ public:
                 vertices.push_back(vz);
 
                 // Compute Normals, pack into array.
-                vec3 v0 = vec3(0, (pointsData[i][j+1] - pointsData[i][j-1]), 2);
-                vec3 v1 = vec3(2, (pointsData[i+1][j] - pointsData[i-1][j]), 0);
+                // With Bounds Checking.
+                vec3 v0, v1;
+                if(j > 0 && j < pointsData[i].size() - 1)
+                {
+                    v0 = vec3(0, (pointsData[i][j+1] - pointsData[i][j-1]), 2);
+                }
+                else
+                {
+                    v0 = vec3(0, 1, 0);
+                }
+                if(i > 0 && i < pointsData.size() - 1)
+                {
+                    v1 = vec3(2, (pointsData[i+1][j] - pointsData[i-1][j]), 0);
+                }
+                else
+                {
+                    v1 = vec3(0, 1, 0);
+                }
                 vec3 normal = normalize(cross(v0, v1));
                 vertices.push_back(normal.x);
                 vertices.push_back(normal.y);
@@ -79,14 +131,6 @@ public:
             }
         }
 
-        for(int i = 0; i < height - 1; ++i)             // For each strip
-        {
-            for(int j = 0; j < width; ++j)              // For each column
-            {
-                indices.push_back(j + width * (i + 0)); // For each side of the strip
-                indices.push_back(j + width * (i + 1));
-            }
-        }
 
         num_strips = height - 1;
         num_tris_per_strip = width * 2;
@@ -115,7 +159,6 @@ public:
 
     void Draw(Shader &shader)
     {
-        glFrontFace(GL_CW);
         shader.bind();
         {
             mat4 projection = camera.GetProjectionMatrix();
@@ -129,13 +172,12 @@ public:
             for(unsigned int strip = 0; strip < num_strips; ++strip)
             {
                 glDrawElements(GL_TRIANGLE_STRIP,
-                               num_tris_per_strip,
-                               GL_UNSIGNED_INT,
-                               (void *)(sizeof(unsigned int) * num_tris_per_strip * strip));
+                               num_tris_per_strip, // Count of elements to be rendered.
+                               GL_UNSIGNED_INT,    // Type of EBO data.
+                               (void *)(sizeof(unsigned int) * num_tris_per_strip * strip)); // Pointer to starting index of indices.
             }
         }
         shader.unbind();
-        glFrontFace(GL_CCW);
     }
 
 private: 
@@ -148,6 +190,9 @@ private:
     unsigned int num_tris_per_strip;
 
     int width, height;
+
+    // [x][z]
+    vector<vector<float>> pointsData;
 };
 
 #endif

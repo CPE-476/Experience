@@ -12,7 +12,6 @@
 
 #include "shader.h"
 #include "model.h"
-#include "manager.h"
 using namespace std;
 using namespace glm;
 
@@ -31,7 +30,6 @@ struct Material
 
 class Object {
 public:
-    Manager *manager;
     int id;
     Material material;
     vec3 position;
@@ -46,10 +44,8 @@ public:
     int shader_type;
 
 
-    Object (int id,
-            vec3 pos, float agl_x, float agl_y, float agl_z, 
-            vec3 vel, float rad_v, float rad_c, 
-            float scl, Manager* m)
+    Object (int id, vec3 pos, float agl_x, float agl_y, float agl_z, 
+            vec3 vel, float rad_v, float rad_c, float scl)
     {
         this->id = id;
         this->position = pos;
@@ -61,10 +57,9 @@ public:
         this->view_radius = rad_v;
         this->collision_radius = rad_c;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
-        this->manager = m;
     }
 
-    void Draw(Shader *shader)
+    void Draw(Shader *shader, Model *model, int shader_t)
     {
         mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
@@ -74,9 +69,7 @@ public:
         mat4 scl = scale(mat4(1.0f), scaleFactor * vec3(1.0f, 1.0f, 1.0f));
         matrix = pos * rotX * rotY * rotZ * scl;
 
-        ID_Entry entry = manager->findbyId(id);
-        this->shader_type = entry.shader_type;
-        Model *model = entry.model;
+        this->shader_type = shader_t;
 
         shader->setMat4("model", matrix);
 
@@ -88,11 +81,6 @@ public:
             shader->setFloat("material.shine", material.shine); 
         }
         model->Draw(*shader);
-    }
-
-    void UpdateY(Terrain *terrain)
-    {
-        position.y = terrain->heightAt(position.x + 128, position.z + 128);
     }
 
     void Update(float deltaTime)

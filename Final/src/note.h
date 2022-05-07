@@ -1,3 +1,8 @@
+// Author: Alex Hartford
+// Program: Experience
+// File: Note Class
+// Date: May 2022
+
 #ifndef NOTE_H
 #define NOTE_H
 
