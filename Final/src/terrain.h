@@ -25,9 +25,23 @@ using namespace glm;
 const float Y_SCALE = 32.0f;  // Desired Size
 const float Y_SHIFT = 16.0f;  // Height of Mesh. Should be half of Desired Size.
 
-class Terrain
+struct Terrain
 {
-public:
+    string path;
+    unsigned int VAO, VBO, EBO;
+
+    vector<float> vertices;
+    vector<unsigned int> indices;
+
+    unsigned int num_strips;
+    unsigned int num_tris_per_strip;
+
+    int width, height;
+
+    // [x][z]
+    vector<vector<float>> pointsData;
+
+
     // Takes an x and z value in world space.
     float heightAt(float x, float z)
     {
@@ -58,11 +72,14 @@ public:
         return p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
     }
 
-    void init(string path)
+    void init(string p)
     {
+        vertices.clear();
+        indices.clear();
+        this->path = p;
         // Load Heightmap
         int nrChannels;
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(p.c_str(), &width, &height, &nrChannels, 0);
         if(!data)
         {
             cout << "Unable to load Heightmap: " << path << "\n";
@@ -93,7 +110,7 @@ public:
                 indices.push_back(j + width * (i + 1));
             }
         }
- 
+
         // Generate Vertices
         for(int i = 0; i < height; ++i)
         {
@@ -179,20 +196,6 @@ public:
         }
         shader.unbind();
     }
-
-private: 
-    unsigned int VAO, VBO, EBO;
-
-    vector<float> vertices;
-    vector<unsigned int> indices;
-
-    unsigned int num_strips;
-    unsigned int num_tris_per_strip;
-
-    int width, height;
-
-    // [x][z]
-    vector<vector<float>> pointsData;
 };
 
 #endif

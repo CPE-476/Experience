@@ -5,38 +5,32 @@
 
 /* TODO
  *
- * QUICK
+ * ALEX
  * - Terrain Color/Texture in Editor
- * - Terrain in Loader
  * - Bounding Sphere Editing in Editor
- *
+ * - Weird terrain bug in Editor
+ * - Level Transitions
+ *    - Spatial Query Based on Level size.
+ *    - Load new Level, place camera, etc.
+ *    - Nice transition/Fade out and in.
  * BUGS
  *  - Smoother Terrain Movement
  *
- * Level Transitions
- *  - Fog at the edges of each level.
- *  - Fade to White, then load other level, then fade back in.
- *
- * Editor
- *  - Compass
+ * 75
+ *  - Spline Camera
+ *  - 3D Sound System
  *
  * Volumetric Fog
- *
  * Water
  *  - Moving with noise
- *
  * Instanced Rendering with Noise
- *  - Grass
- *  - Flowers
+ *  - Grass and Flowers
  *
  * Collisions
  *
  * Soundtrack
  *  - Ambient Sounds.
  *  - Spatial Sounds.
- *    - Birds
- *    - Water
- *    - Note Makes a directional Sound.
  *    - Adding textures to the soundtrack based on position.
  *    - Fog Wall sound.
  *
@@ -102,8 +96,6 @@ unsigned int frameCount = 0;
 vec3 selectorRay = vec3(0.0f);
 
 enum EditorModes { MOVEMENT, GUI, SELECTION };
-enum Levels { ONE, TWO, THREE };
-
 int EditorMode = MOVEMENT;
 
 const float MusicVolume = 0.1f;
@@ -224,12 +216,19 @@ int main(void)
         return -1;
     }
 
-    // Manager Object. Loads all Shaders, Models, Geometry.
+    // Manager Object. Loads Shaders, Models, Notes, Skyboxes, Terrains
     Manager m;
 
     vector<Object> objects;
     vector<Light> lights;
     vector<Emitter> emitters;
+
+    Skybox skybox;
+    stbi_set_flip_vertically_on_load(false);
+    skybox.init("../resources/skyboxes/daysky/", false);
+
+    Terrain terrain;
+    //terrain.init("../resources/heightmaps/final-dunes-first-try.png");
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
@@ -241,7 +240,8 @@ int main(void)
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
     level lvl;
-    lvl.LoadLevel("../levels/parttest.txt", &objects, &lights, &dirLight, &emitters, &fog);
+    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, 
+            &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
 
@@ -253,6 +253,8 @@ int main(void)
     bool showLightEditor = false;
     bool showDirLightEditor = false;
     bool showFogEditor = false;
+    bool showTerrainEditor = false;
+    bool showSkyboxEditor = false;
     bool showObjectEditor = false;
 
     bool snapToTerrain = false;
@@ -263,6 +265,8 @@ int main(void)
     bool drawNote = false;
 
     char levelName[128] = "";
+    char skyboxPath[128] = "";
+    char terrainPath[128] = "";
 
     int selectedObject = 0;
     int selectedLight = 0;
@@ -284,7 +288,7 @@ int main(void)
         // TODO(Alex): Find a better Interpolation.
         if(camera.Mode == WALK || camera.Mode == SPRINT)
         {
-            camera.Position.y = m.terrains.dunes.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
+            camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
         }
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
@@ -301,7 +305,7 @@ int main(void)
         // Render Skybox
         if(drawSkybox)
         {
-            m.skyboxes.daySkybox.Draw(m.shaders.skyboxShader);
+            skybox.Draw(m.shaders.skyboxShader);
         }
 
         // Render Light Positions (DEBUG)
@@ -381,10 +385,11 @@ int main(void)
             m.shaders.materialShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
             m.shaders.materialShader.setFloat("material.shine", 1.0f); 
 
+
             // Render Terrain
             if(drawTerrain)
             {
-                m.terrains.dunes.Draw(m.shaders.materialShader);
+                terrain.Draw(m.shaders.materialShader);
             }
         }
         m.shaders.materialShader.unbind();
@@ -617,6 +622,30 @@ int main(void)
                 ImGui::End();
             }
 
+            if(showSkyboxEditor)
+            {
+                ImGui::Begin("Skybox Editor");
+
+                ImGui::InputText("Name", skyboxPath, IM_ARRAYSIZE(skyboxPath));
+                if(ImGui::Button("Update"))
+                {
+                    skybox.init("../resources/skyboxes/" + string(skyboxPath) + "/");
+                }
+                ImGui::End();
+            }
+
+            if(showTerrainEditor)
+            {
+                ImGui::Begin("Terrain Editor");
+
+                ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
+                if(ImGui::Button("Update"))
+                {
+                    terrain.init("../resources/heightmaps/" + string(terrainPath));
+                }
+                ImGui::End();
+            }
+
             if(showObjectEditor)
             {
                 ImGui::Begin("Object Editor");
@@ -629,7 +658,7 @@ int main(void)
                 {
                     if(snapToTerrain)
                     {
-                        objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
+                        objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                                        objects[selectedObject].position.z);
                     }
                 }
@@ -638,7 +667,7 @@ int main(void)
                 {
                     if(snapToTerrain)
                     {
-                        objects[selectedObject].position.y = m.terrains.dunes.heightAt(objects[selectedObject].position.x,
+                        objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                                        objects[selectedObject].position.z);
                     }
                 }
@@ -900,6 +929,12 @@ int main(void)
                 ImGui::Checkbox("Fog", &showFogEditor);
                 ImGui::SameLine();
                 ImGui::Checkbox("Object", &showObjectEditor);
+
+                ImGui::Checkbox("Skybox", &showSkyboxEditor);
+                ImGui::SameLine();
+                ImGui::Checkbox("Terrain", &showTerrainEditor);
+                ImGui::SameLine();
+
                 ImGui::NewLine();
 
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
@@ -920,7 +955,8 @@ int main(void)
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.SaveLevel(str, &objects, &lights, &dirLight, &emitters, &fog);
+                    lvl.SaveLevel(str, &objects, &lights, 
+                            &dirLight, &emitters, &fog, &skybox, &terrain);
                     ImGui::Text("Level saved.");
                 }
                 ImGui::SameLine();
@@ -929,7 +965,8 @@ int main(void)
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight, &emitters, &fog);
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight, 
+                            &emitters, &fog, &skybox, &terrain);
                     ImGui::Text("Level loaded."); 
                 }
                 ImGui::SameLine();

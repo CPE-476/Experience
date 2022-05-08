@@ -15,23 +15,33 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "manager.h"
 #include "shader.h"
 #include "camera.h"
 #include "object.h"
 #include "light.h"
 #include "particles.h"
+#include "skybox.h"
+#include "terrain.h"
 
 using namespace std;
 using namespace glm;
 
-class level {
-public:
+struct level
+{
+    // NOTE(Alex): It might be a good idea for this to hold all the data, so it's
+    // a class for now. But if we dislike that idea, we'll just turn this into two
+    // Functions that do work on their constituent elements.
+
     level()
     {
+
     }
 
-    void LoadLevel(string Filename, vector<Object> *objects, vector<Light> *lights, 
-            DirLight *dirLight, vector<Emitter> *emitters, FogSystem *fog)
+    void LoadLevel(string Filename, vector<Object> *objects, 
+            vector<Light> *lights, DirLight *dirLight, 
+            vector<Emitter> *emitters, FogSystem *fog, 
+            Skybox *skybox, Terrain *terrain)
     {
         // Clear the current level.
         objects->clear();
@@ -63,7 +73,7 @@ public:
                         conPrt.push_back(char_array);    
                     }
 
-                    if (Type == "OBJ")
+                    if(Type == "OBJ")
                     {
                         int id;
                         vec3 pos;
@@ -111,6 +121,7 @@ public:
                     }
                     else if (Type == "DIR")
                     {
+                        cout << "DirLight loaded from file\n";
                         vec3 dir;
 
                         vec3 ambient;
@@ -156,9 +167,26 @@ public:
                     }
                     else if(Type == "FOG")
                     {
+                        cout << "Fog loaded from file\n";
                         fog->maxDistance = (float)atof(conPrt[0]);
                         fog->minDistance = (float)atof(conPrt[1]);
                         fog->color = vec4((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+                    }
+                    else if (Type == "TER")
+                    {
+                        cout << "Terrain loaded from file\n";
+                        string path;
+                        
+                        path = conPrt[0];
+                        terrain->init(path);
+                    }
+                    else if (Type == "SKY")
+                    {
+                        cout << "Skybox loaded from file\n";
+                        string path;
+                        
+                        path = conPrt[0];
+                        skybox->init(path, false);
                     }
 
                     /*
@@ -166,16 +194,6 @@ public:
                         cout << conPrt[0] << "\n";
                         pos = vec3((float)atof(conPrt[0]), 0.0f, (float)atof(conPrt[1]));
                         camera.Position = pos;
-                    }
-                    else if (Type == "TER"){
-                        const char* terrName = conPrt[0];
-                        for (int i = 0; i < TerrList.size(); i++){
-                            if (strcmp(terrName, TerrList[i].terrName) == 0){
-                                // terr exist
-                                terrain = TerrList[i].terr;
-                            }
-                        }
-                    }
                     */
                     else
                     {
@@ -193,8 +211,10 @@ public:
         fp.close();
     }
 
-    void SaveLevel(string Filename, vector<Object> *objects, vector<Light> *lights,
-            DirLight *dirLight, vector<Emitter> *emitters, FogSystem *fog)
+    void SaveLevel(string Filename, vector<Object> *objects, 
+            vector<Light> *lights, DirLight *dirLight, 
+            vector<Emitter> *emitters, FogSystem *fog,
+            Skybox *skybox, Terrain *terrain)
     {
         ofstream fp;
         fp.open(Filename);
@@ -217,7 +237,6 @@ public:
             fp << objects->at(i).view_radius << " ";
             fp << objects->at(i).collision_radius << " ";
             fp << objects->at(i).scaleFactor;
-
             fp << "\n";
         }
 
@@ -241,7 +260,6 @@ public:
             fp << lights->at(i).constant << " ";
             fp << lights->at(i).linear << " ";
             fp << lights->at(i).quadratic << " ";
-
             fp << "\n";
         }
 
@@ -260,7 +278,6 @@ public:
         fp << dirLight->specular.x << " ";
         fp << dirLight->specular.y << " ";
         fp << dirLight->specular.z << " ";
-
         fp << "\n";
 
         // Save Particle System Data
@@ -290,9 +307,9 @@ public:
             fp << emitters->at(i).endColor.a << " ";
             fp << emitters->at(i).startScale << " ";
             fp << emitters->at(i).endScale;
-
             fp << "\n";
         }
+
         fp << "\nCOM Fog: <FOG max min col.x col.y col.z col.a>\n";
         fp << "FOG ";
         fp << fog->maxDistance << " ";
@@ -300,7 +317,18 @@ public:
         fp << fog->color.x << " ";
         fp << fog->color.y << " ";
         fp << fog->color.z << " ";
-        fp << fog->color.a << " ";
+        fp << fog->color.a;
+        fp << "\n";
+
+        fp << "\nCOM Terrain: <TER path>\n";
+        fp << "TER ";
+        fp << terrain->path;
+        fp << "\n";
+
+        fp << "\nCOM Skybox: <SKY dir>\n";
+        fp << "SKY ";
+        fp << skybox->dir;
+        fp << "\n";
 
         fp.close();
     }

@@ -6,6 +6,17 @@
 #ifndef MANAGER_H
 #define MANAGER_H
 
+/*
+ * NOTE(Alex):
+ * The purpose of the manager is to abstract away the compilation of shaders
+ * and the loading of geometry, including the following things:
+ *  - Models
+ *  - Notes
+ *
+ * It isn't intended to subsume Objects, Lights, Particles, etc.
+ * Its basic job is to hold stuff we hard code in the game like Models and Shaders.
+ */
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,22 +26,10 @@
 
 #include "shader.h"
 #include "model.h"
-#include "skybox.h"
-#include "terrain.h"
 #include "note.h"
 
 using namespace std;
 using namespace glm;
-
-// NOTE(Alex): If any objects are dynamically allocated, we need to have a destructor.
-
-/* TODO(Alex):
- *
- * Objects should have some predefined radii that we define.
- * (Culling Radius, Collision Radius)
- * Should we put this information in the Editor or in the Manager?
- * - Should be modified by scale.
- */
 
 struct ID_Entry
 {
@@ -52,12 +51,6 @@ struct Shader_Container
     Shader noteShader;
 };
 
-struct Skybox_Container
-{
-    Skybox daySkybox;
-    Skybox nightSkybox;
-};
-
 struct Model_Container
 {
     // testing
@@ -65,6 +58,7 @@ struct Model_Container
     Model cube;
     Model sphere;
     Model skull;
+
     // forest
     Model tree_1;
     Model tree_2;
@@ -105,11 +99,6 @@ struct Model_Container
     Model road;
 };
 
-struct Terrain_Container
-{
-    Terrain dunes;
-};
-
 struct Note_Container
 {
     Note aurelius1;
@@ -118,9 +107,7 @@ struct Note_Container
 struct Manager
 {
     Shader_Container shaders;
-    Skybox_Container skyboxes;
     Model_Container models;
-    Terrain_Container terrains;
     Note_Container notes;
     ID_Entry Lookup[100];
 
@@ -137,15 +124,6 @@ struct Manager
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
-        /* Geometry Loading */
-        this->skyboxes.daySkybox.init("../resources/skyboxes/daysky/", false);
-        this->skyboxes.nightSkybox.init("../resources/skyboxes/nightsky/", false);
-
-        this->terrains.dunes.init("../resources/testing/final-dunes-first-try.png");
-
-        stbi_set_flip_vertically_on_load(true);
-        // this->models.backpack.init("../resources/models/backpack/backpack.obj");
-        stbi_set_flip_vertically_on_load(false);
         this->models.cube.init("../resources/testing/cube.obj");
         this->models.sphere.init("../resources/testing/sphere.obj");
         this->models.skull.init("../resources/testing/skull.obj");
