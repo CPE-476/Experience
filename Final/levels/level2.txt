@@ -1,5 +1,10 @@
-COM Next Level: <NXT name>
+COM Level saved by the Experience Level Loader
+COM By Brett Hickman, Lucas Li, and Alex Hartford
+COM Spring 2022
+COM Next Level: <NXT path>
 NXT ../levels/level1.txt
+COM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>
+POV -10.7816 23.6316 35.3751 0.414 0 1 
 
 COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>
 OBJ 0 -2.471 0 0 -1.6 0 0 1 1 1 1 1 1

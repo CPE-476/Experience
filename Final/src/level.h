@@ -3,6 +3,9 @@
 // File: Level Loader
 // Date: May 2022
 
+#ifndef LEVEL_H
+#define LEVEL_H
+
 #include <iostream>
 #include <fstream>
 #include <assert.h>
@@ -26,16 +29,19 @@
 using namespace std;
 using namespace glm;
 
-struct level
+struct Level
 {
     // NOTE(Alex): It might be a good idea for this to hold all the data, so it's
     // a class for now. But if we dislike that idea, we'll just turn this into two
     // Functions that do work on their constituent elements.
     
     string currentLevel = "../levels/base.txt";
+
+    vec3 startPosition = vec3(0.0f, 0.0f, 0.0f);
+    vec3 startDirection = vec3(0.0f, 0.0f, -1.0f);
     string nextLevel = "../levels/base.txt";
 
-    level()
+    Level()
     {
 
     }
@@ -210,12 +216,22 @@ struct level
                         skybox->init(path, false);
                     }
 
-                    /*
-                    else if (Type == "POV"){
-                        cout << conPrt[0] << "\n";
-                        pos = vec3((float)atof(conPrt[0]), 0.0f, (float)atof(conPrt[1]));
+                    else if (Type == "POV")
+                    {
+                        cout << "Camera Position loaded from file\n";
+                        vec3 pos;
+                        vec3 dir;
+                        pos = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
+                        dir = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+
+                        this->startPosition = pos;
+                        this->startDirection = dir;
                         camera.Position = pos;
-                    */
+                        camera.Front = dir;
+
+                        // TODO(Alex): Fix weird direction bug when loading new level.
+                        //firstMouse = true; ???
+                    }
                     else
                     {
                         //cout << "inside COM\n";
@@ -240,10 +256,25 @@ struct level
         ofstream fp;
         fp.open(Filename);
 
+        fp << "COM Level saved by the Experience Level Loader\n";
+        fp << "COM By Brett Hickman, Lucas Li, and Alex Hartford\n";
+        fp << "COM Spring 2022\n";
+
         // Save Next Level data
         fp << "COM Next Level: <NXT path>\n";
         fp << "NXT ";
         fp << nextLevel;
+        fp << "\n";
+
+        // Save Desired Camera Position
+        fp << "COM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>\n";
+        fp << "POV ";
+        fp << startPosition.x << " ";
+        fp << startPosition.y << " ";
+        fp << startPosition.z << " ";
+        fp << startDirection.x << " ";
+        fp << startDirection.y << " ";
+        fp << startDirection.z << " ";
         fp << "\n";
 
         // Save Object Data
@@ -391,3 +422,5 @@ struct level
         return res; 
     }
 };
+
+#endif

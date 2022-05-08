@@ -26,6 +26,9 @@ struct Terrain
     float yScale = 16.0f;  // Desired Size
     Material material;
 
+    float widthExtent = 128.0f;
+    float heightExtent = 128.0f;
+
     string path;
     unsigned int VAO, VBO, EBO;
 
@@ -87,6 +90,9 @@ struct Terrain
 
         this->yScale = y_scale;
         float yScaleNormalized = yScale / height;
+
+        this->widthExtent = width / 2;
+        this->heightExtent = height / 2;
 
         for(int i = 0; i < height; ++i)
         {

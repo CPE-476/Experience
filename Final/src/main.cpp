@@ -9,9 +9,8 @@
  * - Bounding Sphere Editing in Editor
  *
  * - Level Transitions
- *    - Spatial Query Based on Level size.
- *    - Load new Level, place camera, etc.
- *    - Nice transition/Fade out and in.
+ *   - Fog Walls
+ *   - Nice transition/Fade out and in.
  *
  * BUGS
  *  - Smoother Terrain Movement
@@ -145,7 +144,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void RenderDebugText(TextRenderer Text, Manager m);
+void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m);
 
 float randFloat()
 {
@@ -239,7 +238,7 @@ int main(void)
     Terrain terrain;
     // Default value.
     terrain.init("../resources/heightmaps/dunes.png", 16.0f,
-		 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
+                 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
@@ -250,7 +249,8 @@ int main(void)
     // Default value
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
-    level lvl;
+    Level lvl;
+
     lvl.LoadLevel("../levels/level1.txt", &objects, &lights, 
             &dirLight, &emitters, &fog, &skybox, &terrain);
 
@@ -276,7 +276,6 @@ int main(void)
     bool drawNote = false;
 
     char levelName[128] = "";
-    char nextName[128] = "";
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
 
@@ -286,8 +285,6 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
-
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -295,13 +292,23 @@ int main(void)
 
         drawnObjects = 0;
 
+        // Input Resolution
+        glfwPollEvents();
         processInput(window);
-
-        // TODO(Alex): Find a better Interpolation.
         if(camera.Mode == WALK || camera.Mode == SPRINT)
         {
+            if(camera.Position.x > terrain.widthExtent || 
+               camera.Position.x < -terrain.widthExtent ||
+               camera.Position.z > terrain.heightExtent ||
+               camera.Position.z < -terrain.heightExtent)
+            {
+                cout << "HERE\n";
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                    &emitters, &fog, &skybox, &terrain);
+            }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
         }
+
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
@@ -446,7 +453,7 @@ int main(void)
 
         // Render Text
         Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-        RenderDebugText(Text, m);
+        RenderDebugText(&Text, &lvl, &m);
 
         // Render Note
         if(drawNote)
@@ -645,11 +652,11 @@ int main(void)
                 ImGui::Begin("Terrain Editor");
 
                 ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
-		ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
+                ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
                 if(ImGui::Button("Update"))
                 {
                     terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale,
-			{vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
+                        {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
                 }
 
                 ImGui::SliderFloat3("Ambient", (float *)&terrain.material.ambient, 0.0f, 1.0f);
@@ -933,9 +940,10 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
-		ImGui::Text("Curr: %s Next: %s", lvl.currentLevel.c_str(), lvl.nextLevel.c_str());
-
                 ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
+
+                ImGui::SliderFloat3("Starting Position", (float *)&lvl.startPosition, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Starting Direction", (float *)&lvl.startDirection, -1.0f, 1.0f);
 
                 if(ImGui::Button("Save")) 
                 {
@@ -943,33 +951,33 @@ int main(void)
                     str.append(levelName);
                     lvl.SaveLevel(str, &objects, &lights, 
                             &dirLight, &emitters, &fog, &skybox, &terrain);
-		    cout << "Level saved: " << str << "\n";
+                    cout << "Level saved: " << str << "\n";
                 }
                 ImGui::SameLine();
                 if(ImGui::Button("Load"))
                 {
                     string str = "../levels/";
                     str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight, 
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight,
                             &emitters, &fog, &skybox, &terrain);
-		    cout << "Level loaded: " << str << "\n";
+                    cout << "Level loaded: " << str << "\n";
                 }
-		ImGui::SameLine();
-		if(ImGui::Button("Set Next"))
-		{
+                ImGui::SameLine();
+                if(ImGui::Button("Set Next"))
+                {
                     string str = "../levels/";
                     str.append(levelName);
-		    lvl.nextLevel = str;
-		}
-		ImGui::SameLine();
-		if(ImGui::Button("Next"))
-		{
-		    lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-			&emitters, &fog, &skybox, &terrain);
-		}
+                    lvl.nextLevel = str;
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Next"))
+                {
+                    lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                        &emitters, &fog, &skybox, &terrain);
+                }
 
-		// Editors
-		ImGui::Text("Editors");
+                // Editors
+                ImGui::Text("Editors");
                 ImGui::Checkbox("Particle", &showParticleEditor);
                 ImGui::SameLine();
                 ImGui::Checkbox("Light", &showLightEditor);
@@ -988,8 +996,8 @@ int main(void)
                 ImGui::NewLine();
                 ImGui::NewLine();
 
-		// Settings
-		ImGui::Text("Settings");
+                // Settings
+                ImGui::Text("Settings");
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Skybox", &drawSkybox);
@@ -999,8 +1007,6 @@ int main(void)
                 ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Note", &drawNote);
-
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
             ImGui::End();
 
             ImGui::Render();
@@ -1024,20 +1030,28 @@ int main(void)
     return 0;
 }
 
-void RenderDebugText(TextRenderer Text, Manager m)
+void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m)
 {
     unsigned int lineNumber = 1;
     char buffer[256];
     sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 
     sprintf(buffer, "Drawn Objects: %d", drawnObjects);
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 
-    sprintf(buffer, "This is a debug message");
-    Text.RenderText(buffer, m.shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    sprintf(buffer, "Location: (%.02f %.02f %.02f)", camera.Position.x, camera.Position.y, camera.Position.z);
+    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "Orientation: (%.02f %.02f %.02f)", camera.Front.x, camera.Front.y, camera.Front.z);
+    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+    lineNumber++;
+
+    sprintf(buffer, "Level: %s | Next: %s", lvl->currentLevel.c_str(), lvl->nextLevel.c_str());
+    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
     lineNumber++;
 }
 

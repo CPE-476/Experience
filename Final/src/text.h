@@ -1,3 +1,8 @@
+// Author: Alex Hartford
+// Program: Experience
+// File: Text Renderer
+// Date: April 2022
+
 #ifndef TEXT_H
 #define TEXT_H
 
