@@ -6,18 +6,19 @@
 /* TODO
  *
  * ALEX
- * - Terrain Color/Texture in Editor
  * - Bounding Sphere Editing in Editor
- * - Weird terrain bug in Editor
+ *
  * - Level Transitions
  *    - Spatial Query Based on Level size.
  *    - Load new Level, place camera, etc.
  *    - Nice transition/Fade out and in.
+ *
  * BUGS
  *  - Smoother Terrain Movement
  *
  * 75
  *  - Spline Camera
+ *  - Fade-in Text or dialogue drawing.
  *  - 3D Sound System
  *
  * Volumetric Fog
@@ -106,6 +107,14 @@ int drawnObjects;
 enum ShaderTypes {
     MATERIAL,
     TEXTURE
+};
+
+struct Material
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shine;
 };
 
 struct FogSystem {
@@ -228,7 +237,9 @@ int main(void)
     skybox.init("../resources/skyboxes/daysky/", false);
 
     Terrain terrain;
-    //terrain.init("../resources/heightmaps/final-dunes-first-try.png");
+    // Default value.
+    terrain.init("../resources/heightmaps/dunes.png", 16.0f,
+		 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),   // Direction
@@ -265,6 +276,7 @@ int main(void)
     bool drawNote = false;
 
     char levelName[128] = "";
+    char nextName[128] = "";
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
 
@@ -379,12 +391,6 @@ int main(void)
                     }
                 }
             }
-
-            m.shaders.materialShader.setVec3("material.ambient", 0.5f, 0.8f, 0.5f);
-            m.shaders.materialShader.setVec3("material.diffuse", 0.5f, 0.8f, 0.5f);
-            m.shaders.materialShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
-            m.shaders.materialShader.setFloat("material.shine", 1.0f); 
-
 
             // Render Terrain
             if(drawTerrain)
@@ -639,10 +645,17 @@ int main(void)
                 ImGui::Begin("Terrain Editor");
 
                 ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
+		ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
                 if(ImGui::Button("Update"))
                 {
-                    terrain.init("../resources/heightmaps/" + string(terrainPath));
+                    terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale,
+			{vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
                 }
+
+                ImGui::SliderFloat3("Ambient", (float *)&terrain.material.ambient, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Diffuse", (float *)&terrain.material.diffuse, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Specular", (float *)&terrain.material.specular, 0.0f, 1.0f);
+                ImGui::SliderFloat("Shine", (float *)&terrain.material.shine, 0.0f, 100.0f);
                 ImGui::End();
             }
 
@@ -920,6 +933,43 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
+		ImGui::Text("Curr: %s Next: %s", lvl.currentLevel.c_str(), lvl.nextLevel.c_str());
+
+                ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
+
+                if(ImGui::Button("Save")) 
+                {
+                    string str = "../levels/";
+                    str.append(levelName);
+                    lvl.SaveLevel(str, &objects, &lights, 
+                            &dirLight, &emitters, &fog, &skybox, &terrain);
+		    cout << "Level saved: " << str << "\n";
+                }
+                ImGui::SameLine();
+                if(ImGui::Button("Load"))
+                {
+                    string str = "../levels/";
+                    str.append(levelName);
+                    lvl.LoadLevel(str, &objects, &lights, &dirLight, 
+                            &emitters, &fog, &skybox, &terrain);
+		    cout << "Level loaded: " << str << "\n";
+                }
+		ImGui::SameLine();
+		if(ImGui::Button("Set Next"))
+		{
+                    string str = "../levels/";
+                    str.append(levelName);
+		    lvl.nextLevel = str;
+		}
+		ImGui::SameLine();
+		if(ImGui::Button("Next"))
+		{
+		    lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+			&emitters, &fog, &skybox, &terrain);
+		}
+
+		// Editors
+		ImGui::Text("Editors");
                 ImGui::Checkbox("Particle", &showParticleEditor);
                 ImGui::SameLine();
                 ImGui::Checkbox("Light", &showLightEditor);
@@ -936,7 +986,10 @@ int main(void)
                 ImGui::SameLine();
 
                 ImGui::NewLine();
+                ImGui::NewLine();
 
+		// Settings
+		ImGui::Text("Settings");
                 ImGui::Checkbox("Draw Terrain", &drawTerrain);
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw Skybox", &drawSkybox);
@@ -948,29 +1001,6 @@ int main(void)
                 ImGui::Checkbox("Draw Note", &drawNote);
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); 
-
-                ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
-
-                if(ImGui::Button("Save")) 
-                {
-                    string str = "../levels/";
-                    str.append(levelName);
-                    lvl.SaveLevel(str, &objects, &lights, 
-                            &dirLight, &emitters, &fog, &skybox, &terrain);
-                    ImGui::Text("Level saved.");
-                }
-                ImGui::SameLine();
-
-                if(ImGui::Button("Load"))
-                {
-                    string str = "../levels/";
-                    str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight, 
-                            &emitters, &fog, &skybox, &terrain);
-                    ImGui::Text("Level loaded."); 
-                }
-                ImGui::SameLine();
-
             ImGui::End();
 
             ImGui::Render();

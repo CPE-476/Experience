@@ -21,12 +21,11 @@
 using namespace std;
 using namespace glm;
 
-// Tweak these values for different terrain types.
-const float Y_SCALE = 32.0f;  // Desired Size
-const float Y_SHIFT = 16.0f;  // Height of Mesh. Should be half of Desired Size.
-
 struct Terrain
 {
+    float yScale = 16.0f;  // Desired Size
+    Material material;
+
     string path;
     unsigned int VAO, VBO, EBO;
 
@@ -40,7 +39,6 @@ struct Terrain
 
     // [x][z]
     vector<vector<float>> pointsData;
-
 
     // Takes an x and z value in world space.
     float heightAt(float x, float z)
@@ -72,10 +70,12 @@ struct Terrain
         return p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
     }
 
-    void init(string p)
+    void init(string p, float y_scale, Material mat)
     {
+        this->material = mat;
         vertices.clear();
         indices.clear();
+        pointsData.clear();
         this->path = p;
         // Load Heightmap
         int nrChannels;
@@ -85,7 +85,8 @@ struct Terrain
             cout << "Unable to load Heightmap: " << path << "\n";
         }
 
-        float yScale = Y_SCALE / height;
+        this->yScale = y_scale;
+        float yScaleNormalized = yScale / height;
 
         for(int i = 0; i < height; ++i)
         {
@@ -94,7 +95,7 @@ struct Terrain
             {
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
-                float vy = (y * yScale - Y_SHIFT);
+                float vy = (y * yScaleNormalized - yScale / 2);
                 row.push_back(vy);
             }
             pointsData.push_back(row);
@@ -148,7 +149,6 @@ struct Terrain
             }
         }
 
-
         num_strips = height - 1;
         num_tris_per_strip = width * 2;
 
@@ -184,6 +184,11 @@ struct Terrain
             shader.setMat4("view", view);
             mat4 model = mat4(1.0f);
             shader.setMat4("model", model);
+
+            shader.setVec3("material.ambient", material.ambient);
+            shader.setVec3("material.diffuse", material.diffuse);
+            shader.setVec3("material.specular", material.specular);
+            shader.setFloat("material.shine", material.shine); 
 
             glBindVertexArray(VAO);
             for(unsigned int strip = 0; strip < num_strips; ++strip)

@@ -1,8 +1,7 @@
-
-// Author: Alex Hartford
-// Program: Emblem
+// Author: Alex Hartford, Lucas Li
+// Program: Experience
 // File: Level Loader
-// Date: February 2022
+// Date: May 2022
 
 #include <iostream>
 #include <fstream>
@@ -32,6 +31,9 @@ struct level
     // NOTE(Alex): It might be a good idea for this to hold all the data, so it's
     // a class for now. But if we dislike that idea, we'll just turn this into two
     // Functions that do work on their constituent elements.
+    
+    string currentLevel = "../levels/base.txt";
+    string nextLevel = "../levels/base.txt";
 
     level()
     {
@@ -43,6 +45,8 @@ struct level
             vector<Emitter> *emitters, FogSystem *fog, 
             Skybox *skybox, Terrain *terrain)
     {
+        currentLevel = Filename;
+
         // Clear the current level.
         objects->clear();
         lights->clear();
@@ -73,7 +77,13 @@ struct level
                         conPrt.push_back(char_array);    
                     }
 
-                    if(Type == "OBJ")
+                    if(Type == "NXT")
+                    {
+                        cout << "Next level found.\n";
+
+                        nextLevel = conPrt[0];
+                    }
+                    else if(Type == "OBJ")
                     {
                         int id;
                         vec3 pos;
@@ -176,9 +186,20 @@ struct level
                     {
                         cout << "Terrain loaded from file\n";
                         string path;
-                        
+                        float y_scale;
+                        vec3 ambient;
+                        vec3 diffuse;
+                        vec3 specular;
+                        float shine;
+
                         path = conPrt[0];
-                        terrain->init(path);
+                        y_scale = (float)atof(conPrt[1]);
+                        ambient = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
+                        diffuse = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
+                        specular = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
+                        shine = (float)atof(conPrt[11]);
+                        
+                        terrain->init(path, y_scale, {ambient, diffuse, specular, shine});
                     }
                     else if (Type == "SKY")
                     {
@@ -218,6 +239,12 @@ struct level
     {
         ofstream fp;
         fp.open(Filename);
+
+        // Save Next Level data
+        fp << "COM Next Level: <NXT path>\n";
+        fp << "NXT ";
+        fp << nextLevel;
+        fp << "\n";
 
         // Save Object Data
         fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
@@ -320,9 +347,20 @@ struct level
         fp << fog->color.a;
         fp << "\n";
 
-        fp << "\nCOM Terrain: <TER path>\n";
+        fp << "\nCOM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
         fp << "TER ";
-        fp << terrain->path;
+        fp << terrain->path << " ";
+        fp << terrain->yScale << " ";
+        fp << terrain->material.ambient.x << " ";
+        fp << terrain->material.ambient.y << " ";
+        fp << terrain->material.ambient.z << " ";
+        fp << terrain->material.diffuse.x << " ";
+        fp << terrain->material.diffuse.y << " ";
+        fp << terrain->material.diffuse.z << " ";
+        fp << terrain->material.specular.x << " ";
+        fp << terrain->material.specular.y << " ";
+        fp << terrain->material.specular.z << " ";
+        fp << terrain->material.shine << " ";
         fp << "\n";
 
         fp << "\nCOM Skybox: <SKY dir>\n";

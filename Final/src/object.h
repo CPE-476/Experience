@@ -15,14 +15,6 @@
 using namespace std;
 using namespace glm;
 
-struct Material
-{
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shine;
-};
-
 class Object {
 public:
     int id;

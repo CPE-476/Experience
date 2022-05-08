@@ -124,6 +124,7 @@ struct Manager
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
+        stbi_set_flip_vertically_on_load(false);
         this->models.cube.init("../resources/testing/cube.obj");
         this->models.sphere.init("../resources/testing/sphere.obj");
         this->models.skull.init("../resources/testing/skull.obj");
