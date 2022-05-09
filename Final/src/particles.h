@@ -39,7 +39,7 @@ public:
 };
 
 
-class ParticleSys {
+class Emitter {
 public:
     float lifeSpan;
     float gravity;
@@ -51,7 +51,7 @@ public:
     string path;
     int bugMode;
 
-    ParticleSys(string path, int partAmt, vec3 pos, float rad1, float rad2, 
+    Emitter(string path, int partAmt, vec3 pos, float rad1, float rad2, 
 	        float height, vec3 vel, float life, float grav, vec4 startCol, 
 		vec4 endCol, float startScl, float endScl)
     {

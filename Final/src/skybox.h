@@ -62,15 +62,16 @@ float skyboxVertices[] = {
      1.0f, -1.0f,  1.0f
 };
 
-class Skybox
+struct Skybox
 {
-public:
-    Skybox()
-    {
-    }
+    string dir;
 
-    void init(string dir, bool png = false)
+    unsigned int VAO, VBO;
+    unsigned int textureID;
+
+    void init(string d, bool png = false)
     {
+        this->dir = d;
         vector<string> paths;
         paths.push_back(dir + (png ? "right.png" : "right.jpg"));
         paths.push_back(dir + (png ? "left.png" : "left.jpg"));
@@ -101,10 +102,6 @@ public:
         glDepthFunc(GL_LESS);
     }
     
-private: 
-    unsigned int VAO, VBO;
-    unsigned int textureID;
-
     void setup()
     {
         glGenVertexArrays(1, &VAO);

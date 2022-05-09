@@ -21,13 +21,28 @@
 using namespace std;
 using namespace glm;
 
-// Tweak these values for different terrain types.
-const float Y_SCALE = 32.0f;  // Desired Size
-const float Y_SHIFT = 16.0f;  // Height of Mesh. Should be half of Desired Size.
-
-class Terrain
+struct Terrain
 {
-public:
+    float yScale = 16.0f;  // Desired Size
+    Material material;
+
+    float widthExtent = 128.0f;
+    float heightExtent = 128.0f;
+
+    string path;
+    unsigned int VAO, VBO, EBO;
+
+    vector<float> vertices;
+    vector<unsigned int> indices;
+
+    unsigned int num_strips;
+    unsigned int num_tris_per_strip;
+
+    int width, height;
+
+    // [x][z]
+    vector<vector<float>> pointsData;
+
     // Takes an x and z value in world space.
     float heightAt(float x, float z)
     {
@@ -58,17 +73,26 @@ public:
         return p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
     }
 
-    void init(string path)
+    void init(string p, float y_scale, Material mat)
     {
+        this->material = mat;
+        vertices.clear();
+        indices.clear();
+        pointsData.clear();
+        this->path = p;
         // Load Heightmap
         int nrChannels;
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(p.c_str(), &width, &height, &nrChannels, 0);
         if(!data)
         {
             cout << "Unable to load Heightmap: " << path << "\n";
         }
 
-        float yScale = Y_SCALE / height;
+        this->yScale = y_scale;
+        float yScaleNormalized = yScale / height;
+
+        this->widthExtent = width / 2;
+        this->heightExtent = height / 2;
 
         for(int i = 0; i < height; ++i)
         {
@@ -77,7 +101,7 @@ public:
             {
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
-                float vy = (y * yScale - Y_SHIFT);
+                float vy = (y * yScaleNormalized - yScale / 2);
                 row.push_back(vy);
             }
             pointsData.push_back(row);
@@ -93,7 +117,7 @@ public:
                 indices.push_back(j + width * (i + 1));
             }
         }
- 
+
         // Generate Vertices
         for(int i = 0; i < height; ++i)
         {
@@ -131,7 +155,6 @@ public:
             }
         }
 
-
         num_strips = height - 1;
         num_tris_per_strip = width * 2;
 
@@ -168,6 +191,11 @@ public:
             mat4 model = mat4(1.0f);
             shader.setMat4("model", model);
 
+            shader.setVec3("material.ambient", material.ambient);
+            shader.setVec3("material.diffuse", material.diffuse);
+            shader.setVec3("material.specular", material.specular);
+            shader.setFloat("material.shine", material.shine); 
+
             glBindVertexArray(VAO);
             for(unsigned int strip = 0; strip < num_strips; ++strip)
             {
@@ -179,20 +207,6 @@ public:
         }
         shader.unbind();
     }
-
-private: 
-    unsigned int VAO, VBO, EBO;
-
-    vector<float> vertices;
-    vector<unsigned int> indices;
-
-    unsigned int num_strips;
-    unsigned int num_tris_per_strip;
-
-    int width, height;
-
-    // [x][z]
-    vector<vector<float>> pointsData;
 };
 
 #endif

@@ -1,8 +1,10 @@
-
-// Author: Alex Hartford
-// Program: Emblem
+// Author: Alex Hartford, Lucas Li
+// Program: Experience
 // File: Level Loader
-// Date: February 2022
+// Date: May 2022
+
+#ifndef LEVEL_H
+#define LEVEL_H
 
 #include <iostream>
 #include <fstream>
@@ -15,28 +17,46 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "manager.h"
 #include "shader.h"
 #include "camera.h"
 #include "object.h"
 #include "light.h"
 #include "particles.h"
+#include "skybox.h"
+#include "terrain.h"
 
 using namespace std;
 using namespace glm;
 
-class level {
-public:
-    level()
+struct Level
+{
+    // NOTE(Alex): It might be a good idea for this to hold all the data, so it's
+    // a class for now. But if we dislike that idea, we'll just turn this into two
+    // Functions that do work on their constituent elements.
+    
+    string currentLevel = "../levels/base.txt";
+
+    vec3 startPosition = vec3(0.0f, 0.0f, 0.0f);
+    vec3 startDirection = vec3(0.0f, 0.0f, -1.0f);
+    string nextLevel = "../levels/base.txt";
+
+    Level()
     {
+
     }
 
-    void LoadLevel(string Filename, vector<Object> *objects, vector<Light> *lights, 
-            DirLight *dirLight, vector<ParticleSys> *particleSystems)
+    void LoadLevel(string Filename, vector<Object> *objects, 
+            vector<Light> *lights, DirLight *dirLight, 
+            vector<Emitter> *emitters, FogSystem *fog, 
+            Skybox *skybox, Terrain *terrain)
     {
+        currentLevel = Filename;
+
         // Clear the current level.
         objects->clear();
         lights->clear();
-        particleSystems->clear();
+        emitters->clear();
 
         string Line;
         string Type;
@@ -63,7 +83,13 @@ public:
                         conPrt.push_back(char_array);    
                     }
 
-                    if (Type == "OBJ")
+                    if(Type == "NXT")
+                    {
+                        cout << "Next level found.\n";
+
+                        nextLevel = conPrt[0];
+                    }
+                    else if(Type == "OBJ")
                     {
                         int id;
                         vec3 pos;
@@ -100,18 +126,18 @@ public:
                         float linear;
                         float quadratic;
      
-                        id = (int)atof(conPrt[0]);
-                        pos = vec3((float)atof(conPrt[1]), (float)atof(conPrt[2]), (float)atof(conPrt[3]));
-                        ambient = vec3((float)atof(conPrt[4]), (float)atof(conPrt[5]), (float)atof(conPrt[6]));
-                        diffuse = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
-                        specular = vec3((float)atof(conPrt[10]), (float)atof(conPrt[11]), (float)atof(conPrt[12]));
-                        constant = (float)atof(conPrt[13]);
-                        linear = (float)atof(conPrt[14]);
-                        quadratic = (float)atof(conPrt[15]);
-                        lights->push_back(Light(id, pos, ambient, diffuse, specular, constant, linear, quadratic));
+                        pos = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
+                        ambient = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+                        diffuse = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
+                        specular = vec3((float)atof(conPrt[9]), (float)atof(conPrt[10]), (float)atof(conPrt[11]));
+                        constant = (float)atof(conPrt[12]);
+                        linear = (float)atof(conPrt[13]);
+                        quadratic = (float)atof(conPrt[14]);
+                        lights->push_back(Light(pos, ambient, diffuse, specular, constant, linear, quadratic));
                     }
                     else if (Type == "DIR")
                     {
+                        cout << "DirLight loaded from file\n";
                         vec3 dir;
 
                         vec3 ambient;
@@ -153,27 +179,63 @@ public:
                         endCol = vec4((float)atof(conPrt[17]), (float)atof(conPrt[18]), (float)atof(conPrt[19]), (float)atof(conPrt[20]));
                         startScl = (float)atof(conPrt[21]);
                         endScl = (float)atof(conPrt[22]);
-                        particleSystems->push_back(ParticleSys(path, partAmt, pos, rad1, rad2, height, vel, life, grav, startCol, endCol, startScl, endScl));
+                        emitters->push_back(Emitter(path, partAmt, pos, rad1, rad2, height, vel, life, grav, startCol, endCol, startScl, endScl));
+                    }
+                    else if(Type == "FOG")
+                    {
+                        cout << "Fog loaded from file\n";
+                        fog->maxDistance = (float)atof(conPrt[0]);
+                        fog->minDistance = (float)atof(conPrt[1]);
+                        fog->color = vec4((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+                    }
+                    else if (Type == "TER")
+                    {
+                        cout << "Terrain loaded from file\n";
+                        string path;
+                        float y_scale;
+                        vec3 ambient;
+                        vec3 diffuse;
+                        vec3 specular;
+                        float shine;
+
+                        path = conPrt[0];
+                        y_scale = (float)atof(conPrt[1]);
+                        ambient = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
+                        diffuse = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
+                        specular = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
+                        shine = (float)atof(conPrt[11]);
+                        
+                        terrain->init(path, y_scale, {ambient, diffuse, specular, shine});
+                    }
+                    else if (Type == "SKY")
+                    {
+                        cout << "Skybox loaded from file\n";
+                        string path;
+                        
+                        path = conPrt[0];
+                        skybox->init(path, false);
                     }
 
-                    /*
-                    else if (Type == "POV"){
-                        cout << conPrt[0] << "\n";
-                        pos = vec3((float)atof(conPrt[0]), 0.0f, (float)atof(conPrt[1]));
+                    else if (Type == "POV")
+                    {
+                        cout << "Camera Position loaded from file\n";
+                        vec3 pos;
+                        vec3 dir;
+                        pos = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
+                        dir = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+
+                        this->startPosition = pos;
+                        this->startDirection = dir;
                         camera.Position = pos;
+                        camera.Front = dir;
+
+                        // TODO(Alex): Fix weird direction bug when loading new level.
+                        //firstMouse = true; ???
                     }
-                    else if (Type == "TER"){
-                        const char* terrName = conPrt[0];
-                        for (int i = 0; i < TerrList.size(); i++){
-                            if (strcmp(terrName, TerrList[i].terrName) == 0){
-                                // terr exist
-                                terrain = TerrList[i].terr;
-                            }
-                        }
+                    else
+                    {
+                        //cout << "inside COM\n";
                     }
-                    else{
-                        cout << "inside COM\n";
-                    }*/
                     conPrt.clear();
                 }
             }
@@ -186,129 +248,179 @@ public:
         fp.close();
     }
 
-    void SaveLevel(string Filename, vector<Object> *objects, vector<Light> *lights,
-            DirLight *dirLight, vector<ParticleSys> *particleSystems)
+    void SaveLevel(string Filename, vector<Object> *objects, 
+            vector<Light> *lights, DirLight *dirLight, 
+            vector<Emitter> *emitters, FogSystem *fog,
+            Skybox *skybox, Terrain *terrain)
     {
         ofstream fp;
         fp.open(Filename);
 
-        // Save Object Data
-        fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
-        for(int i = 0; i < objects->size(); ++i)
-        {
-            fp << "OBJ ";
-            fp << objects->at(i).id << " ";
-            fp << objects->at(i).position.x << " ";
-            fp << objects->at(i).position.y << " ";
-            fp << objects->at(i).position.z << " ";
-            fp << objects->at(i).angleX << " ";
-            fp << objects->at(i).angleY << " ";
-            fp << objects->at(i).angleZ << " ";
-            fp << objects->at(i).velocity.x << " ";
-            fp << objects->at(i).velocity.y << " ";
-            fp << objects->at(i).velocity.z << " ";
-            fp << objects->at(i).view_radius << " ";
-            fp << objects->at(i).collision_radius << " ";
-            fp << objects->at(i).scaleFactor;
+        fp << "COM Level saved by the Experience Level Loader\n";
+        fp << "COM By Brett Hickman, Lucas Li, and Alex Hartford\n";
+        fp << "COM Spring 2022\n\n";
 
-            fp << "\n";
-        }
-
-        // Save Point Light Data
-        fp << "\nCOM Light: <LGT id pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>\n";
-        for(int i = 0; i < lights->size(); ++i)
-        {
-            fp << "LGT ";
-            fp << lights->at(i).id << " ";
-            fp << lights->at(i).position.x << " ";
-            fp << lights->at(i).position.y << " ";
-            fp << lights->at(i).position.z << " ";
-            fp << lights->at(i).ambient.x << " ";
-            fp << lights->at(i).ambient.y << " ";
-            fp << lights->at(i).ambient.z << " ";
-            fp << lights->at(i).diffuse.x << " ";
-            fp << lights->at(i).diffuse.y << " ";
-            fp << lights->at(i).diffuse.z << " ";
-            fp << lights->at(i).specular.x << " ";
-            fp << lights->at(i).specular.y << " ";
-            fp << lights->at(i).specular.z << " ";
-            fp << lights->at(i).constant << " ";
-            fp << lights->at(i).linear << " ";
-            fp << lights->at(i).quadratic << " ";
-
-            fp << "\n";
-        }
-
-        // Save Directional Light Data
-        fp << "\nCOM DirLight: <DIR id dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
-        fp << "DIR ";
-        fp << dirLight->direction.x << " ";
-        fp << dirLight->direction.y << " ";
-        fp << dirLight->direction.z << " ";
-        fp << dirLight->ambient.x << " ";
-        fp << dirLight->ambient.y << " ";
-        fp << dirLight->ambient.z << " ";
-        fp << dirLight->diffuse.x << " ";
-        fp << dirLight->diffuse.y << " ";
-        fp << dirLight->diffuse.z << " ";
-        fp << dirLight->specular.x << " ";
-        fp << dirLight->specular.y << " ";
-        fp << dirLight->specular.z << " ";
-
+        // Save Next Level data
+        fp << "\nCOM Next Level: <NXT path>\n";
+        fp << "NXT ";
+        fp << nextLevel;
         fp << "\n";
 
-        // Save Particle System Data
-        fp << "\nCOM ParticleSys: <PAR id partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
-        for(int i = 0; i < particleSystems->size(); ++i){
-            fp << "PAR ";
-            fp << particleSystems->at(i).path << " ";
-            fp << particleSystems->at(i).particleAmount << " ";
-            fp << particleSystems->at(i).startPosition.x << " ";
-            fp << particleSystems->at(i).startPosition.y << " ";
-            fp << particleSystems->at(i).startPosition.z << " ";
-            fp << particleSystems->at(i).radius << " ";
-            fp << particleSystems->at(i).radiusTop << " ";
-            fp << particleSystems->at(i).height << " ";
-            fp << particleSystems->at(i).startVelocity.x << " ";
-            fp << particleSystems->at(i).startVelocity.y << " ";
-            fp << particleSystems->at(i).startVelocity.z << " ";
-            fp << particleSystems->at(i).lifeSpan << " ";
-            fp << particleSystems->at(i).gravity << " ";
-            fp << particleSystems->at(i).startColor.x << " ";
-            fp << particleSystems->at(i).startColor.y << " ";
-            fp << particleSystems->at(i).startColor.z << " ";
-            fp << particleSystems->at(i).startColor.a << " ";
-            fp << particleSystems->at(i).endColor.x << " ";
-            fp << particleSystems->at(i).endColor.y << " ";
-            fp << particleSystems->at(i).endColor.z << " ";
-            fp << particleSystems->at(i).endColor.a << " ";
-            fp << particleSystems->at(i).startScale << " ";
-            fp << particleSystems->at(i).endScale;
+        // Save Desired Camera Position
+        fp << "\nCOM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>\n";
+        fp << "POV ";
+        fp << startPosition.x << " ";
+        fp << startPosition.y << " ";
+        fp << startPosition.z << " ";
+        fp << startDirection.x << " ";
+        fp << startDirection.y << " ";
+        fp << startDirection.z << " ";
+        fp << "\n";
 
-            fp << "\n";
-        }
+	// Save Object Data
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
+	for(int i = 0; i < objects->size(); ++i)
+	{
+	    fp << "OBJ ";
+	    fp << objects->at(i).id << " ";
+	    fp << objects->at(i).position.x << " ";
+	    fp << objects->at(i).position.y << " ";
+	    fp << objects->at(i).position.z << " ";
+	    fp << objects->at(i).angleX << " ";
+	    fp << objects->at(i).angleY << " ";
+	    fp << objects->at(i).angleZ << " ";
+	    fp << objects->at(i).velocity.x << " ";
+	    fp << objects->at(i).velocity.y << " ";
+	    fp << objects->at(i).velocity.z << " ";
+	    fp << objects->at(i).view_radius << " ";
+	    fp << objects->at(i).collision_radius << " ";
+	    fp << objects->at(i).scaleFactor;
+	    fp << "\n";
+	}
 
+	// Save Point Light Data
+	fp << "\nCOM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>\n";
+	for(int i = 0; i < lights->size(); ++i)
+	{
+	    fp << "LGT ";
+	    fp << lights->at(i).position.x << " ";
+	    fp << lights->at(i).position.y << " ";
+	    fp << lights->at(i).position.z << " ";
+	    fp << lights->at(i).ambient.x << " ";
+	    fp << lights->at(i).ambient.y << " ";
+	    fp << lights->at(i).ambient.z << " ";
+	    fp << lights->at(i).diffuse.x << " ";
+	    fp << lights->at(i).diffuse.y << " ";
+	    fp << lights->at(i).diffuse.z << " ";
+	    fp << lights->at(i).specular.x << " ";
+	    fp << lights->at(i).specular.y << " ";
+	    fp << lights->at(i).specular.z << " ";
+	    fp << lights->at(i).constant << " ";
+	    fp << lights->at(i).linear << " ";
+	    fp << lights->at(i).quadratic << " ";
+	    fp << "\n";
+	}
 
-        fp.close();
+	// Save Directional Light Data
+	fp << "\nCOM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
+	fp << "DIR ";
+	fp << dirLight->direction.x << " ";
+	fp << dirLight->direction.y << " ";
+	fp << dirLight->direction.z << " ";
+	fp << dirLight->ambient.x << " ";
+	fp << dirLight->ambient.y << " ";
+	fp << dirLight->ambient.z << " ";
+	fp << dirLight->diffuse.x << " ";
+	fp << dirLight->diffuse.y << " ";
+	fp << dirLight->diffuse.z << " ";
+	fp << dirLight->specular.x << " ";
+	fp << dirLight->specular.y << " ";
+	fp << dirLight->specular.z << " ";
+	fp << "\n";
+
+	// Save Particle System Data
+	fp << "\nCOM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
+	for(int i = 0; i < emitters->size(); ++i){
+	    fp << "PAR ";
+	    fp << emitters->at(i).path << " ";
+	    fp << emitters->at(i).particleAmount << " ";
+	    fp << emitters->at(i).startPosition.x << " ";
+	    fp << emitters->at(i).startPosition.y << " ";
+	    fp << emitters->at(i).startPosition.z << " ";
+	    fp << emitters->at(i).radius << " ";
+	    fp << emitters->at(i).radiusTop << " ";
+	    fp << emitters->at(i).height << " ";
+	    fp << emitters->at(i).startVelocity.x << " ";
+	    fp << emitters->at(i).startVelocity.y << " ";
+	    fp << emitters->at(i).startVelocity.z << " ";
+	    fp << emitters->at(i).lifeSpan << " ";
+	    fp << emitters->at(i).gravity << " ";
+	    fp << emitters->at(i).startColor.x << " ";
+	    fp << emitters->at(i).startColor.y << " ";
+	    fp << emitters->at(i).startColor.z << " ";
+	    fp << emitters->at(i).startColor.a << " ";
+	    fp << emitters->at(i).endColor.x << " ";
+	    fp << emitters->at(i).endColor.y << " ";
+	    fp << emitters->at(i).endColor.z << " ";
+	    fp << emitters->at(i).endColor.a << " ";
+	    fp << emitters->at(i).startScale << " ";
+	    fp << emitters->at(i).endScale;
+	    fp << "\n";
+	}
+
+	fp << "\nCOM Fog: <FOG max min col.x col.y col.z col.a>\n";
+	fp << "FOG ";
+	fp << fog->maxDistance << " ";
+	fp << fog->minDistance << " ";
+	fp << fog->color.x << " ";
+	fp << fog->color.y << " ";
+	fp << fog->color.z << " ";
+	fp << fog->color.a;
+	fp << "\n";
+
+	fp << "\nCOM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
+	fp << "TER ";
+	fp << terrain->path << " ";
+	fp << terrain->yScale << " ";
+	fp << terrain->material.ambient.x << " ";
+	fp << terrain->material.ambient.y << " ";
+	fp << terrain->material.ambient.z << " ";
+	fp << terrain->material.diffuse.x << " ";
+	fp << terrain->material.diffuse.y << " ";
+	fp << terrain->material.diffuse.z << " ";
+	fp << terrain->material.specular.x << " ";
+	fp << terrain->material.specular.y << " ";
+	fp << terrain->material.specular.z << " ";
+	fp << terrain->material.shine << " ";
+	fp << "\n";
+
+	fp << "\nCOM Skybox: <SKY dir>\n";
+	fp << "SKY ";
+	fp << skybox->dir;
+	fp << "\n";
+
+	fp.close();
     }
 
     vector<string> getCont(string cont)
     {
-        vector<string> res;
-        string delimiter = " ";
-        while(cont.find(delimiter) != -1){
-            char* prt;
-            string new_string = cont.substr(0, cont.find(delimiter)); 
-            cont = cont.substr(cont.find(delimiter) + 1);
-            prt = &new_string[0];
-            res.push_back(new_string);
-        }
-        char* prt;
-        string new_string = cont.substr(0, cont.find(delimiter)); 
-        cont = cont.substr(cont.find(delimiter) + 1);
-        prt = &new_string[0];
-        res.push_back(new_string);
+	vector<string> res;
+	string delimiter = " ";
+	while(cont.find(delimiter) != -1){
+	    char* prt;
+	    string new_string = cont.substr(0, cont.find(delimiter)); 
+	    cont = cont.substr(cont.find(delimiter) + 1);
+	    prt = &new_string[0];
+	    res.push_back(new_string);
+	}
+	char* prt;
+	string new_string = cont.substr(0, cont.find(delimiter)); 
+	cont = cont.substr(cont.find(delimiter) + 1);
+	prt = &new_string[0];
+	res.push_back(new_string);
 
-        return res; 
+	return res; 
     }
-};
+    };
+
+#endif

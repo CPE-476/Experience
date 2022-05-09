@@ -12,24 +12,23 @@
 using namespace std;
 using namespace glm;
 
-/* Render Note! */
-float vertices[] = {
-    // positions          // colors           // texture coords
-     1.0f, -0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-     1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-     0.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-     0.0f, -0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
-};
-unsigned int indices[] = {
-    0, 2, 1, // first triangle
-    0, 3, 2  // second triangle
-};
-
 struct Note
 {
     unsigned int VBO, VAO, EBO;
-
     unsigned int noteTexture;
+
+    float vertices[32] = {
+        // positions          // colors           // texture coords
+         1.0f, -0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+         0.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+         0.0f, -0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
+    };
+    unsigned int indices[6] = {
+        0, 2, 1, // first triangle
+        0, 3, 2  // second triangle
+    };
+
     void init(string path)
     {
         glGenVertexArrays(1, &VAO);
