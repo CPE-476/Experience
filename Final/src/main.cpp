@@ -95,7 +95,7 @@ unsigned int frameCount = 0;
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
-// For collsion detection
+//  NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18,23,24,25,26,27,28,29,30,31};
 
 enum EditorModes
@@ -1110,6 +1110,7 @@ void processInput(GLFWwindow *window, vector<Object> objects)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // NOTE(Lucas) checking all possible collisions 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
         camera.ProcessKeyboard(FORWARD, deltaTime);
         for (int i = 0; i < objects.size(); i++){
