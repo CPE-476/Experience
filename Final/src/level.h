@@ -258,16 +258,16 @@ struct Level
 
         fp << "COM Level saved by the Experience Level Loader\n";
         fp << "COM By Brett Hickman, Lucas Li, and Alex Hartford\n";
-        fp << "COM Spring 2022\n";
+        fp << "COM Spring 2022\n\n";
 
         // Save Next Level data
-        fp << "COM Next Level: <NXT path>\n";
+        fp << "\nCOM Next Level: <NXT path>\n";
         fp << "NXT ";
         fp << nextLevel;
         fp << "\n";
 
         // Save Desired Camera Position
-        fp << "COM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>\n";
+        fp << "\nCOM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>\n";
         fp << "POV ";
         fp << startPosition.x << " ";
         fp << startPosition.y << " ";
@@ -277,150 +277,150 @@ struct Level
         fp << startDirection.z << " ";
         fp << "\n";
 
-        // Save Object Data
-        fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
-        for(int i = 0; i < objects->size(); ++i)
-        {
-            fp << "OBJ ";
-            fp << objects->at(i).id << " ";
-            fp << objects->at(i).position.x << " ";
-            fp << objects->at(i).position.y << " ";
-            fp << objects->at(i).position.z << " ";
-            fp << objects->at(i).angleX << " ";
-            fp << objects->at(i).angleY << " ";
-            fp << objects->at(i).angleZ << " ";
-            fp << objects->at(i).velocity.x << " ";
-            fp << objects->at(i).velocity.y << " ";
-            fp << objects->at(i).velocity.z << " ";
-            fp << objects->at(i).view_radius << " ";
-            fp << objects->at(i).collision_radius << " ";
-            fp << objects->at(i).scaleFactor;
-            fp << "\n";
-        }
+	// Save Object Data
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
+	for(int i = 0; i < objects->size(); ++i)
+	{
+	    fp << "OBJ ";
+	    fp << objects->at(i).id << " ";
+	    fp << objects->at(i).position.x << " ";
+	    fp << objects->at(i).position.y << " ";
+	    fp << objects->at(i).position.z << " ";
+	    fp << objects->at(i).angleX << " ";
+	    fp << objects->at(i).angleY << " ";
+	    fp << objects->at(i).angleZ << " ";
+	    fp << objects->at(i).velocity.x << " ";
+	    fp << objects->at(i).velocity.y << " ";
+	    fp << objects->at(i).velocity.z << " ";
+	    fp << objects->at(i).view_radius << " ";
+	    fp << objects->at(i).collision_radius << " ";
+	    fp << objects->at(i).scaleFactor;
+	    fp << "\n";
+	}
 
-        // Save Point Light Data
-        fp << "\nCOM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>\n";
-        for(int i = 0; i < lights->size(); ++i)
-        {
-            fp << "LGT ";
-            fp << lights->at(i).position.x << " ";
-            fp << lights->at(i).position.y << " ";
-            fp << lights->at(i).position.z << " ";
-            fp << lights->at(i).ambient.x << " ";
-            fp << lights->at(i).ambient.y << " ";
-            fp << lights->at(i).ambient.z << " ";
-            fp << lights->at(i).diffuse.x << " ";
-            fp << lights->at(i).diffuse.y << " ";
-            fp << lights->at(i).diffuse.z << " ";
-            fp << lights->at(i).specular.x << " ";
-            fp << lights->at(i).specular.y << " ";
-            fp << lights->at(i).specular.z << " ";
-            fp << lights->at(i).constant << " ";
-            fp << lights->at(i).linear << " ";
-            fp << lights->at(i).quadratic << " ";
-            fp << "\n";
-        }
+	// Save Point Light Data
+	fp << "\nCOM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>\n";
+	for(int i = 0; i < lights->size(); ++i)
+	{
+	    fp << "LGT ";
+	    fp << lights->at(i).position.x << " ";
+	    fp << lights->at(i).position.y << " ";
+	    fp << lights->at(i).position.z << " ";
+	    fp << lights->at(i).ambient.x << " ";
+	    fp << lights->at(i).ambient.y << " ";
+	    fp << lights->at(i).ambient.z << " ";
+	    fp << lights->at(i).diffuse.x << " ";
+	    fp << lights->at(i).diffuse.y << " ";
+	    fp << lights->at(i).diffuse.z << " ";
+	    fp << lights->at(i).specular.x << " ";
+	    fp << lights->at(i).specular.y << " ";
+	    fp << lights->at(i).specular.z << " ";
+	    fp << lights->at(i).constant << " ";
+	    fp << lights->at(i).linear << " ";
+	    fp << lights->at(i).quadratic << " ";
+	    fp << "\n";
+	}
 
-        // Save Directional Light Data
-        fp << "\nCOM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
-        fp << "DIR ";
-        fp << dirLight->direction.x << " ";
-        fp << dirLight->direction.y << " ";
-        fp << dirLight->direction.z << " ";
-        fp << dirLight->ambient.x << " ";
-        fp << dirLight->ambient.y << " ";
-        fp << dirLight->ambient.z << " ";
-        fp << dirLight->diffuse.x << " ";
-        fp << dirLight->diffuse.y << " ";
-        fp << dirLight->diffuse.z << " ";
-        fp << dirLight->specular.x << " ";
-        fp << dirLight->specular.y << " ";
-        fp << dirLight->specular.z << " ";
-        fp << "\n";
+	// Save Directional Light Data
+	fp << "\nCOM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
+	fp << "DIR ";
+	fp << dirLight->direction.x << " ";
+	fp << dirLight->direction.y << " ";
+	fp << dirLight->direction.z << " ";
+	fp << dirLight->ambient.x << " ";
+	fp << dirLight->ambient.y << " ";
+	fp << dirLight->ambient.z << " ";
+	fp << dirLight->diffuse.x << " ";
+	fp << dirLight->diffuse.y << " ";
+	fp << dirLight->diffuse.z << " ";
+	fp << dirLight->specular.x << " ";
+	fp << dirLight->specular.y << " ";
+	fp << dirLight->specular.z << " ";
+	fp << "\n";
 
-        // Save Particle System Data
-        fp << "\nCOM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
-        for(int i = 0; i < emitters->size(); ++i){
-            fp << "PAR ";
-            fp << emitters->at(i).path << " ";
-            fp << emitters->at(i).particleAmount << " ";
-            fp << emitters->at(i).startPosition.x << " ";
-            fp << emitters->at(i).startPosition.y << " ";
-            fp << emitters->at(i).startPosition.z << " ";
-            fp << emitters->at(i).radius << " ";
-            fp << emitters->at(i).radiusTop << " ";
-            fp << emitters->at(i).height << " ";
-            fp << emitters->at(i).startVelocity.x << " ";
-            fp << emitters->at(i).startVelocity.y << " ";
-            fp << emitters->at(i).startVelocity.z << " ";
-            fp << emitters->at(i).lifeSpan << " ";
-            fp << emitters->at(i).gravity << " ";
-            fp << emitters->at(i).startColor.x << " ";
-            fp << emitters->at(i).startColor.y << " ";
-            fp << emitters->at(i).startColor.z << " ";
-            fp << emitters->at(i).startColor.a << " ";
-            fp << emitters->at(i).endColor.x << " ";
-            fp << emitters->at(i).endColor.y << " ";
-            fp << emitters->at(i).endColor.z << " ";
-            fp << emitters->at(i).endColor.a << " ";
-            fp << emitters->at(i).startScale << " ";
-            fp << emitters->at(i).endScale;
-            fp << "\n";
-        }
+	// Save Particle System Data
+	fp << "\nCOM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
+	for(int i = 0; i < emitters->size(); ++i){
+	    fp << "PAR ";
+	    fp << emitters->at(i).path << " ";
+	    fp << emitters->at(i).particleAmount << " ";
+	    fp << emitters->at(i).startPosition.x << " ";
+	    fp << emitters->at(i).startPosition.y << " ";
+	    fp << emitters->at(i).startPosition.z << " ";
+	    fp << emitters->at(i).radius << " ";
+	    fp << emitters->at(i).radiusTop << " ";
+	    fp << emitters->at(i).height << " ";
+	    fp << emitters->at(i).startVelocity.x << " ";
+	    fp << emitters->at(i).startVelocity.y << " ";
+	    fp << emitters->at(i).startVelocity.z << " ";
+	    fp << emitters->at(i).lifeSpan << " ";
+	    fp << emitters->at(i).gravity << " ";
+	    fp << emitters->at(i).startColor.x << " ";
+	    fp << emitters->at(i).startColor.y << " ";
+	    fp << emitters->at(i).startColor.z << " ";
+	    fp << emitters->at(i).startColor.a << " ";
+	    fp << emitters->at(i).endColor.x << " ";
+	    fp << emitters->at(i).endColor.y << " ";
+	    fp << emitters->at(i).endColor.z << " ";
+	    fp << emitters->at(i).endColor.a << " ";
+	    fp << emitters->at(i).startScale << " ";
+	    fp << emitters->at(i).endScale;
+	    fp << "\n";
+	}
 
-        fp << "\nCOM Fog: <FOG max min col.x col.y col.z col.a>\n";
-        fp << "FOG ";
-        fp << fog->maxDistance << " ";
-        fp << fog->minDistance << " ";
-        fp << fog->color.x << " ";
-        fp << fog->color.y << " ";
-        fp << fog->color.z << " ";
-        fp << fog->color.a;
-        fp << "\n";
+	fp << "\nCOM Fog: <FOG max min col.x col.y col.z col.a>\n";
+	fp << "FOG ";
+	fp << fog->maxDistance << " ";
+	fp << fog->minDistance << " ";
+	fp << fog->color.x << " ";
+	fp << fog->color.y << " ";
+	fp << fog->color.z << " ";
+	fp << fog->color.a;
+	fp << "\n";
 
-        fp << "\nCOM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
-        fp << "TER ";
-        fp << terrain->path << " ";
-        fp << terrain->yScale << " ";
-        fp << terrain->material.ambient.x << " ";
-        fp << terrain->material.ambient.y << " ";
-        fp << terrain->material.ambient.z << " ";
-        fp << terrain->material.diffuse.x << " ";
-        fp << terrain->material.diffuse.y << " ";
-        fp << terrain->material.diffuse.z << " ";
-        fp << terrain->material.specular.x << " ";
-        fp << terrain->material.specular.y << " ";
-        fp << terrain->material.specular.z << " ";
-        fp << terrain->material.shine << " ";
-        fp << "\n";
+	fp << "\nCOM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
+	fp << "TER ";
+	fp << terrain->path << " ";
+	fp << terrain->yScale << " ";
+	fp << terrain->material.ambient.x << " ";
+	fp << terrain->material.ambient.y << " ";
+	fp << terrain->material.ambient.z << " ";
+	fp << terrain->material.diffuse.x << " ";
+	fp << terrain->material.diffuse.y << " ";
+	fp << terrain->material.diffuse.z << " ";
+	fp << terrain->material.specular.x << " ";
+	fp << terrain->material.specular.y << " ";
+	fp << terrain->material.specular.z << " ";
+	fp << terrain->material.shine << " ";
+	fp << "\n";
 
-        fp << "\nCOM Skybox: <SKY dir>\n";
-        fp << "SKY ";
-        fp << skybox->dir;
-        fp << "\n";
+	fp << "\nCOM Skybox: <SKY dir>\n";
+	fp << "SKY ";
+	fp << skybox->dir;
+	fp << "\n";
 
-        fp.close();
+	fp.close();
     }
 
     vector<string> getCont(string cont)
     {
-        vector<string> res;
-        string delimiter = " ";
-        while(cont.find(delimiter) != -1){
-            char* prt;
-            string new_string = cont.substr(0, cont.find(delimiter)); 
-            cont = cont.substr(cont.find(delimiter) + 1);
-            prt = &new_string[0];
-            res.push_back(new_string);
-        }
-        char* prt;
-        string new_string = cont.substr(0, cont.find(delimiter)); 
-        cont = cont.substr(cont.find(delimiter) + 1);
-        prt = &new_string[0];
-        res.push_back(new_string);
+	vector<string> res;
+	string delimiter = " ";
+	while(cont.find(delimiter) != -1){
+	    char* prt;
+	    string new_string = cont.substr(0, cont.find(delimiter)); 
+	    cont = cont.substr(cont.find(delimiter) + 1);
+	    prt = &new_string[0];
+	    res.push_back(new_string);
+	}
+	char* prt;
+	string new_string = cont.substr(0, cont.find(delimiter)); 
+	cont = cont.substr(cont.find(delimiter) + 1);
+	prt = &new_string[0];
+	res.push_back(new_string);
 
-        return res; 
+	return res; 
     }
-};
+    };
 
 #endif

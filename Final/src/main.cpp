@@ -450,17 +450,17 @@ int main(void)
             emitters[i].Draw(m.shaders.particleShader, deltaTime);
         }
 
-
+        // TODO(Alex): Abominably slow, for some reason. Check it out or drop it.
         // Render Text
-        Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-        RenderDebugText(&Text, &lvl, &m);
+        //Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
+        //RenderDebugText(&Text, &lvl, &m);
+        //cout << (int)(1.0f / deltaTime) << "\n";
 
         // Render Note
         if(drawNote)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
-
 
         if(EditorMode == SELECTION)
         {
