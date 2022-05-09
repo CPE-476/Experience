@@ -318,7 +318,7 @@ int main(void)
 
         // Input Resolution
         glfwPollEvents();
-        processInput(window);
+        processInput(window, objects);
         if(camera.Mode == WALK || camera.Mode == SPRINT)
         {
             if(camera.Position.x > terrain.widthExtent || 
