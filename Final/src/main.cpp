@@ -94,7 +94,7 @@ unsigned int frameCount = 0;
 vec3 selectorRay = vec3(0.0f);
 
 //  NOTE(Lucas) For collsion detection
-vector<int> ignore_objects = {18,23,24,25,26,27,28,29,30,31};
+vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
 enum EditorModes
 {
@@ -130,7 +130,8 @@ struct Material
     float shine;
 };
 
-struct FogSystem {
+struct FogSystem
+{
     float maxDistance;
     float minDistance;
     vec4 color;
@@ -259,7 +260,7 @@ int main(void)
 
     Terrain terrain;
     // Default value.
-    terrain.init("../resources/heightmaps/dunes.png", 16.0f,
+    terrain.init("../resources/heightmaps/lake.jpeg", 16.0f,
                  {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
 
     // Default value.
@@ -273,13 +274,13 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/level1.txt", &objects, &lights, 
-            &dirLight, &emitters, &fog, &skybox, &terrain);
+    lvl.LoadLevel("../levels/level1.txt", &objects, &lights,
+                  &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
 
     // Sound System
-    ma_engine_play_sound(&musicEngine, "../resources/audio/bach.mp3", NULL);
+    ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
     // Editor Settings
     bool showParticleEditor = false;
@@ -317,20 +318,19 @@ int main(void)
         // Input Resolution
         glfwPollEvents();
         processInput(window, objects);
-        if(camera.Mode == WALK || camera.Mode == SPRINT)
+        if (camera.Mode == WALK || camera.Mode == SPRINT)
         {
-            if(camera.Position.x > terrain.widthExtent || 
-               camera.Position.x < -terrain.widthExtent ||
-               camera.Position.z > terrain.heightExtent ||
-               camera.Position.z < -terrain.heightExtent)
+            if (camera.Position.x > terrain.widthExtent ||
+                camera.Position.x < -terrain.widthExtent ||
+                camera.Position.z > terrain.heightExtent ||
+                camera.Position.z < -terrain.heightExtent)
             {
                 cout << "HERE\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                    &emitters, &fog, &skybox, &terrain);
+                              &emitters, &fog, &skybox, &terrain);
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
         }
-
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
         ma_engine_set_volume(&musicEngine, MusicVolume);
@@ -428,7 +428,6 @@ int main(void)
         }
         m.shaders.materialShader.unbind();
 
-
         // Render Textured Objects
         m.shaders.textureShader.bind();
         {
@@ -464,18 +463,17 @@ int main(void)
         }
         m.shaders.textureShader.unbind();
 
-
         // Draw Particle Systems
-        for(int i = 0; i < emitters.size(); ++i)
+        for (int i = 0; i < emitters.size(); ++i)
         {
             emitters[i].Draw(m.shaders.particleShader, deltaTime);
         }
 
         // TODO(Alex): Abominably slow, for some reason. Check it out or drop it.
         // Render Text
-        //Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-        //RenderDebugText(&Text, &lvl, &m);
-        //cout << (int)(1.0f / deltaTime) << "\n";
+        // Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
+        // RenderDebugText(&Text, &lvl, &m);
+        // cout << (int)(1.0f / deltaTime) << "\n";
 
         // Render Note
         if (drawNote)
@@ -512,14 +510,14 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            if(showParticleEditor)
+            if (showParticleEditor)
             {
                 ImGui::Begin("Particle Editor");
                 for (int n = 0; n < emitters.size(); ++n)
                 {
                     char buffer[256];
                     sprintf(buffer, "%d", n);
-                    if(ImGui::Button(buffer))
+                    if (ImGui::Button(buffer))
                         selectedParticle = n;
                     ImGui::SameLine();
                 }
@@ -536,39 +534,39 @@ int main(void)
                 ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 1.0f);
                 ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 1.0f);
                 // NOTE(Alex): Broken, for some reason.
-                //ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
+                // ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
                 ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
 
-                if(ImGui::Button("Create Emitter"))
+                if (ImGui::Button("Create Emitter"))
                 {
                     emitters.push_back(
                         Emitter("../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
                     selectedParticle = emitters.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Delete Emitter"))
+                if (ImGui::Button("Delete Emitter"))
                 {
                     emitters.erase(emitters.begin() + selectedParticle);
                     selectedParticle--;
-                    if(selectedParticle > emitters.size())
+                    if (selectedParticle > emitters.size())
                         selectedParticle = emitters.size() - 2;
                 }
 
-                if(ImGui::Button("Fire"))
+                if (ImGui::Button("Fire"))
                 {
                     emitters.push_back(
                         Emitter("../resources/models/particle/part.png", 1000, vec3(0, 0, 0), 1.4, 0.5, 4.5f, vec3(0, 5, 0), 1.4f, 0.0f, vec4(1.0, 1.0f, 0.7, 0.7), vec4(1.0, 0.4, 0, 0.9), 1, 0));
                     selectedParticle = emitters.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Smoke"))
+                if (ImGui::Button("Smoke"))
                 {
                     emitters.push_back(
                         Emitter("../resources/models/particle/part.png", 200, vec3(0, 0, 0), 1, 1, 4.5f, vec3(1, 5, 1), 4.0f, 0.0f, vec4(0.5, 0.5, 0.5, 1), vec4(1, 1, 1, 1), 0, 5));
                     selectedParticle = emitters.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Bugs"))
+                if (ImGui::Button("Bugs"))
                 {
                     emitters.push_back(
                         Emitter("../resources/models/particle/part.png", 1000, vec3(0, 0, 0), 100, 100, 4.5f, vec3(0, 0.1, 0), 1.0f, -0.81f, vec4(1.0f, 0.8f, 0, 1), vec4(0.8, 1.0, 0.0, 0), 0, 0.5));
@@ -576,7 +574,7 @@ int main(void)
                     emitters[selectedParticle].bugMode = 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Rain"))
+                if (ImGui::Button("Rain"))
                 {
                     emitters.push_back(
                         Emitter("../resources/models/particle/part.png", 10000, vec3(0, 0, 0), 100, 10, 4.5f, vec3(5, 0, 5), 7.0f, -9.81f, vec4(0.5f, 0.5f, 1.0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 0, 0.5));
@@ -585,14 +583,14 @@ int main(void)
                 ImGui::End();
             }
 
-            if(showLightEditor)
+            if (showLightEditor)
             {
                 ImGui::Begin("Light Editor");
                 for (int n = 0; n < lights.size(); ++n)
                 {
                     char buffer[256];
                     sprintf(buffer, "%d", n);
-                    if(ImGui::Button(buffer))
+                    if (ImGui::Button(buffer))
                         selectedLight = n;
                     ImGui::SameLine();
                 }
@@ -613,20 +611,20 @@ int main(void)
                 {
                     lights.erase(lights.begin() + selectedLight);
                     selectedLight--;
-                    if(selectedLight > lights.size())
+                    if (selectedLight > lights.size())
                         selectedLight = lights.size() - 2;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Create Light"))
+                if (ImGui::Button("Create Light"))
                 {
                     lights.push_back(Light(vec3(0.0f), vec3(0.05f), vec3(1.0f), vec3(0.4f),
                                            1.0f, 0.09f, 0.032f));
                     selectedLight = lights.size() - 1;
                 }
 
-                if(ImGui::Button("Firelight"))
+                if (ImGui::Button("Firelight"))
                 {
-                    lights.push_back(Light(vec3(0.0f), vec3(0.05f), 
+                    lights.push_back(Light(vec3(0.0f), vec3(0.05f),
                                            vec3(1.0f, 0.3f, 0.0f), vec3(0.4f, 0.2f, 0.0f),
                                            0.5f, 1.0f, 1.0f));
                     selectedLight = lights.size() - 1;
@@ -645,7 +643,7 @@ int main(void)
                 ImGui::End();
             }
 
-            if(showFogEditor)
+            if (showFogEditor)
             {
                 ImGui::Begin("Fog Editor");
 
@@ -655,28 +653,28 @@ int main(void)
                 ImGui::End();
             }
 
-            if(showSkyboxEditor)
+            if (showSkyboxEditor)
             {
                 ImGui::Begin("Skybox Editor");
 
                 ImGui::InputText("Name", skyboxPath, IM_ARRAYSIZE(skyboxPath));
-                if(ImGui::Button("Update"))
+                if (ImGui::Button("Update"))
                 {
                     skybox.init("../resources/skyboxes/" + string(skyboxPath) + "/");
                 }
                 ImGui::End();
             }
 
-            if(showTerrainEditor)
+            if (showTerrainEditor)
             {
                 ImGui::Begin("Terrain Editor");
 
                 ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
                 ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
-                if(ImGui::Button("Update"))
+                if (ImGui::Button("Update"))
                 {
                     terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale,
-                        {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
+                                 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
                 }
 
                 ImGui::SliderFloat3("Ambient", (float *)&terrain.material.ambient, 0.0f, 1.0f);
@@ -686,11 +684,11 @@ int main(void)
                 ImGui::End();
             }
 
-            if(showObjectEditor)
+            if (showObjectEditor)
             {
                 ImGui::Begin("Object Editor");
-                ImGui::Text("Object = %d/%lu. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(), 
-                    objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
+                ImGui::Text("Object = %d/%lu. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(),
+                            objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
 
                 ImGui::Checkbox("Terrain Snap", &snapToTerrain);
 
@@ -699,7 +697,7 @@ int main(void)
                     if (snapToTerrain)
                     {
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
-                                                                                       objects[selectedObject].position.z);
+                                                                              objects[selectedObject].position.z);
                     }
                 }
                 ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f);
@@ -708,7 +706,7 @@ int main(void)
                     if (snapToTerrain)
                     {
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
-                                                                                       objects[selectedObject].position.z);
+                                                                              objects[selectedObject].position.z);
                     }
                 }
 
@@ -736,8 +734,8 @@ int main(void)
                         //     selectedObject = objects.size() - 2;
                     }
                 }
-                
-                if(ImGui::Button("Tree"))
+
+                if (ImGui::Button("Tree"))
                 {
                     objects.push_back(Object(0,
                                              vec3(0.0f), -1.6f, 0.0f, 0.0f,
@@ -745,7 +743,7 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Rock"))
+                if (ImGui::Button("Rock"))
                 {
                     objects.push_back(Object(3,
                                              vec3(0.0f), 0.0f, 0.0f, 0.0f,
@@ -753,7 +751,7 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Forest"))
+                if (ImGui::Button("Forest"))
                 {
                     for (int i = 0; i < 10; i++)
                     {
@@ -865,7 +863,7 @@ int main(void)
                 }
 
                 ImGui::SameLine();
-                if(ImGui::Button("Desert"))
+                if (ImGui::Button("Desert"))
                 {
                     for (int i = 0; i < 10; i++)
                     {
@@ -973,7 +971,7 @@ int main(void)
                     }
                 }
                 ImGui::SameLine();
-                if(ImGui::Button("Street"))
+                if (ImGui::Button("Street"))
                 {
                     for (int i = 0; i < 3; i++)
                     {
@@ -988,73 +986,73 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
-                ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
+            ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
 
-                ImGui::SliderFloat3("Starting Position", (float *)&lvl.startPosition, -128.0f, 128.0f);
-                ImGui::SliderFloat3("Starting Direction", (float *)&lvl.startDirection, -1.0f, 1.0f);
+            ImGui::SliderFloat3("Starting Position", (float *)&lvl.startPosition, -128.0f, 128.0f);
+            ImGui::SliderFloat3("Starting Direction", (float *)&lvl.startDirection, -1.0f, 1.0f);
 
-                if(ImGui::Button("Save")) 
-                {
-                    string str = "../levels/";
-                    str.append(levelName);
-                    lvl.SaveLevel(str, &objects, &lights, 
-                            &dirLight, &emitters, &fog, &skybox, &terrain);
-                    cout << "Level saved: " << str << "\n";
-                }
-                ImGui::SameLine();
-                if(ImGui::Button("Load"))
-                {
-                    string str = "../levels/";
-                    str.append(levelName);
-                    lvl.LoadLevel(str, &objects, &lights, &dirLight,
-                            &emitters, &fog, &skybox, &terrain);
-                    cout << "Level loaded: " << str << "\n";
-                }
-                ImGui::SameLine();
-                if(ImGui::Button("Set Next"))
-                {
-                    string str = "../levels/";
-                    str.append(levelName);
-                    lvl.nextLevel = str;
-                }
-                ImGui::SameLine();
-                if(ImGui::Button("Next"))
-                {
-                    lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                        &emitters, &fog, &skybox, &terrain);
-                }
+            if (ImGui::Button("Save"))
+            {
+                string str = "../levels/";
+                str.append(levelName);
+                lvl.SaveLevel(str, &objects, &lights,
+                              &dirLight, &emitters, &fog, &skybox, &terrain);
+                cout << "Level saved: " << str << "\n";
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Load"))
+            {
+                string str = "../levels/";
+                str.append(levelName);
+                lvl.LoadLevel(str, &objects, &lights, &dirLight,
+                              &emitters, &fog, &skybox, &terrain);
+                cout << "Level loaded: " << str << "\n";
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set Next"))
+            {
+                string str = "../levels/";
+                str.append(levelName);
+                lvl.nextLevel = str;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Next"))
+            {
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                              &emitters, &fog, &skybox, &terrain);
+            }
 
-                // Editors
-                ImGui::Text("Editors");
-                ImGui::Checkbox("Particle", &showParticleEditor);
-                ImGui::SameLine();
-                ImGui::Checkbox("Light", &showLightEditor);
-                ImGui::SameLine();
-                ImGui::Checkbox("DirLight", &showDirLightEditor);
-                ImGui::SameLine();
-                ImGui::Checkbox("Fog", &showFogEditor);
-                ImGui::SameLine();
-                ImGui::Checkbox("Object", &showObjectEditor);
+            // Editors
+            ImGui::Text("Editors");
+            ImGui::Checkbox("Particle", &showParticleEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Light", &showLightEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("DirLight", &showDirLightEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Fog", &showFogEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Object", &showObjectEditor);
 
-                ImGui::Checkbox("Skybox", &showSkyboxEditor);
-                ImGui::SameLine();
-                ImGui::Checkbox("Terrain", &showTerrainEditor);
-                ImGui::SameLine();
+            ImGui::Checkbox("Skybox", &showSkyboxEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Terrain", &showTerrainEditor);
+            ImGui::SameLine();
 
-                ImGui::NewLine();
-                ImGui::NewLine();
+            ImGui::NewLine();
+            ImGui::NewLine();
 
-                // Settings
-                ImGui::Text("Settings");
-                ImGui::Checkbox("Draw Terrain", &drawTerrain);
-                ImGui::SameLine();
-                ImGui::Checkbox("Draw Skybox", &drawSkybox);
-                ImGui::SameLine();
-                ImGui::Checkbox("Draw Point Lights", &drawPointLights);
+            // Settings
+            ImGui::Text("Settings");
+            ImGui::Checkbox("Draw Terrain", &drawTerrain);
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Skybox", &drawSkybox);
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Point Lights", &drawPointLights);
 
-                ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
-                ImGui::SameLine();
-                ImGui::Checkbox("Draw Note", &drawNote);
+            ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Note", &drawNote);
             ImGui::End();
 
             ImGui::Render();
@@ -1108,47 +1106,63 @@ void processInput(GLFWwindow *window, vector<Object> objects)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // NOTE(Lucas) checking all possible collisions 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+    // NOTE(Lucas) checking all possible collisions
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
         camera.ProcessKeyboard(FORWARD, deltaTime);
-        for (int i = 0; i < objects.size(); i++){
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius){
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0){
+        for (int i = 0; i < objects.size(); i++)
+        {
+            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            {
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
+                {
                     camera.ProcessKeyboard(BACKWARD, deltaTime);
                     break;
                 }
             }
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-        for (int i = 0; i < objects.size(); i++){
-        if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius){
-            if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0)){
-                camera.ProcessKeyboard(FORWARD, deltaTime);
-                break;
+        for (int i = 0; i < objects.size(); i++)
+        {
+            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            {
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                {
+                    camera.ProcessKeyboard(FORWARD, deltaTime);
+                    break;
                 }
             }
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
         camera.ProcessKeyboard(LEFT, deltaTime);
-        for (int i = 0; i < objects.size(); i++){
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius){
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0)){
-                camera.ProcessKeyboard(RIGHT, deltaTime);
-                break;
+        for (int i = 0; i < objects.size(); i++)
+        {
+            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            {
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                {
+                    camera.ProcessKeyboard(RIGHT, deltaTime);
+                    break;
                 }
             }
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
         camera.ProcessKeyboard(RIGHT, deltaTime);
-        for (int i = 0; i < objects.size(); i++){
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius){
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0)){
-                camera.ProcessKeyboard(LEFT, deltaTime);
-                break;
+        for (int i = 0; i < objects.size(); i++)
+        {
+            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            {
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                {
+                    camera.ProcessKeyboard(LEFT, deltaTime);
+                    break;
                 }
             }
         }
