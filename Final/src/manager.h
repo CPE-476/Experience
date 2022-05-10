@@ -49,6 +49,7 @@ struct Shader_Container
     Shader lightShader;
     Shader particleShader;
     Shader noteShader;
+    Shader terrainShader;
 };
 
 struct Model_Container
@@ -121,6 +122,7 @@ struct Manager
         this->shaders.lightShader.init("../shaders/light_vert.glsl", "../shaders/light_frag.glsl");
         this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
         this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
+        this->shaders.terrainShader.init("../shaders/terrain_vert.glsl", "../shaders/terrain_frag.glsl");
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
