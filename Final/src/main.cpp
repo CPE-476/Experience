@@ -26,8 +26,6 @@
  * Instanced Rendering with Noise
  *  - Grass and Flowers
  *
- * Collisions
- *
  * Soundtrack
  *  - Ambient Sounds.
  *  - Spatial Sounds.
