@@ -427,7 +427,7 @@ int main(void)
             // Render Terrain
             if (drawTerrain)
             {
-                terrain.Draw(m.shaders.materialShader);
+                terrain.Draw(m.shaders.terrainShader);
             }
         }
         m.shaders.materialShader.unbind();
