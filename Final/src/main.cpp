@@ -47,6 +47,8 @@
  *   Set them with gl calls, treat them like attributes in fragment shaders.
  *   - glEnum DrawBuffers[3]
  *   - glDrawBuffers()
+ * 
+ * Idea for desert: shakuhachi, sitar bongo, conga
  */
 
 #include <iostream>
