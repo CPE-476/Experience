@@ -261,7 +261,7 @@ int main(void)
 
     Terrain terrain;
     // Default value.
-    terrain.init("../resources/heightmaps/dunes.png", 16.0f,
+    terrain.init("../resources/heightmaps/lake.jpeg", 16.0f,
                  {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
 
     // Default value.
