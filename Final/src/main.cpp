@@ -113,6 +113,7 @@ struct FogSystem
 #include "particles.h"
 #include "note.h"
 #include "trans.h"
+#include "water.h"
 
 using namespace std;
 using namespace glm;
@@ -272,6 +273,9 @@ int main(void)
     int selectedLight = 0;
     int selectedParticle = 0;
 
+    Water water;
+    water.gpuSetup();
+
     while (!glfwWindowShouldClose(window))
     {
     
@@ -315,6 +319,8 @@ int main(void)
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
  
+        //water.Draw(m.shaders.materialShader, deltaTime);
+
         // Render Skybox
         if (drawSkybox)
         {
@@ -359,32 +365,15 @@ int main(void)
         }
         m.shaders.lightShader.unbind();
 
-        // Render Material Objects
-        m.shaders.materialShader.bind();
+        m.shaders.terrainShader.bind();
+        // Render Terrain
+        if (drawTerrain)
         {
-            m.shaders.materialShader.setMat4("projection", projection);
-            m.shaders.materialShader.setMat4("view", view);
-            m.shaders.materialShader.setVec3("viewPos", camera.Position);
-
-            m.shaders.materialShader.setFloat("maxFogDistance", fog.maxDistance);
-            m.shaders.materialShader.setFloat("minFogDistance", fog.minDistance);
-            m.shaders.materialShader.setVec4("fogColor", fog.color);
-
-            dirLight.Render(m.shaders.materialShader);
-
-            m.shaders.materialShader.setInt("size", lights.size());
-            for (int i = 0; i < lights.size(); ++i)
-            {
-                lights[i].Render(m.shaders.materialShader, i);
-            }
-
-            // Render Terrain
-            if (drawTerrain)
-            {
-                terrain.Draw(m.shaders.terrainShader);
-            }
+            terrain.Draw(m.shaders.terrainShader);
         }
-        m.shaders.materialShader.unbind();
+        m.shaders.terrainShader.unbind();
+
+        water.Draw(m.shaders.waterShader, deltaTime);
 
         // Draw Particle Systems
         for (int i = 0; i < emitters.size(); ++i)
@@ -404,6 +393,8 @@ int main(void)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
+
+        
 
 	//t.Draw(m.shaders.transShader);
 
