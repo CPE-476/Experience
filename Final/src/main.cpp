@@ -242,6 +242,9 @@ int main(void)
 
     Frustum frustum;
 
+    Transition t;
+    t.init();
+
     // Sound System
     ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
@@ -280,7 +283,7 @@ int main(void)
         drawnObjects = 0;
 
         // FPS
-        cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
+        //cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
         glfwPollEvents();
@@ -311,8 +314,7 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
-
-        
+ 
         // Render Skybox
         if (drawSkybox)
         {
@@ -403,9 +405,7 @@ int main(void)
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
 
-	Transition t;
-	t.init();
-	t.Draw(m.shaders.transShader);
+	//t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
