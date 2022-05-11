@@ -219,7 +219,7 @@ int main(void)
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
-    skybox.init("../resources/skyboxes/daysky/", false);
+    skybox.init("../resources/skyboxes/sunsky/", false);
 
     Terrain terrain;
     // Default value.
