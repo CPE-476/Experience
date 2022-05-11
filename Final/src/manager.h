@@ -29,6 +29,7 @@
 #include "model.h"
 #include "note.h"
 #include "object.h"
+#include "light.h"
 
 using namespace std;
 using namespace glm;
@@ -206,7 +207,7 @@ struct Manager
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
     }
 
-    void DrawAllModels(vector<Object> *objects)
+    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight dirLight, FogSystem fog)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -250,23 +251,33 @@ struct Manager
             }
 
             // Drawing
-            shaders.materialShader.bind();
+            shaders.textureShader.bind();
             {
                 mat4 projection = camera.GetProjectionMatrix();
                 mat4 view = camera.GetViewMatrix();
-                shaders.materialShader.setMat4("projection", projection);
-                shaders.materialShader.setMat4("view", view);
-                shaders.materialShader.setVec3("viewPos", camera.Position);
+                shaders.textureShader.setMat4("projection", projection);
+                shaders.textureShader.setMat4("view", view);
+                shaders.textureShader.setVec3("viewPos", camera.Position);
+
+                shaders.textureShader.setInt("texture_diffuse1", 0);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, entry.model->textures_loaded[0].id);
+
+                shaders.textureShader.setFloat("maxFogDistance", fog.maxDistance);
+                shaders.textureShader.setFloat("minFogDistance", fog.minDistance);
+                shaders.textureShader.setVec4("fogColor", fog.color);
+
+                dirLight.Render(shaders.textureShader);
+
+                shaders.textureShader.setInt("size", lights->size());
+                for (int i = 0; i < lights->size(); ++i)
+                {
+                    lights->at(i).Render(shaders.textureShader, i);
+                }
 
                 for(int i = 0; i < entry.model->meshes.size(); i++)
                 {
-                    vec3 red = vec3(1.0f, 0.0f, 0.0f);
-                    shaders.materialShader.setVec3("material.ambient", red);
-                    shaders.materialShader.setVec3("material.diffuse", red);
-                    shaders.materialShader.setVec3("material.specular", red);
-                    shaders.materialShader.setFloat("material.shine", 32.0f); 
-                    entry.model->meshes[i].SetTextureParams(shaders.materialShader);
-                    //cout << entry.model->meshes[i].VAO << "\n";
+                    entry.model->meshes[i].SetTextureParams(shaders.textureShader);
                     glBindVertexArray(entry.model->meshes[i].VAO);
                     glDrawElementsInstanced(GL_TRIANGLES, 
                             static_cast<unsigned int>(entry.model->meshes[i].indices.size()),
@@ -274,8 +285,9 @@ struct Manager
                             modelMatrices.size());
                     glBindVertexArray(0);
                 }
+                glActiveTexture(GL_TEXTURE0);
             }
-            shaders.materialShader.unbind();
+            shaders.textureShader.unbind();
         }
     }
 

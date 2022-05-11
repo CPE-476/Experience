@@ -345,7 +345,7 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
-        m.DrawAllModels(&objects);
+        m.DrawAllModels(&objects, &lights, dirLight, fog);
 
         /*
         // Render Skybox
@@ -862,7 +862,7 @@ int main(void)
                                                  vec3(1), 1, 5, 0.05f));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 1000; i++)
                     {
                         for (int j = 23; j < 32; j++)
                         {

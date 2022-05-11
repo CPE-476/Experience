@@ -78,6 +78,7 @@ void main()
     }
 
     outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
+    //outColor = texture(texture_diffuse1, texCoords);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
