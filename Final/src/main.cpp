@@ -261,12 +261,14 @@ int main(void)
     bool drawTerrain = true;
     bool drawSkybox = false;
     bool drawBoundingSpheres = false;
+    bool drawCollisionSpheres = false;
     bool drawPointLights = false;
     bool drawNote = false;
 
     char levelName[128] = "";
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
+    char object_id[3] = "";
 
     int selectedObject = 0;
     int selectedLight = 0;
@@ -354,6 +356,19 @@ int main(void)
                     m.models.sphere.Draw(m.shaders.lightShader);
                 }
             }
+
+            if (drawCollisionSpheres)
+            {
+                for (int i = 0; i < objects.size(); ++i)
+                {
+                    model = mat4(1.0f);
+                    model = translate(model, objects[i].position);
+                    model = scale(model, vec3(objects[i].collision_radius));
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.sphere.Draw(m.shaders.lightShader);
+                }
+            }
+
             m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
             objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
         }
@@ -651,12 +666,12 @@ int main(void)
                 if(ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
 		    objects[selectedObject].UpdateModel();
 
+                if(ImGui::SliderFloat("Collison Radius", (float *)&objects[selectedObject].collision_radius, 0.0f, 5.0f))
+		    objects[selectedObject].UpdateModel();
+
                 if (ImGui::Button("Delete Object"))
                 {
                     objects.erase(objects.begin() + selectedObject);
-                    // selectedObject--;
-                    // if(selectedObject > objects.size())
-                    //     selectedObject = objects.size() - 2;
                 }
 
                 if (ImGui::Button("Delete All"))
@@ -664,28 +679,22 @@ int main(void)
                     while (objects.size() > 1)
                     {
                         objects.erase(objects.begin() + objects.size() - 1);
-                        // selectedObject--;
-                        // if(selectedObject > objects.size())
-                        //     selectedObject = objects.size() - 2;
                     }
                 }
 
-                if (ImGui::Button("Tree"))
-                {
-                    objects.push_back(Object(0,
-                                             vec3(0.0f), -1.6f, 0.0f, 0.0f,
-                                             vec3(1), 1, 1, 1.0f));
+                ImGui::InputText("Object", object_id, IM_ARRAYSIZE(object_id));
+                ImGui::SameLine();
+                if (ImGui::Button("Add")) {
+                    int id = atof(object_id);
+                    objects.push_back(Object(id,
+                                                 vec3(camera.Position.x,
+                                                        terrain.heightAt(camera.Position.x,camera.Position.z), 
+                                                        camera.Position.z),
+                                                 -1.6f, 0.0f, 0.0f,
+                                                 vec3(1), 1, 20, randFloat() * 1.5f));
                     selectedObject = objects.size() - 1;
                 }
-                ImGui::SameLine();
-                if (ImGui::Button("Rock"))
-                {
-                    objects.push_back(Object(3,
-                                             vec3(0.0f), 0.0f, 0.0f, 0.0f,
-                                             vec3(1), 1, 1, 1.0f));
-                    selectedObject = objects.size() - 1;
-                }
-                ImGui::SameLine();
+
                 if (ImGui::Button("Forest"))
                 {
                     for (int i = 0; i < 10; i++)
@@ -987,6 +996,8 @@ int main(void)
             ImGui::Checkbox("Draw Point Lights", &drawPointLights);
 
             ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Collision Spheres", &drawCollisionSpheres);
             ImGui::SameLine();
             ImGui::Checkbox("Draw Note", &drawNote);
             ImGui::End();
