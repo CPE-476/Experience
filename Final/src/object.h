@@ -48,7 +48,6 @@ public:
         this->matrix = UpdateModel();
     }
 
-
     mat4 UpdateModel()
     {
         mat4 matrix = mat4(1.0f);

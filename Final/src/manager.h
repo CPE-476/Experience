@@ -53,6 +53,7 @@ struct Shader_Container
     Shader particleShader;
     Shader noteShader;
     Shader terrainShader;
+    Shader transShader;
 };
 
 struct Model_Container
@@ -128,6 +129,7 @@ struct Manager
         this->shaders.particleShader.init("../shaders/part_vert.glsl", "../shaders/part_frag.glsl");
         this->shaders.noteShader.init("../shaders/note_vert.glsl", "../shaders/note_frag.glsl");
         this->shaders.terrainShader.init("../shaders/terrain_vert.glsl", "../shaders/terrain_frag.glsl");
+        this->shaders.transShader.init("../shaders/trans_vert.glsl", "../shaders/trans_frag.glsl");
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
@@ -224,6 +226,7 @@ struct Manager
 
             ID_Entry entry = Lookup[i];
             vector<mat4> modelMatrices;
+            modelMatrices.clear();
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
                 if(objects->at(objInd).id == entry.ID)

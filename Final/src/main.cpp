@@ -71,13 +71,6 @@ enum EditorModes
     GUI,
     SELECTION
 };
-enum Levels
-{
-    ONE,
-    TWO,
-    THREE
-};
-
 int EditorMode = MOVEMENT;
 
 const float MusicVolume = 0.1f;
@@ -119,6 +112,7 @@ struct FogSystem
 #include "frustum.h"
 #include "particles.h"
 #include "note.h"
+#include "trans.h"
 
 using namespace std;
 using namespace glm;
@@ -285,8 +279,8 @@ int main(void)
 
         drawnObjects = 0;
 
-        //FPS
-        //cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
+        // FPS
+        cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
         glfwPollEvents();
@@ -450,13 +444,17 @@ int main(void)
         // Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         // RenderDebugText(&Text, &lvl, &m);
         // cout << (int)(1.0f / deltaTime) << "\n";
+	*/
 
         // Render Note
         if (drawNote)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
-        */
+
+	Transition t;
+	t.init();
+	t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
