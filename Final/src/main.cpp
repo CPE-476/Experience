@@ -353,7 +353,7 @@ int main(void)
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
 
-        /*
+        
         // Render Skybox
         if (drawSkybox)
         {
@@ -417,20 +417,6 @@ int main(void)
                 lights[i].Render(m.shaders.materialShader, i);
             }
 
-            for (int i = 0; i < objects.size(); ++i)
-            {
-                int id = objects[i].id;
-                if (m.findbyId(id).shader_type == MATERIAL)
-                {
-                    // if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius) &&
-                    //     !(i == selectedObject))
-                    // {
-                    objects[i].Draw(&m.shaders.materialShader, m.findbyId(objects[i].id).model, m.findbyId(objects[i].id).shader_type);
-                    drawnObjects++;
-                    // }
-                }
-            }
-
             // Render Terrain
             if (drawTerrain)
             {
@@ -438,41 +424,6 @@ int main(void)
             }
         }
         m.shaders.materialShader.unbind();
-
-        // Render Textured Objects
-        m.shaders.textureShader.bind();
-        {
-            m.shaders.textureShader.setMat4("projection", projection);
-            m.shaders.textureShader.setMat4("view", view);
-            m.shaders.textureShader.setVec3("viewPos", camera.Position);
-
-            m.shaders.textureShader.setFloat("maxFogDistance", fog.maxDistance);
-            m.shaders.textureShader.setFloat("minFogDistance", fog.minDistance);
-            m.shaders.textureShader.setVec4("fogColor", fog.color);
-
-            dirLight.Render(m.shaders.textureShader);
-
-            m.shaders.textureShader.setInt("size", lights.size());
-            for (int i = 0; i < lights.size(); ++i)
-            {
-                lights[i].Render(m.shaders.textureShader, i);
-            }
-
-            for (int i = 0; i < objects.size(); i++)
-            {
-                int id = objects[i].id;
-                if (m.findbyId(id).shader_type == TEXTURE)
-                {
-                    // if(!frustum.ViewFrustCull(objects[i].position, objects[i].view_radius) &&
-                    //     !(i == selectedObject))
-                    // {
-                    objects[i].Draw(&m.shaders.textureShader, m.findbyId(objects[i].id).model, m.findbyId(objects[i].id).shader_type);
-                    drawnObjects++;
-                    // }
-                }
-            }
-        }
-        m.shaders.textureShader.unbind();
 
         // Draw Particle Systems
         for (int i = 0; i < emitters.size(); ++i)
@@ -491,7 +442,7 @@ int main(void)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
-        */
+        
 
         if (EditorMode == SELECTION)
         {
