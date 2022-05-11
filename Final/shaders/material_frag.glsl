@@ -63,7 +63,8 @@ void main()
         PointLightColor += CalcPointLight(pointLights[i], norm, fragmentPos, viewDir);
     }
 
-    outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
+    //outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
+    outColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

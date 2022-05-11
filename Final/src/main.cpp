@@ -26,8 +26,6 @@
  * Instanced Rendering with Noise
  *  - Grass and Flowers
  *
- * Collisions
- *
  * Soundtrack
  *  - Ambient Sounds.
  *  - Spatial Sounds.
@@ -335,7 +333,7 @@ int main(void)
                 camera.Position.z > terrain.heightExtent ||
                 camera.Position.z < -terrain.heightExtent)
             {
-                cout << "HERE\n";
+		cout << "Load next level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain);
             }
@@ -353,6 +351,9 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
+        m.DrawAllModels(&objects, &lights, dirLight, fog);
+
+        /*
         // Render Skybox
         if (drawSkybox)
         {
@@ -490,6 +491,7 @@ int main(void)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
+        */
 
         if (EditorMode == SELECTION)
         {
@@ -709,8 +711,10 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
+		    objects[selectedObject].UpdateModel();
                 }
-                ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f);
+                if(ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
+		    objects[selectedObject].UpdateModel();
                 if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
                 {
                     if (snapToTerrain)
@@ -718,13 +722,18 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
+		    objects[selectedObject].UpdateModel();
                 }
 
-                ImGui::SliderFloat("AngleX", (float *)&objects[selectedObject].angleX, -PI, PI);
-                ImGui::SliderFloat("AngleY", (float *)&objects[selectedObject].angleY, -PI, PI);
-                ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI);
+                if(ImGui::SliderFloat("AngleX", (float *)&objects[selectedObject].angleX, -PI, PI))
+		    objects[selectedObject].UpdateModel();
+                if(ImGui::SliderFloat("AngleY", (float *)&objects[selectedObject].angleY, -PI, PI))
+		    objects[selectedObject].UpdateModel();
+                if(ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
+		    objects[selectedObject].UpdateModel();
 
-                ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f);
+                if(ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
+		    objects[selectedObject].UpdateModel();
 
                 if (ImGui::Button("Delete Object"))
                 {
@@ -859,7 +868,7 @@ int main(void)
                                                  vec3(1), 1, 5, 0.05f));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 1000; i++)
                     {
                         for (int j = 23; j < 32; j++)
                         {
@@ -979,14 +988,6 @@ int main(void)
                                                  vec3(1), 1, 20, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(22,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.0f));
-                        selectedObject = objects.size() - 1;
-                    }
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Street"))
@@ -1004,6 +1005,7 @@ int main(void)
             }
 
             ImGui::Begin("Level Editor");
+
             ImGui::InputText("Name", levelName, IM_ARRAYSIZE(levelName));
 
             ImGui::SliderFloat3("Starting Position", (float *)&lvl.startPosition, -128.0f, 128.0f);
