@@ -60,6 +60,8 @@ struct Model_Container
     Model sphere;
     Model skull;
 
+    Model note;
+
     // forest
     Model tree_1;
     Model tree_2;
@@ -164,6 +166,8 @@ struct Manager
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
         this->models.road.init("../resources/models/environment/road/road.fbx");
 
+        this->models.note.init("../resources/models/environment/note/scroll2.fbx");
+
         this->Populate();
     }
 
@@ -202,6 +206,8 @@ struct Manager
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
+
+        Lookup[99] = {99, &this->models.note, &this->shaders.textureShader, TEXTURE};
     }
 
     ID_Entry findbyId(int id) {

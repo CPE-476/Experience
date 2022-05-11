@@ -94,6 +94,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
+bool CollisionMode = true;
+
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
@@ -868,6 +870,14 @@ int main(void)
                             selectedObject = objects.size() - 1;
                         }
                     }
+                    for (int i = 0; i < 10; i++)
+                    {
+                        objects.push_back(Object(99,
+                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 0.0f, 0.0f, 0.0f,
+                                                 vec3(1), 1, 5, 1.0f));
+                        selectedObject = objects.size() - 1;
+                    }
                 }
 
                 ImGui::SameLine();
@@ -1118,6 +1128,7 @@ void processInput(GLFWwindow *window, vector<Object> objects)
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (CollisionMode){
         for (int i = 0; i < objects.size(); i++)
         {
             if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
@@ -1129,48 +1140,55 @@ void processInput(GLFWwindow *window, vector<Object> objects)
                 }
             }
         }
+        }
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (CollisionMode){
         for (int i = 0; i < objects.size(); i++)
         {
             if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
                 {
                     camera.ProcessKeyboard(FORWARD, deltaTime);
                     break;
                 }
             }
         }
+        }
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(LEFT, deltaTime);
+        if (CollisionMode){
         for (int i = 0; i < objects.size(); i++)
         {
             if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
                 {
                     camera.ProcessKeyboard(RIGHT, deltaTime);
                     break;
                 }
             }
         }
+        }
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(RIGHT, deltaTime);
-        for (int i = 0; i < objects.size(); i++)
-        {
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+        if (CollisionMode){
+            for (int i = 0; i < objects.size(); i++)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id == 0))
+                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
                 {
-                    camera.ProcessKeyboard(LEFT, deltaTime);
-                    break;
+                    if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
+                    {
+                        camera.ProcessKeyboard(LEFT, deltaTime);
+                        break;
+                    }
                 }
             }
         }
@@ -1217,6 +1235,10 @@ void processInput(GLFWwindow *window, vector<Object> objects)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        CollisionMode = true;
+    if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+        CollisionMode = false;
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
