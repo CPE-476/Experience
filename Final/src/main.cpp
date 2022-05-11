@@ -627,7 +627,9 @@ int main(void)
 		    objects[selectedObject].UpdateModel();
                 }
                 if(ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
+		{
 		    objects[selectedObject].UpdateModel();
+		}
                 if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
                 {
                     if (snapToTerrain)
