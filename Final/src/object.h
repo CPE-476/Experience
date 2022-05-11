@@ -49,7 +49,6 @@ public:
 
     void UpdateModel()
     {
-        mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
         mat4 rotX = rotate(mat4(1.0f), angleX, vec3(1.0f, 0.0f, 0.0f));
         mat4 rotY = rotate(mat4(1.0f), angleY, vec3(0.0f, 1.0f, 0.0f));

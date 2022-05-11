@@ -50,11 +50,15 @@ struct Transition
 
         glBindVertexArray(0);
     }
+    int counter = 0;
+    int speed = 100;
+    bool active = false;
 
     void Draw(Shader &shader)
     {
         shader.bind();
         {
+	    shader.setFloat("amount", sin((float)counter / this->speed));
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
