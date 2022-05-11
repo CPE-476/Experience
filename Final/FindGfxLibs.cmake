@@ -108,7 +108,6 @@ endfunction(findGLM)
 
 # Find and add Freetype using find_package
 function(findFreetype target)
-
     find_package(Freetype QUIET)
 
     if(NOT Freetype_FOUND)
@@ -117,6 +116,7 @@ function(findFreetype target)
     endif()
 
     set(FREETYPE_LIBRARIES Freetype PARENT_SCOPE)
+    message("${FREETYPE_LIBRARIES}")
     if(FREETYPE_LIBRARIES)
         target_include_directories(${target} PUBLIC "${FREETYPE_INCLUDE_DIRS}")
         message("Including Freetype!")
@@ -124,8 +124,7 @@ function(findFreetype target)
         message("Linking Freetype!")
     else()
         message(WARNING "Broken")
-    endif()
-    
+    endif() 
 endfunction(findFreetype)
 
 # Find and add Assimp using find_package

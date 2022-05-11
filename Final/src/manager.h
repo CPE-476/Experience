@@ -27,6 +27,7 @@
 #include "shader.h"
 #include "model.h"
 #include "note.h"
+#include "object.h"
 
 using namespace std;
 using namespace glm;
@@ -110,7 +111,7 @@ struct Manager
     Shader_Container shaders;
     Model_Container models;
     Note_Container notes;
-    ID_Entry Lookup[100];
+    ID_Entry Lookup[100] = {};
 
     Manager()
     {
@@ -202,6 +203,77 @@ struct Manager
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE};
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE};
+    }
+
+    void DrawAllModels(vector<Object> *objects)
+    {
+        for(int i = 0; i < 100; ++i)
+        {
+            if(Lookup[i].model == NULL)
+            {
+                break;
+            }
+
+            ID_Entry entry = Lookup[i];
+            vector<mat4> modelMatrices;
+            for(int objInd = 0; objInd < objects->size(); ++objInd)
+            {
+                modelMatrices.push_back(objects->at(objInd).matrix);
+            }
+            unsigned int instanceBuffer;
+            glGenBuffers(1, &instanceBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+            glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(mat4), &modelMatrices[0], GL_STREAM_DRAW);
+
+            for(int i = 0; i < entry.model->meshes.size(); i++)
+            {
+                unsigned int instanceVAO = entry.model->meshes[i].VAO;
+                glBindVertexArray(instanceVAO);
+                glEnableVertexAttribArray(3);
+                glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+                glEnableVertexAttribArray(4);
+                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+                glEnableVertexAttribArray(5);
+                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+                glEnableVertexAttribArray(6);
+                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+                glVertexAttribDivisor(3, 1);
+                glVertexAttribDivisor(4, 1);
+                glVertexAttribDivisor(5, 1);
+                glVertexAttribDivisor(6, 1);
+
+                glBindVertexArray(0); 
+            }
+
+            // Drawing
+            shaders.materialShader.bind();
+            {
+                mat4 projection = camera.GetProjectionMatrix();
+                mat4 view = camera.GetViewMatrix();
+                shaders.materialShader.setMat4("projection", projection);
+                shaders.materialShader.setMat4("view", view);
+                shaders.materialShader.setVec3("viewPos", camera.Position);
+
+                for(int i = 0; i < entry.model->meshes.size(); i++)
+                {
+                    vec3 red = vec3(1.0f, 0.0f, 0.0f);
+                    shaders.materialShader.setVec3("material.ambient", red);
+                    shaders.materialShader.setVec3("material.diffuse", red);
+                    shaders.materialShader.setVec3("material.specular", red);
+                    shaders.materialShader.setFloat("material.shine", 32.0f); 
+                    entry.model->meshes[i].SetTextureParams(shaders.materialShader);
+                    cout << entry.model->meshes[i].VAO << "\n";
+                    glBindVertexArray(entry.model->meshes[i].VAO);
+                    glDrawElementsInstanced(GL_TRIANGLES, 
+                            static_cast<unsigned int>(entry.model->meshes[i].indices.size()),
+                            GL_UNSIGNED_INT, 0,
+                            modelMatrices.size());
+                    glBindVertexArray(0);
+                }
+            }
+            shaders.materialShader.unbind();
+        }
     }
 
     ID_Entry findbyId(int id) {

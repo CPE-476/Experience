@@ -34,9 +34,8 @@ struct Texture
     string path;
 };
 
-class Mesh
+struct Mesh
 {
-public:
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
@@ -49,7 +48,7 @@ public:
         setupMesh();
     }
 
-    void Draw(Shader &shader)
+    void SetTextureParams(Shader &shader)
     {
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;
@@ -95,6 +94,11 @@ public:
             //cout << "sample_" + name + number << "\n";
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
+    }
+
+    void Draw(Shader &shader)
+    {
+        SetTextureParams(shader);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 
                 static_cast<unsigned int>(indices.size()), 
@@ -103,8 +107,7 @@ public:
 
         glActiveTexture(GL_TEXTURE0);
     }
-
-private:
+    
     unsigned int VAO, VBO, EBO;
 
     void setupMesh()
