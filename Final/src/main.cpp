@@ -312,12 +312,16 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
+    
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         ++frameCount;
 
         drawnObjects = 0;
+
+        //FPS
+        //cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
         glfwPollEvents();
@@ -853,7 +857,7 @@ int main(void)
                                                  vec3(1), 1, 5, 0.05f));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 100; i++)
                     {
                         for (int j = 23; j < 32; j++)
                         {
