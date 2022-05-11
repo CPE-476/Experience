@@ -397,6 +397,7 @@ int main(void)
         // Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         // RenderDebugText(&Text, &lvl, &m);
         // cout << (int)(1.0f / deltaTime) << "\n";
+	
 
         // Render Note
         if (drawNote)
