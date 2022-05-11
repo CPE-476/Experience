@@ -5,7 +5,6 @@
 
 /* TODO
  * Fog Walls
- * Nice transition/Fade out and in.
  *
  * BUGS
  *  - Smoother Terrain Movement
@@ -290,14 +289,16 @@ int main(void)
         processInput(window, objects);
         if (camera.Mode == WALK || camera.Mode == SPRINT)
         {
-            if (camera.Position.x > terrain.widthExtent ||
+            if (camera.Position.x > terrain.widthExtent - 2 || // For Weird bounds checking error
                 camera.Position.x < -terrain.widthExtent ||
                 camera.Position.z > terrain.heightExtent ||
                 camera.Position.z < -terrain.heightExtent)
             {
-		cout << "Load next level.\n";
+                cout << "Load next level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain);
+                t.counter = 157;
+                t.active = true;
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
         }
@@ -314,6 +315,16 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
+
+        if(t.active)
+        {
+            t.Draw(m.shaders.transShader);
+            if(t.counter == 314)
+            {
+                t.active = false;
+            }
+            t.counter++;
+        }
  
         // Render Skybox
         if (drawSkybox)
@@ -359,32 +370,11 @@ int main(void)
         }
         m.shaders.lightShader.unbind();
 
-        // Render Material Objects
-        m.shaders.materialShader.bind();
+        // Render Terrain
+        if (drawTerrain)
         {
-            m.shaders.materialShader.setMat4("projection", projection);
-            m.shaders.materialShader.setMat4("view", view);
-            m.shaders.materialShader.setVec3("viewPos", camera.Position);
-
-            m.shaders.materialShader.setFloat("maxFogDistance", fog.maxDistance);
-            m.shaders.materialShader.setFloat("minFogDistance", fog.minDistance);
-            m.shaders.materialShader.setVec4("fogColor", fog.color);
-
-            dirLight.Render(m.shaders.materialShader);
-
-            m.shaders.materialShader.setInt("size", lights.size());
-            for (int i = 0; i < lights.size(); ++i)
-            {
-                lights[i].Render(m.shaders.materialShader, i);
-            }
-
-            // Render Terrain
-            if (drawTerrain)
-            {
-                terrain.Draw(m.shaders.terrainShader);
-            }
+            terrain.Draw(m.shaders.terrainShader);
         }
-        m.shaders.materialShader.unbind();
 
         // Draw Particle Systems
         for (int i = 0; i < emitters.size(); ++i)
@@ -392,20 +382,11 @@ int main(void)
             emitters[i].Draw(m.shaders.particleShader, deltaTime);
         }
 
-        // TODO(Alex): Abominably slow, for some reason. Check it out or drop it.
-        // Render Text
-        // Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
-        // RenderDebugText(&Text, &lvl, &m);
-        // cout << (int)(1.0f / deltaTime) << "\n";
-	
-
         // Render Note
         if (drawNote)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
-
-	//t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
@@ -625,12 +606,12 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 }
                 if(ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
-		{
-		    objects[selectedObject].UpdateModel();
-		}
+                {
+                    objects[selectedObject].UpdateModel();
+                }
                 if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
                 {
                     if (snapToTerrain)
@@ -638,18 +619,18 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 }
 
                 if(ImGui::SliderFloat("AngleX", (float *)&objects[selectedObject].angleX, -PI, PI))
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 if(ImGui::SliderFloat("AngleY", (float *)&objects[selectedObject].angleY, -PI, PI))
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 if(ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
 
                 if(ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
 
                 if (ImGui::Button("Delete Object"))
                 {
@@ -989,6 +970,14 @@ int main(void)
             ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
             ImGui::SameLine();
             ImGui::Checkbox("Draw Note", &drawNote);
+
+            ImGui::Text("%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
+
+            ImGui::Text("Drawn Objects: %d", drawnObjects);
+            ImGui::Text("Location: (%.02f %.02f %.02f)", camera.Position.x, camera.Position.y, camera.Position.z);
+            ImGui::Text("Orientation: (%.02f %.02f %.02f)", camera.Front.x, camera.Front.y, camera.Front.z);
+            ImGui::Text("Level: %s | Next: %s", lvl.currentLevel.c_str(), lvl.nextLevel.c_str());
+
             ImGui::End();
 
             ImGui::Render();

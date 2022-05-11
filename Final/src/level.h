@@ -227,10 +227,10 @@ struct Level
                         this->startPosition = pos;
                         this->startDirection = dir;
                         camera.Position = pos;
-                        camera.Front = dir;
+                        //camera.Front = dir;
 
                         // TODO(Alex): Fix weird direction bug when loading new level.
-                        //firstMouse = true; ???
+                        //firstMouse = true;
                     }
                     else
                     {
