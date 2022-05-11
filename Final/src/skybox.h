@@ -79,6 +79,7 @@ struct Skybox
         paths.push_back(dir + (png ? "bottom.png" : "bottom.jpg"));
         paths.push_back(dir + (png ? "front.png" : "front.jpg"));
         paths.push_back(dir + (png ? "back.png" : "back.jpg"));
+
         this->textureID = loadCubemap(paths);
         setup();
     }
