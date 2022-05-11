@@ -19,6 +19,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <string>
@@ -218,12 +219,14 @@ struct Manager
             vector<mat4> modelMatrices;
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
-                modelMatrices.push_back(objects->at(objInd).matrix);
+                if(objects->at(objInd).id == entry.ID)
+                    modelMatrices.push_back(objects->at(objInd).matrix);
+                //cout << glm::to_string(objects->at(objInd).matrix) << endl;
             }
             unsigned int instanceBuffer;
             glGenBuffers(1, &instanceBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
-            glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(mat4), &modelMatrices[0], GL_STREAM_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), &modelMatrices[0], GL_STREAM_DRAW);
 
             for(int i = 0; i < entry.model->meshes.size(); i++)
             {
@@ -263,7 +266,7 @@ struct Manager
                     shaders.materialShader.setVec3("material.specular", red);
                     shaders.materialShader.setFloat("material.shine", 32.0f); 
                     entry.model->meshes[i].SetTextureParams(shaders.materialShader);
-                    cout << entry.model->meshes[i].VAO << "\n";
+                    //cout << entry.model->meshes[i].VAO << "\n";
                     glBindVertexArray(entry.model->meshes[i].VAO);
                     glDrawElementsInstanced(GL_TRIANGLES, 
                             static_cast<unsigned int>(entry.model->meshes[i].indices.size()),

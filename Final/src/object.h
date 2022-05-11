@@ -45,11 +45,11 @@ public:
         this->view_radius = rad_v;
         this->collision_radius = rad_c;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
-        UpdateModel();
+        this->matrix = UpdateModel();
     }
 
 
-    void UpdateModel()
+    mat4 UpdateModel()
     {
         mat4 matrix = mat4(1.0f);
         mat4 pos = translate(mat4(1.0f), position);
@@ -57,7 +57,7 @@ public:
         mat4 rotY = rotate(mat4(1.0f), angleY, vec3(0.0f, 1.0f, 0.0f));
         mat4 rotZ = rotate(mat4(1.0f), angleZ, vec3(0.0f, 0.0f, 1.0f));
         mat4 scl = scale(mat4(1.0f), scaleFactor * vec3(1.0f, 1.0f, 1.0f));
-        this->matrix = pos * rotX * rotY * rotZ * scl;
+        return pos * rotX * rotY * rotZ * scl;
     }
 
     void Draw(Shader *shader, Model *model, int shader_t)
