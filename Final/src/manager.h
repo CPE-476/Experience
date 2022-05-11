@@ -226,12 +226,12 @@ struct Manager
 
             ID_Entry entry = Lookup[i];
             vector<mat4> modelMatrices;
-            modelMatrices.clear();
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
                 if(objects->at(objInd).id == entry.ID)
+                {
                     modelMatrices.push_back(objects->at(objInd).matrix);
-                //cout << glm::to_string(objects->at(objInd).matrix) << endl;
+                }
             }
             unsigned int instanceBuffer;
             glGenBuffers(1, &instanceBuffer);

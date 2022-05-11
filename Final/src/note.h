@@ -18,7 +18,7 @@ struct Note
     unsigned int noteTexture;
 
     float vertices[32] = {
-        // positions          // colors           // texture coords
+         // positions         // colors           // texture coords
          1.0f, -0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
          1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
          0.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
