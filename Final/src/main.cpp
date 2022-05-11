@@ -1,54 +1,17 @@
 // Author: Alex Hartford, Brett Hickman, Lucas Li
 // Program: Experience
 // File: Main
-// Date: April 2022
+// Date: May 2022
 
 /* TODO
- *
- * ALEX
- * - Bounding Sphere Editing in Editor
- *
- * - Level Transitions
- *   - Fog Walls
- *   - Nice transition/Fade out and in.
+ * Fog Walls
+ * Nice transition/Fade out and in.
  *
  * BUGS
  *  - Smoother Terrain Movement
  *
- * 75
- *  - Spline Camera
- *  - Fade-in Text or dialogue drawing.
- *  - 3D Sound System
- *
- * Volumetric Fog
- * Water
- *  - Moving with noise
- * Instanced Rendering with Noise
- *  - Grass and Flowers
- *
- * Collisions
- *
- * Soundtrack
- *  - Ambient Sounds.
- *  - Spatial Sounds.
- *    - Adding textures to the soundtrack based on position.
- *    - Fog Wall sound.
- *
- * FBO
- *   - Draw to different render targets by Binding one, getting an integer handle.
- *   - Draw the scene to that target.
- *   - Then draw a quad with the FBO as its texture.
- *   - Perform processing in the shader.
- *     - glGenFramebuffers(1, frameBuffer);
- *     - glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
- *
- * Deferred Shading
- *   We generate the render buffers
- *   Set them with gl calls, treat them like attributes in fragment shaders.
- *   - glEnum DrawBuffers[3]
- *   - glDrawBuffers()
- * 
- * Idea for desert: shakuhachi, sitar bongo, conga
+ * IDEAS
+ *  - Idea for desert: shakuhachi, sitar, bongo, conga
  */
 
 #include <iostream>
