@@ -247,7 +247,7 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/duneLVL.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
@@ -429,7 +429,7 @@ int main(void)
         unsigned int lineNumber = 1;
         char buffer[256];
         sprintf(buffer, "You will DIE");
-        Text.RenderText(buffer, m.shaders.typeShader, SCREEN_WIDTH/2 - 65, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
+        Text.RenderText(buffer, m.shaders.typeShader, SCREEN_WIDTH/2 - 65, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber+40), 1.0f, vec3(0.5, 0.8, 0.2));
 
         //t.Draw(m.shaders.transShader);
 
