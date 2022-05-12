@@ -180,7 +180,7 @@ struct Terrain
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     }
 
-    void Draw(Shader &shader)
+    void Draw(Shader &shader, DirLight *dirLight)
     {
         shader.bind();
         {
@@ -191,10 +191,9 @@ struct Terrain
             mat4 model = mat4(1.0f);
             shader.setMat4("model", model);
 
-            shader.setVec3("material.ambient", material.ambient);
-            shader.setVec3("material.diffuse", material.diffuse);
-            shader.setVec3("material.specular", material.specular);
-            shader.setFloat("material.shine", material.shine); 
+
+            dirLight->Render(shader);
+            shader.setVec3("viewPos", camera.Position);
 
             glBindVertexArray(VAO);
             for(unsigned int strip = 0; strip < num_strips; ++strip)

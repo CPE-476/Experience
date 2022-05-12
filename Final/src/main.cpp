@@ -394,7 +394,7 @@ int main(void)
         // Render Terrain
         if (drawTerrain)
         {
-            terrain.Draw(m.shaders.terrainShader);
+            terrain.Draw(m.shaders.terrainShader, &dirLight);
         }
 
         water.Draw(m.shaders.waterShader, deltaTime);
