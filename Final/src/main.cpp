@@ -431,7 +431,7 @@ int main(void)
         sprintf(buffer, "You will DIE");
         Text.RenderText(buffer, m.shaders.typeShader, SCREEN_WIDTH/2 - 65, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
 
-	//t.Draw(m.shaders.transShader);
+        //t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
@@ -713,6 +713,18 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
 
+                if (ImGui::Button("Copy"))
+                {
+                    int id = objects[selectedObject].id;
+                    float cr = m.findbyId(id).collision_radius;
+                    objects.push_back(Object(id,
+                                             vec3(camera.Position.x,
+                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  camera.Position.z),
+                                             -1.6f, 0.0f, 0.0f,
+                                             vec3(1), 1, cr * default_scale, default_scale));
+                    selectedObject = objects.size() - 1;
+                }
                 if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
@@ -912,8 +924,8 @@ int main(void)
                             objects.push_back(Object(j,
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
-                                                     vec3(1), 1, m.findbyId(j).collision_radius * grass_scale, 
-						     grass_scale));
+                                                     vec3(1), 0.03, m.findbyId(j).collision_radius * grass_scale, 
+                                                     grass_scale));
                             selectedObject = objects.size() - 1;
                         }
                     }
