@@ -323,16 +323,6 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
-
-        if(t.active)
-        {
-            t.Draw(m.shaders.transShader);
-            if(t.counter == 314)
-            {
-                t.active = false;
-            }
-            t.counter++;
-        }
  
         //water.Draw(m.shaders.materialShader, deltaTime);
 
@@ -402,6 +392,16 @@ int main(void)
         m.shaders.terrainShader.unbind();
 
         water.Draw(m.shaders.waterShader, deltaTime);
+
+         if(t.active)
+        {
+            t.Draw(m.shaders.transShader);
+            if(t.counter == 314)
+            {
+                t.active = false;
+            }
+            t.counter++;
+        }
 
         // Draw Particle Systems
         for (int i = 0; i < emitters.size(); ++i)
