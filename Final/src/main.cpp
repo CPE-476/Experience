@@ -247,7 +247,7 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/duneLVL.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
@@ -709,19 +709,6 @@ int main(void)
                                              vec3(1), 1, cr * default_scale, default_scale));
                     selectedObject = objects.size() - 1;
                 }
-
-		if(ImGui::Button("Tree1"))
-		{
-		    if (snapToTerrain)
-			pos_y = terrain.heightAt(0.0f, 0.0f);
-		    vec3 pos = vec3(0.0f, pos_y, 0.0f);
-
-		    objects.push_back(Object(1,
-					     pos,
-					     -1.6f, 0.0f, 0.0f,
-					     vec3(1), 1, m.findbyId(1).collision_radius * default_scale, default_scale));
-		    selectedObject = objects.size() - 1;
-		}
 
                 if (ImGui::Button("Forest"))
                 {
