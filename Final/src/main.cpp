@@ -262,7 +262,7 @@ int main(void)
     boundary.init();
 
     // // Sound System
-    // ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
+    ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
     // Editor Settings
     bool showParticleEditor = false;
@@ -426,7 +426,10 @@ int main(void)
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
 
-        
+        unsigned int lineNumber = 1;
+        char buffer[256];
+        sprintf(buffer, "You will DIE");
+        Text.RenderText(buffer, m.shaders.typeShader, SCREEN_WIDTH/2 - 65, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
 
 	//t.Draw(m.shaders.transShader);
 
