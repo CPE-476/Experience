@@ -119,6 +119,7 @@ struct Manager
     Model_Container models;
     Note_Container notes;
     ID_Entry Lookup[100] = {};
+    unsigned int bufferIds[100] = {};
 
     Manager()
     {
@@ -177,6 +178,7 @@ struct Manager
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
 
         this->Populate();
+        this->genInstanceBuffers();
     }
 
     void Populate()
@@ -218,6 +220,20 @@ struct Manager
         Lookup[99] = {99, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f};
     }
 
+    void genInstanceBuffers()
+    {
+        for(int i=0; i < 100; i++)
+        {
+            if(Lookup[i].model == NULL)
+            {
+                break;
+            }
+            unsigned int instanceBuffer;
+            glGenBuffers(1, &instanceBuffer);
+            bufferIds[i] = instanceBuffer;
+        }
+    }
+
     void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight dirLight, FogSystem fog)
     {
         for(int i = 0; i < 100; ++i)
@@ -236,9 +252,7 @@ struct Manager
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }
-            unsigned int instanceBuffer;
-            glGenBuffers(1, &instanceBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, bufferIds[i]);
             glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), &modelMatrices[0], GL_STREAM_DRAW);
 
             for(int i = 0; i < entry.model->meshes.size(); i++)

@@ -214,11 +214,11 @@ private:
         SortParticles();
 
         glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * MaxParticles, &posOffsets[0], GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * particleAmount, &posOffsets[0], GL_STREAM_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * MaxParticles, &colorOffsets[0], GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * particleAmount, &colorOffsets[0], GL_STREAM_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, scaleVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * MaxParticles, &scaleOffsets[0], GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * particleAmount, &scaleOffsets[0], GL_STREAM_DRAW);
 
         glBindVertexArray(quadVAO);
         glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(sizeof(indices)), GL_UNSIGNED_INT, 0, particleAmount);
