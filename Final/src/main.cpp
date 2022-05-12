@@ -259,7 +259,7 @@ int main(void)
     Boundary boundary;
     boundary.init();
 
-    Emitter fogPart = Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 0, 15), 2.0f, -1.81f, vec4(1.0f, 1.0f, 1.0, 1), vec4(0.7f, 0.7f, 0.7f, 1.0f), 14, 8);
+    Emitter fogPart = Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(9, 0, 9), 2.5f, -0.81f, vec4(1.0f, 1.0f, 1.0, 1), vec4(0.7f, 0.7f, 0.7f, 1.0f), 14, 8);
     fogPart.fogMode = 1;
     emitters.push_back(fogPart);
 

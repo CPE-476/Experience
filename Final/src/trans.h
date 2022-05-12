@@ -38,7 +38,7 @@ struct Boundary
             shader.setVec3("viewPos", camera.Position);
             mat4 model = mat4(1.0f);
 
-            model = scale(model, vec3((float)size, 15.0f, 1.0f));
+            model = scale(model, vec3((float)size, 20.0f, 1.0f));
             model = translate(model, vec3(0.0f, 0.0f, -((float)size / 2.0f)));
             shader.setMat4("model", model); 
 
@@ -47,7 +47,7 @@ struct Boundary
 
             model = mat4(1.0f);
             model = rotate(model, radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
-            model = scale(model, vec3((float)size, 15.0f, 1.0f));
+            model = scale(model, vec3((float)size, 20.0f, 1.0f));
             model = translate(model, vec3(0.0f, 0.0f, -((float)size / 2.0f)));
             shader.setMat4("model", model); 
 
@@ -56,7 +56,7 @@ struct Boundary
 
             model = mat4(1.0f);
             model = rotate(model, radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
-            model = scale(model, vec3((float)size, 15.0f, 1.0f));
+            model = scale(model, vec3((float)size, 20.0f, 1.0f));
             model = translate(model, vec3(0.0f, 0.0f, -((float)size / 2.0f)));
             shader.setMat4("model", model); 
 
@@ -65,7 +65,7 @@ struct Boundary
 
             model = mat4(1.0f);
             model = rotate(model, radians(270.0f), vec3(0.0f, 1.0f, 0.0f));
-            model = scale(model, vec3((float)size, 15.0f, 1.0f));
+            model = scale(model, vec3((float)size, 20.0f, 1.0f));
             model = translate(model, vec3(0.0f, 0.0f, -((float)size / 2.0f)));
             shader.setMat4("model", model); 
 
