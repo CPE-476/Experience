@@ -56,6 +56,7 @@ struct Shader_Container
     Shader terrainShader;
     Shader transShader;
     Shader waterShader;
+    Shader boundaryShader;
 };
 
 struct Model_Container
@@ -134,6 +135,7 @@ struct Manager
         this->shaders.terrainShader.init("../shaders/terrain_vert.glsl", "../shaders/terrain_frag.glsl");
         this->shaders.transShader.init("../shaders/trans_vert.glsl", "../shaders/trans_frag.glsl");
         this->shaders.waterShader.init("../shaders/water_vert.glsl", "../shaders/water_frag.glsl");
+        this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 

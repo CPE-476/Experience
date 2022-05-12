@@ -4,10 +4,9 @@
 // Date: May 2022
 
 /* TODO
- * Fog Walls
- *
- * BUGS
- *  - Smoother Terrain Movement
+ * Normals on the Terrain
+ * Smoother Terrain Movement
+ * Better Terrain Snap
  *
  * IDEAS
  *  - Idea for desert: shakuhachi, sitar, bongo, conga
@@ -247,6 +246,12 @@ int main(void)
     Transition t;
     t.init();
 
+    Water water;
+    water.gpuSetup();
+
+    Boundary boundary;
+    boundary.init();
+
     // // Sound System
     // ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
@@ -276,9 +281,6 @@ int main(void)
     int selectedLight = 0;
     int selectedParticle = 0;
 
-    Water water;
-    water.gpuSetup();
-
     while (!glfwWindowShouldClose(window))
     {
 
@@ -289,7 +291,6 @@ int main(void)
 
         drawnObjects = 0;
 
-        // FPS
         // cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
@@ -298,11 +299,11 @@ int main(void)
         if (camera.Mode == WALK || camera.Mode == SPRINT)
         {
             if (camera.Position.x > terrain.widthExtent - 2 || // For Weird bounds checking error
-                camera.Position.x < -terrain.widthExtent ||
-                camera.Position.z > terrain.heightExtent ||
-                camera.Position.z < -terrain.heightExtent)
+                camera.Position.x < -terrain.widthExtent + 1 ||
+                camera.Position.z > terrain.heightExtent - 2 ||
+                camera.Position.z < -terrain.heightExtent + 1)
             {
-                cout << "Load next level.\n";
+                cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain);
                 t.counter = 157;
@@ -324,13 +325,13 @@ int main(void)
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
  
-        //water.Draw(m.shaders.materialShader, deltaTime);
-
         // Render Skybox
         if (drawSkybox)
         {
             skybox.Draw(m.shaders.skyboxShader);
         }
+
+        boundary.Draw(m.shaders.boundaryShader, terrain.width);
 
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
@@ -383,13 +384,11 @@ int main(void)
         }
         m.shaders.lightShader.unbind();
 
-        m.shaders.terrainShader.bind();
         // Render Terrain
         if (drawTerrain)
         {
             terrain.Draw(m.shaders.terrainShader);
         }
-        m.shaders.terrainShader.unbind();
 
         water.Draw(m.shaders.waterShader, deltaTime);
 
