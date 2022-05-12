@@ -872,14 +872,14 @@ int main(void)
                     }
                     for (int i = 0; i < 2000; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
-                        if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
-
                         for (int j = 23; j < 32; j++)
                         {
+                            float pos_x = (randFloat() * 200.0f) - 100.0f;
+                            float pos_z = (randFloat() * 200.0f) - 100.0f;
+                            if (snapToTerrain)
+                                pos_y = terrain.heightAt(pos_x, pos_z);
+                            vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                             objects.push_back(Object(j,
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,

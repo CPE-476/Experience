@@ -244,7 +244,7 @@ struct Level
         {
             cout << "Error: Level file not found.\n";
         }
-
+        cout << "Finished Loading";
         fp.close();
     }
 
