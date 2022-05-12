@@ -210,6 +210,8 @@ private:
         return textures;
     }
 
+
+    //TODO(Alex): Not working???
     /* Transforms new meshes to always be the same size. 
      * [-1, 1] in all three axes. */
     void resize_model()

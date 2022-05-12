@@ -13,8 +13,8 @@ uniform mat4 model;
 
 void main()
 {
-    fragmentPos = vec3(instanceMatrix * vec4(vertexPosition, 1.0));
+    fragmentPos = vec3(model * vec4(vertexPosition, 1.0));
     normal = mat3(transpose(inverse(model))) * vertexNormal;
 
-    gl_Position = projection * view * vec4(fragmentPos, 1.0);
+    gl_Position = projection * view * model *  vec4(vertexPosition, 1.0);
 }
