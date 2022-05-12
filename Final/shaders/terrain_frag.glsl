@@ -19,14 +19,14 @@ in vec3 Normal;
 
 uniform vec3 viewPos;
 
+uniform vec3 bottom;
+uniform vec3 top;
+uniform vec3 dirt;
 
 void main()
 {
     vec3 viewDir = normalize(viewPos - Position);
 
-    vec3 bottom = vec3(0.676, 0.691, 0.484);
-    vec3 top = vec3(0.459, 0.525, 0.275);
-    vec3 dirt = vec3(0.25, 0.129, 0.000);
     //bottom = vec3(1, 0, 0);
     //top = vec3(0, 1, 0);  //uncomment for RGB debugger
     //dirt = vec3(0, 0, 1); 

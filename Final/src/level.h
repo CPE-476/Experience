@@ -193,19 +193,17 @@ struct Level
                         cout << "Terrain loaded from file\n";
                         string path;
                         float y_scale;
-                        vec3 ambient;
-                        vec3 diffuse;
-                        vec3 specular;
-                        float shine;
+                        vec3 bottom;
+                        vec3 top;
+                        vec3 dirt;
 
                         path = conPrt[0];
                         y_scale = (float)atof(conPrt[1]);
-                        ambient = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
-                        diffuse = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
-                        specular = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
-                        shine = (float)atof(conPrt[11]);
+                        bottom = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
+                        top = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
+                        dirt = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
                         
-                        terrain->init(path, y_scale, {ambient, diffuse, specular, shine});
+                        terrain->init(path, y_scale, bottom, top, dirt);
                     }
                     else if (Type == "SKY")
                     {
@@ -382,16 +380,15 @@ struct Level
 	fp << "TER ";
 	fp << terrain->path << " ";
 	fp << terrain->yScale << " ";
-	fp << terrain->material.ambient.x << " ";
-	fp << terrain->material.ambient.y << " ";
-	fp << terrain->material.ambient.z << " ";
-	fp << terrain->material.diffuse.x << " ";
-	fp << terrain->material.diffuse.y << " ";
-	fp << terrain->material.diffuse.z << " ";
-	fp << terrain->material.specular.x << " ";
-	fp << terrain->material.specular.y << " ";
-	fp << terrain->material.specular.z << " ";
-	fp << terrain->material.shine << " ";
+	fp << terrain->bottom.x << " ";
+	fp << terrain->bottom.y << " ";
+	fp << terrain->bottom.z << " ";
+	fp << terrain->top.x << " ";
+	fp << terrain->top.y << " ";
+	fp << terrain->top.z << " ";
+	fp << terrain->dirt.x << " ";
+	fp << terrain->dirt.y << " ";
+	fp << terrain->dirt.z << " ";
 	fp << "\n";
 
 	fp << "\nCOM Skybox: <SKY dir>\n";

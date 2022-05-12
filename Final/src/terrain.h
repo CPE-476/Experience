@@ -24,8 +24,11 @@ using namespace glm;
 struct Terrain
 {
     float yScale = 16.0f;  // Desired Size
-    Material material;
+    vec3 bottom;
+    vec3 top;
+    vec3 dirt;
 
+    // Default Values
     float widthExtent = 128.0f;
     float heightExtent = 128.0f;
 
@@ -106,9 +109,11 @@ struct Terrain
         return ret;
     }
 
-    void init(string p, float y_scale, Material mat)
+    void init(string p, float y_scale, vec3 b, vec3 t, vec3 d)
     {
-        this->material = mat;
+        this->bottom = b;
+        this->top = t;
+        this->dirt = d;
         vertices.clear();
         indices.clear();
         pointsData.clear();
@@ -224,6 +229,9 @@ struct Terrain
             mat4 model = mat4(1.0f);
             shader.setMat4("model", model);
 
+            shader.setVec3("bottom", bottom);
+            shader.setVec3("top", top);
+            shader.setVec3("dirt", dirt);
 
             dirLight->Render(shader);
             shader.setVec3("viewPos", camera.Position);

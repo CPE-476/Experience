@@ -232,7 +232,9 @@ int main(void)
     Terrain terrain;
     // Default value.
     terrain.init("../resources/heightmaps/lake.jpeg", 16.0f,
-                 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
+                 vec3(0.676, 0.691, 0.484),
+                 vec3(0.459, 0.525, 0.275),
+                 vec3(0.25, 0.129, 0.000));
 
     // Default value.
     DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),  // Direction
@@ -624,16 +626,16 @@ int main(void)
 
                 ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
                 ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
+
                 if (ImGui::Button("Update"))
                 {
                     terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale,
-                                 {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f});
+                            terrain.bottom, terrain.top, terrain.dirt);
                 }
 
-                ImGui::SliderFloat3("Ambient", (float *)&terrain.material.ambient, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Diffuse", (float *)&terrain.material.diffuse, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Specular", (float *)&terrain.material.specular, 0.0f, 1.0f);
-                ImGui::SliderFloat("Shine", (float *)&terrain.material.shine, 0.0f, 100.0f);
+                ImGui::SliderFloat3("Bottom", (float *)&terrain.bottom, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Top", (float *)&terrain.top, 0.0f, 1.0f);
+                ImGui::SliderFloat3("Dirt", (float *)&terrain.dirt, 0.0f, 1.0f);
                 ImGui::SliderFloat("Water Level", (float *)&water.height, -6.0f, 6.0f);
                 ImGui::End();
             }
