@@ -83,14 +83,21 @@ public:
             vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
             if(particleAmount == 20000)
                     {
-                        startPos = vec3(randFloat(-200.0f, 200.0f), -200.0f, 200.0f);
+                        int width = 256;
+                        lifeSpan = randFloat(1.5f, 2.5f);
+                        fogArray[0] = vec3(width/2, startPosition.y, -width/2 + randFloat(0, width));
+                        fogArray[1] = vec3(-width/2, startPosition.y, -width/2 + randFloat(0, width));
+                        fogArray[2] = vec3(-width/2+ randFloat(0, width), startPosition.y, width/2);
+                        fogArray[3] = vec3(-width/2+ randFloat(0, width), startPosition.y, -width/2);
+                        startPos = fogArray[(int)randFloat(0, 4)];
                     }
             vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
             float rTop = radiusTop * sqrt(randFloat(0, 1));
             float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
-            vec3 V = vec3(startPosition.x + rTop * cos(thetaTop), startPosition.y+height, startPosition.z + rTop * sin(thetaTop)) - startPosition; 
+            vec3 V = vec3(startPos.x + rTop * cos(thetaTop), startPos.y+height, startPos.z + rTop * sin(thetaTop)) - startPos; 
             vec3 G = cross(vel, cross(V, vel));
             vel = (magnitude(vel)/magnitude(V)) * V;
+
             Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
             posOffsets[i] = startPos;
             colorOffsets[i] = startColor;

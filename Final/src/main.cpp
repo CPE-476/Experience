@@ -247,7 +247,7 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/duneLVL.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
@@ -722,7 +722,6 @@ int main(void)
                                              vec3(1), 1, cr * default_scale, default_scale));
                     selectedObject = objects.size() - 1;
                 }
-
                 if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
