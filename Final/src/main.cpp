@@ -261,10 +261,6 @@ int main(void)
     Boundary boundary;
     boundary.init();
 
-    Emitter fogPart = Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(9, 0, 9), 2.5f, -0.81f, vec4(1.0f, 1.0f, 1.0, 1), vec4(0.7f, 0.7f, 0.7f, 1.0f), 14, 8);
-    fogPart.fogMode = 1;
-    emitters.push_back(fogPart);
-
     // // Sound System
     // ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
@@ -489,7 +485,7 @@ int main(void)
                 // NOTE(Alex): Broken, for some reason.
                 // ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
                 ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
-                ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].fogMode, 0, 1);
+                ImGui::SliderInt("Fog Mode", (int *)&emitters[selectedParticle].fogMode, 0, 1);
 
 
                 if (ImGui::Button("Create Emitter"))

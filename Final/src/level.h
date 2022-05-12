@@ -164,6 +164,8 @@ struct Level
                         vec4 endCol;
                         float startScl;
                         float endScl;
+                        int bugMode;
+                        int fogMode;
 
                         // get the id and other data
                         path = conPrt[0];
@@ -179,7 +181,18 @@ struct Level
                         endCol = vec4((float)atof(conPrt[17]), (float)atof(conPrt[18]), (float)atof(conPrt[19]), (float)atof(conPrt[20]));
                         startScl = (float)atof(conPrt[21]);
                         endScl = (float)atof(conPrt[22]);
-                        emitters->push_back(Emitter(path, partAmt, pos, rad1, rad2, height, vel, life, grav, startCol, endCol, startScl, endScl));
+                        bugMode = atoi(conPrt[23]);
+                        fogMode = atoi(conPrt[24]);
+                        Emitter em = Emitter(path, partAmt, pos, rad1, rad2, height, vel, life, grav, startCol, endCol, startScl, endScl);
+                        if(bugMode)
+                        {
+                            em.bugMode = 1;
+                        }
+                        if(fogMode)
+                        {
+                            em.fogMode = 1;
+                        }
+                        emitters->push_back(em);
                     }
                     else if(Type == "FOG")
                     {
@@ -337,7 +350,7 @@ struct Level
 	fp << "\n";
 
 	// Save Particle System Data
-	fp << "\nCOM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>\n";
+	fp << "\nCOM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>\n";
 	for(int i = 0; i < emitters->size(); ++i){
 	    fp << "PAR ";
 	    fp << emitters->at(i).path << " ";
@@ -362,7 +375,9 @@ struct Level
 	    fp << emitters->at(i).endColor.z << " ";
 	    fp << emitters->at(i).endColor.a << " ";
 	    fp << emitters->at(i).startScale << " ";
-	    fp << emitters->at(i).endScale;
+	    fp << emitters->at(i).endScale << " ";
+            fp << emitters->at(i).bugMode << " ";
+            fp << emitters->at(i).fogMode << " ";
 	    fp << "\n";
 	}
 
