@@ -247,7 +247,7 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/test.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
@@ -710,11 +710,24 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
 
+		if(ImGui::Button("Tree1"))
+		{
+		    if (snapToTerrain)
+			pos_y = terrain.heightAt(0.0f, 0.0f);
+		    vec3 pos = vec3(0.0f, pos_y, 0.0f);
+
+		    objects.push_back(Object(1,
+					     pos,
+					     -1.6f, 0.0f, 0.0f,
+					     vec3(1), 1, m.findbyId(1).collision_radius * default_scale, default_scale));
+		    selectedObject = objects.size() - 1;
+		}
+
                 if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
                     float small_scale = 0.05f;
-                    float grass_scale = (randFloat()* 0.5) + 0.2;
+                    float grass_scale = (randFloat()* 0.5) + 0.03;
 
                     for (int i = 0; i < 10; i++)
                     {
@@ -909,7 +922,8 @@ int main(void)
                             objects.push_back(Object(j,
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
-                                                     vec3(1), 1, m.findbyId(j).collision_radius * grass_scale, grass_scale));
+                                                     vec3(1), 1, m.findbyId(j).collision_radius * grass_scale, 
+						     grass_scale));
                             selectedObject = objects.size() - 1;
                         }
                     }
