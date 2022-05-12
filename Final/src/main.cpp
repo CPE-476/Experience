@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <time.h>
+#include <unordered_map>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -44,6 +45,7 @@ using namespace glm;
 // NOTE(Alex): Global State!
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
+const float default_scale = 1.0f;
 
 const unsigned int TEXT_SIZE = 16;
 
@@ -62,7 +64,7 @@ bool CollisionMode = true;
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
-//  NOTE(Lucas) For collsion detection
+// NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
 enum EditorModes
@@ -237,7 +239,7 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/level1.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/test.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain);
 
     Frustum frustum;
@@ -257,9 +259,9 @@ int main(void)
     bool showSkyboxEditor = false;
     bool showObjectEditor = false;
 
-    bool snapToTerrain = false;
+    bool snapToTerrain = true;
     bool drawTerrain = true;
-    bool drawSkybox = false;
+    bool drawSkybox = true;
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
@@ -276,7 +278,7 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
-    
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -285,7 +287,7 @@ int main(void)
         drawnObjects = 0;
 
         // FPS
-        //cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
+        // cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
         glfwPollEvents();
@@ -297,7 +299,7 @@ int main(void)
                 camera.Position.z > terrain.heightExtent ||
                 camera.Position.z < -terrain.heightExtent)
             {
-		cout << "Load next level.\n";
+                cout << "Load next level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain);
             }
@@ -316,7 +318,7 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.DrawAllModels(&objects, &lights, dirLight, fog);
- 
+
         // Render Skybox
         if (drawSkybox)
         {
@@ -412,7 +414,6 @@ int main(void)
         // Text.RenderText("You will die.", m.shaders.typeShader, 25.0f, 25.0f, 2.0f, vec3(0.5, 0.8, 0.2));
         // RenderDebugText(&Text, &lvl, &m);
         // cout << (int)(1.0f / deltaTime) << "\n";
-	
 
         // Render Note
         if (drawNote)
@@ -420,7 +421,7 @@ int main(void)
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
 
-	//t.Draw(m.shaders.transShader);
+        // t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
@@ -640,12 +641,12 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 }
-                if(ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
-		{
-		    objects[selectedObject].UpdateModel();
-		}
+                if (ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
+                {
+                    objects[selectedObject].UpdateModel();
+                }
                 if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
                 {
                     if (snapToTerrain)
@@ -653,21 +654,23 @@ int main(void)
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
                                                                               objects[selectedObject].position.z);
                     }
-		    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].UpdateModel();
                 }
 
-                if(ImGui::SliderFloat("AngleX", (float *)&objects[selectedObject].angleX, -PI, PI))
-		    objects[selectedObject].UpdateModel();
-                if(ImGui::SliderFloat("AngleY", (float *)&objects[selectedObject].angleY, -PI, PI))
-		    objects[selectedObject].UpdateModel();
-                if(ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
-		    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("AngleX", (float *)&objects[selectedObject].angleX, -PI, PI))
+                    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("AngleY", (float *)&objects[selectedObject].angleY, -PI, PI))
+                    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
+                    objects[selectedObject].UpdateModel();
 
-                if(ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
-		    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f)){
+                    objects[selectedObject].UpdateModel();
+                    objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
+                }
 
-                if(ImGui::SliderFloat("Collison Radius", (float *)&objects[selectedObject].collision_radius, 0.0f, 5.0f))
-		    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("Collison Radius", (float *)&objects[selectedObject].collision_radius, 0.0f, 50.0f))
+                    objects[selectedObject].UpdateModel();
 
                 if (ImGui::Button("Delete Object"))
                 {
@@ -684,133 +687,209 @@ int main(void)
 
                 ImGui::InputText("Object", object_id, IM_ARRAYSIZE(object_id));
                 ImGui::SameLine();
-                if (ImGui::Button("Add")) {
+                if (ImGui::Button("Add"))
+                {
                     int id = atof(object_id);
+                    float cr = m.findbyId(id).collision_radius;
                     objects.push_back(Object(id,
-                                                 vec3(camera.Position.x,
-                                                        terrain.heightAt(camera.Position.x,camera.Position.z), 
-                                                        camera.Position.z),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                             vec3(camera.Position.x,
+                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  camera.Position.z),
+                                             -1.6f, 0.0f, 0.0f,
+                                             vec3(1), 1, cr * default_scale, default_scale));
                     selectedObject = objects.size() - 1;
                 }
 
                 if (ImGui::Button("Forest"))
                 {
+                    float pos_y = 0.0f;
+                    float small_scale = 0.05f;
+                    float grass_scale = 0.5f;
+
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+                        
                         objects.push_back(Object(0,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(0).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(1,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(1).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(2,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(2).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(3,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(3).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(4,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(4).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(5,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(5).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(6,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(6).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(7,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(7).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(8,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(16,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 0.05f));
+                                                 vec3(1), 1, m.findbyId(16).collision_radius * small_scale, small_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(17,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 5, randFloat() * 1.5f));
+                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         objects.push_back(Object(18,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 5, 0.05f));
+                                                 vec3(1), 1, m.findbyId(18).collision_radius * small_scale, small_scale));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 1000; i++)
+                    for (int i = 0; i < 2000; i++)
                     {
+                        float pos_x = (randFloat() * 200.0f) - 100.0f;
+                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z);
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
                         for (int j = 23; j < 32; j++)
                         {
                             objects.push_back(Object(j,
-                                                     vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                     pos,
                                                      -1.6f, 0.0f, 0.0f,
-                                                     vec3(1), 1, 5, 1));
+                                                     vec3(1), 1, m.findbyId(j).collision_radius * grass_scale, grass_scale));
                             selectedObject = objects.size() - 1;
                         }
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(99,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
-                                                 0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 5, 1.0f));
-                        selectedObject = objects.size() - 1;
                     }
                 }
 
@@ -1057,67 +1136,59 @@ void processInput(GLFWwindow *window, vector<Object> objects)
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(FORWARD, deltaTime);
-        if (CollisionMode){
-        for (int i = 0; i < objects.size(); i++)
+        if (CollisionMode)
         {
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            for (int i = 0; i < objects.size(); i++)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
+                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
                 {
                     camera.ProcessKeyboard(BACKWARD, deltaTime);
                     break;
                 }
             }
         }
-        }
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-        if (CollisionMode){
-        for (int i = 0; i < objects.size(); i++)
+        if (CollisionMode)
         {
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            for (int i = 0; i < objects.size(); i++)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
+                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
                 {
                     camera.ProcessKeyboard(FORWARD, deltaTime);
                     break;
                 }
             }
         }
-        }
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(LEFT, deltaTime);
-        if (CollisionMode){
-        for (int i = 0; i < objects.size(); i++)
+        if (CollisionMode)
         {
-            if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
+            for (int i = 0; i < objects.size(); i++)
             {
-                if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
+                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
                 {
                     camera.ProcessKeyboard(RIGHT, deltaTime);
                     break;
                 }
             }
         }
-        }
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(RIGHT, deltaTime);
-        if (CollisionMode){
+        if (CollisionMode)
+        {
             for (int i = 0; i < objects.size(); i++)
             {
                 if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
                 {
-                    if (count(ignore_objects.begin(), ignore_objects.end(), objects[i].id) == 0)
-                    {
-                        camera.ProcessKeyboard(LEFT, deltaTime);
-                        break;
-                    }
+                    camera.ProcessKeyboard(LEFT, deltaTime);
+                    break;
                 }
             }
         }
