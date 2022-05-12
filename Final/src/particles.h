@@ -49,7 +49,7 @@ public:
     float startScale, endScale;
     int particleAmount;
     string path;
-    int bugMode;
+    int bugMode, fogMode;
 
     Emitter(string path, int partAmt, vec3 pos, float rad1, float rad2, 
 	        float height, vec3 vel, float life, float grav, vec4 startCol, 
@@ -69,16 +69,22 @@ public:
         this->particleAmount = partAmt;
         this->path = path;
         this->bugMode = 0;
+        this->fogMode = 0;
         this->Setup();
     }
 
     void Setup()
     {
+        vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
             float r = radius * sqrt(randFloat(0, 1));
             float theta = randFloat(0, 1) * 2.0f * M_PI;
             vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
+            if(particleAmount == 20000)
+                    {
+                        startPos = vec3(randFloat(-200.0f, 200.0f), -200.0f, 200.0f);
+                    }
             vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
             float rTop = radiusTop * sqrt(randFloat(0, 1));
             float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
@@ -93,7 +99,7 @@ public:
         gpuSetup();
     }
 
-    void Draw(Shader &shader, float delta)
+    void Draw(Shader &shader, float delta, int terrainWidth)
     {
         mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
@@ -117,13 +123,13 @@ public:
             shader.setMat4("Model", model);
 
 	    // Where the actual draw calls are, involves instancing.
-            update(delta);
+            update(delta, terrainWidth);
 	}
         shader.unbind();
     } 
 
 private:
-    static const int MaxParticles = 10000;
+    static const int MaxParticles = 20000;
     vector<Particle> Particles;
     vec4 colorOffsets[MaxParticles];
     vec3 posOffsets[MaxParticles];
@@ -162,13 +168,14 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void update(float delta)
+    void update(float delta, int width)
     {
         ++counter;
+        vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
-            if(bugMode)
-                startPosition.y = randFloat(0, 20);
+            if(bugMode || fogMode)
+                startPosition.y = randFloat(-7.5, 7.5);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {
@@ -191,6 +198,15 @@ private:
                     float r = radius * sqrt(randFloat(0, 1));
                     float theta = randFloat(0, 1) * 2.0f * M_PI;
                     p.pos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
+                    if(fogMode)
+                    {
+                        p.pos = vec3(150*cos(theta), startPosition.y, 150*sin(theta));
+                        fogArray[0] = vec3(width/2, startPosition.y, -width/2 + randFloat(0, width));
+                        fogArray[1] = vec3(-width/2, startPosition.y, -width/2 + randFloat(0, width));
+                        fogArray[2] = vec3(-width/2+ randFloat(0, width), startPosition.y, width/2);
+                        fogArray[3] = vec3(-width/2+ randFloat(0, width), startPosition.y, -width/2);
+                        p.pos = fogArray[(int)randFloat(0, 4)];
+                    }
                     vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
                     float rTop = radiusTop * sqrt(randFloat(0, 1));
                     float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
