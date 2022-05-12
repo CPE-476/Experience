@@ -19,6 +19,11 @@ COM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x 
 DIR 0.203 -0.034 -0.183 0.333 0.175 0.2 1 1 1 0.111 0.11 0.142 
 
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl>
+PAR ../resources/models/particle/part.png 1000 6.32 0 13.7 1.4 0.5 4.5 0 5 0 1.4 0 1 1 0.7 0.7 1 0.4 0 0.9 1 0
+PAR ../resources/models/particle/part.png 200 6.32 0 13.7 1 1 4.5 1 5 1 4 0 0.5 0.5 0.5 1 1 1 1 1 0 5
+PAR ../resources/models/particle/part.png 1000 10 7.92696 0 100 100 4.5 0 0.1 0 1 -0.81 1 0.8 0 1 0.8 1 0 0 0 0.5
+PAR ../resources/models/particle/part.png 200 0 10 0 0.2 3 7 3 10 3 2 -9.81 1 0 0 1 0 0 1 1 1 0
+PAR ../resources/models/particle/part.png 10000 0 100 0 100 10 4.5 5 0 5 7 -9.81 0.5 0.5 1 1 0 0 1 1 0 0.5
 
 COM Fog: <FOG max min col.x col.y col.z col.a>
 FOG 293.125 147.619 0.4 0.4 0.071 1

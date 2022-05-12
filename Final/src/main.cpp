@@ -47,6 +47,8 @@ const float default_scale = 1.0f;
 
 const unsigned int TEXT_SIZE = 16;
 
+const float PLAYER_HEIGHT = 1.0f;
+
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
@@ -129,6 +131,11 @@ float randFloat()
 {
     float r = rand() / static_cast<float>(RAND_MAX);
     return r;
+}
+
+float randCoord()
+{
+    return (randFloat() * 220.0f) - 100.0f;
 }
 
 float lerp(float a, float b, float x)
@@ -309,7 +316,7 @@ int main(void)
                 t.counter = 157;
                 t.active = true;
             }
-            camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + 5.0f;
+            camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT;
         }
 
         ma_engine_set_volume(&sfxEngine, SFXVolume);
@@ -392,6 +399,15 @@ int main(void)
 
         water.Draw(m.shaders.waterShader, deltaTime);
 
+        // Draw Particle Systems
+        for (int i = 0; i < emitters.size(); ++i)
+        {
+            emitters[i].Draw(m.shaders.particleShader, deltaTime);
+        }
+
+        if(camera.Position.y < -4.6f)
+            m.notes.aurelius1.Draw(m.shaders.noteShader);
+
          if(t.active)
         {
             t.Draw(m.shaders.transShader);
@@ -400,12 +416,6 @@ int main(void)
                 t.active = false;
             }
             t.counter++;
-        }
-
-        // Draw Particle Systems
-        for (int i = 0; i < emitters.size(); ++i)
-        {
-            emitters[i].Draw(m.shaders.particleShader, deltaTime);
         }
 
         // Render Note
@@ -466,8 +476,8 @@ int main(void)
                 ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
                 ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
                 ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
-                ImGui::SliderFloat3("Start Color", (float *)&emitters[selectedParticle].startColor, 0.0f, 1.0f);
-                ImGui::SliderFloat3("End Color", (float *)&emitters[selectedParticle].endColor, 0.0f, 1.0f);
+                ImGui::SliderFloat4("Start Color", (float *)&emitters[selectedParticle].startColor, 0.0f, 1.0f);
+                ImGui::SliderFloat4("End Color", (float *)&emitters[selectedParticle].endColor, 0.0f, 1.0f);
                 ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 1.0f);
                 ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 1.0f);
                 // NOTE(Alex): Broken, for some reason.
@@ -704,8 +714,8 @@ int main(void)
 
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -718,8 +728,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -732,8 +742,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -746,8 +756,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -760,8 +770,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -774,8 +784,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -788,8 +798,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -802,8 +812,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -816,8 +826,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -830,8 +840,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -844,8 +854,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -858,8 +868,8 @@ int main(void)
                     }
                     for (int i = 0; i < 10; i++)
                     {
-                        float pos_x = (randFloat() * 200.0f) - 100.0f;
-                        float pos_z = (randFloat() * 200.0f) - 100.0f;
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z);
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -879,8 +889,8 @@ int main(void)
                             float pos_z;
                             while(!goodVal)
                             {
-                            pos_x = (randFloat() * 200.0f) - 100.0f;
-                            pos_z = (randFloat() * 200.0f) - 100.0f;
+                            pos_x = randCoord();
+                            pos_z = randCoord();
                             if (snapToTerrain){
                                 pos_y = terrain.heightAt(pos_x, pos_z);
                                 if(pos_y > (water.height + 0.6))
@@ -907,7 +917,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(9,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -915,7 +925,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(10,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -923,7 +933,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(11,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -931,7 +941,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(12,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -939,7 +949,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(13,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -947,7 +957,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(14,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -955,7 +965,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(15,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -963,7 +973,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(3,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -971,7 +981,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(4,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 1, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -979,7 +989,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(19,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 20, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -987,7 +997,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(20,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 20, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
@@ -995,7 +1005,7 @@ int main(void)
                     for (int i = 0; i < 10; i++)
                     {
                         objects.push_back(Object(21,
-                                                 vec3((randFloat() * 200.0f) - 100.0f, 0.0f, (randFloat() * 200.0f) - 100.0f),
+                                                 vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), 1, 20, randFloat() * 1.5f));
                         selectedObject = objects.size() - 1;
