@@ -171,6 +171,7 @@ private:
     void update(float delta, int width)
     {
         ++counter;
+        width = width + 10;
         vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
@@ -194,6 +195,8 @@ private:
                 else
                 {
                     p.life = lifeSpan;
+                    if(fogMode)
+                        p.life = randFloat(1.5f, 2.5f);
                     p.size = startScale;
                     float r = radius * sqrt(randFloat(0, 1));
                     float theta = randFloat(0, 1) * 2.0f * M_PI;
@@ -223,8 +226,21 @@ private:
             else if(counter % 2 == 1)
             {
                 p.alive = 1;
-                break;
+                if(!fogMode)
+                    break;
             }
+            // if(fogMode)
+            //     {
+            //         for(int i = 0; i < 201; i ++)
+            //         {
+            //             ++counter;
+            //             if(counter % 2 == 1)
+            //             {
+            //                 p.alive = 1;
+            //                 break;
+            //             }
+            //         }
+            //     }
         }
 
         SortParticles();
