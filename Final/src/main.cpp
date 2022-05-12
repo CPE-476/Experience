@@ -247,8 +247,8 @@ int main(void)
     Transition t;
     t.init();
 
-    // Sound System
-    ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
+    // // Sound System
+    // ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
     // Editor Settings
     bool showParticleEditor = false;
@@ -364,10 +364,10 @@ int main(void)
             {
                 for (int i = 0; i < objects.size(); ++i)
                 {
-                    if (i == selectedObject)
-                    {
-                        objects[i].Draw(&m.shaders.lightShader, m.findbyId(objects[i].id).model, m.findbyId(objects[i].id).shader_type);
-                    }
+                    // if (i == selectedObject)
+                    // {
+                    //     objects[i].Draw(&m.shaders.lightShader, m.findbyId(objects[i].id).model, m.findbyId(objects[i].id).shader_type);
+                    // }
                     model = mat4(1.0f);
                     model = scale(model, vec3(objects[i].view_radius));
                     model = translate(model, objects[i].position);
