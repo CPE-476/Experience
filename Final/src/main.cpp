@@ -428,7 +428,7 @@ int main(void)
 
         
 
-	//t.Draw(m.shaders.transShader);
+        //t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {
@@ -710,18 +710,18 @@ int main(void)
                     selectedObject = objects.size() - 1;
                 }
 
-		if(ImGui::Button("Tree1"))
-		{
-		    if (snapToTerrain)
-			pos_y = terrain.heightAt(0.0f, 0.0f);
-		    vec3 pos = vec3(0.0f, pos_y, 0.0f);
-
-		    objects.push_back(Object(1,
-					     pos,
-					     -1.6f, 0.0f, 0.0f,
-					     vec3(1), 1, m.findbyId(1).collision_radius * default_scale, default_scale));
-		    selectedObject = objects.size() - 1;
-		}
+                if (ImGui::Button("Copy"))
+                {
+                    int id = objects[selectedObject].id;
+                    float cr = m.findbyId(id).collision_radius;
+                    objects.push_back(Object(id,
+                                             vec3(camera.Position.x,
+                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  camera.Position.z),
+                                             -1.6f, 0.0f, 0.0f,
+                                             vec3(1), 1, cr * default_scale, default_scale));
+                    selectedObject = objects.size() - 1;
+                }
 
                 if (ImGui::Button("Forest"))
                 {
@@ -922,8 +922,8 @@ int main(void)
                             objects.push_back(Object(j,
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
-                                                     vec3(1), 1, m.findbyId(j).collision_radius * grass_scale, 
-						     grass_scale));
+                                                     vec3(1), 0.03, m.findbyId(j).collision_radius * grass_scale, 
+                                                     grass_scale));
                             selectedObject = objects.size() - 1;
                         }
                     }
