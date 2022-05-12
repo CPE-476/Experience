@@ -18,6 +18,7 @@ struct Water
     unsigned int quadVAO, quadVBO, EBO;
     GLuint TextureID;
     unsigned int textureID;
+    float height = -4.6f;
 
     float partVertices[12] = {
             -0.5f, 0.0f, 0.5f,
@@ -47,7 +48,7 @@ struct Water
         shader.setVec3("viewPos", camera.Position);
 
         mat4 model = mat4(1.0f);
-        model = scale(mat4(1.0f), 250.0f * vec3(1.0f, 1.0f, 1.0f)) * translate(mat4(1.0f), vec3(0.0f, -0.019f, 0.0f));;
+        model =  translate(mat4(1.0f),  vec3(0.0f, height, 0.0f)) * scale(mat4(1.0f), 250.0f * vec3(1.0f, 1.0f, 1.0f));
         shader.setMat4("model", model);
 
         glBindVertexArray(quadVAO);

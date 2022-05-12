@@ -619,6 +619,7 @@ int main(void)
                 ImGui::SliderFloat3("Diffuse", (float *)&terrain.material.diffuse, 0.0f, 1.0f);
                 ImGui::SliderFloat3("Specular", (float *)&terrain.material.specular, 0.0f, 1.0f);
                 ImGui::SliderFloat("Shine", (float *)&terrain.material.shine, 0.0f, 100.0f);
+                ImGui::SliderFloat("Water Level", (float *)&water.height, -6.0f, 6.0f);
                 ImGui::End();
             }
 
@@ -700,7 +701,7 @@ int main(void)
                 {
                     float pos_y = 0.0f;
                     float small_scale = 0.05f;
-                    float grass_scale = 0.5f;
+                    float grass_scale = (randFloat()* 0.5) + 0.2;
 
                     for (int i = 0; i < 10; i++)
                     {
@@ -874,10 +875,22 @@ int main(void)
                     {
                         for (int j = 23; j < 32; j++)
                         {
-                            float pos_x = (randFloat() * 200.0f) - 100.0f;
-                            float pos_z = (randFloat() * 200.0f) - 100.0f;
-                            if (snapToTerrain)
+                            int goodVal = 0;
+                            float pos_x;
+                            float pos_z;
+                            while(!goodVal)
+                            {
+                            pos_x = (randFloat() * 200.0f) - 100.0f;
+                            pos_z = (randFloat() * 200.0f) - 100.0f;
+                            if (snapToTerrain){
                                 pos_y = terrain.heightAt(pos_x, pos_z);
+                                if(pos_y > (water.height + 0.6))
+                                    goodVal = 1;
+                            }
+                            else
+                                goodVal = 1;
+                            }
+
                             vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                             objects.push_back(Object(j,
