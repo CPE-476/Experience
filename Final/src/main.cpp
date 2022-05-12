@@ -259,6 +259,10 @@ int main(void)
     Boundary boundary;
     boundary.init();
 
+    Emitter fogPart = Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 0, 15), 2.0f, -1.81f, vec4(1.0f, 1.0f, 1.0, 1), vec4(0.7f, 0.7f, 0.7f, 1.0f), 14, 8);
+    fogPart.fogMode = 1;
+    emitters.push_back(fogPart);
+
     // // Sound System
     // ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
 
@@ -402,7 +406,7 @@ int main(void)
         // Draw Particle Systems
         for (int i = 0; i < emitters.size(); ++i)
         {
-            emitters[i].Draw(m.shaders.particleShader, deltaTime);
+            emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
         }
 
         if(camera.Position.y < -4.6f)
@@ -478,16 +482,18 @@ int main(void)
                 ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
                 ImGui::SliderFloat4("Start Color", (float *)&emitters[selectedParticle].startColor, 0.0f, 1.0f);
                 ImGui::SliderFloat4("End Color", (float *)&emitters[selectedParticle].endColor, 0.0f, 1.0f);
-                ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 1.0f);
-                ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 1.0f);
+                ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 20.0f);
+                ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 20.0f);
                 // NOTE(Alex): Broken, for some reason.
                 // ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
                 ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
+                ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].fogMode, 0, 1);
+
 
                 if (ImGui::Button("Create Emitter"))
                 {
                     emitters.push_back(
-                        Emitter("../resources/models/particle/part.png", 200, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
+                        Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
                     selectedParticle = emitters.size() - 1;
                 }
                 ImGui::SameLine();
