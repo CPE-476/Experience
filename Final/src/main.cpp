@@ -4,9 +4,9 @@
 // Date: May 2022
 
 /* TODO
- * Normals on the Terrain
  * Smoother Terrain Movement
  * Better Terrain Snap
+ * Frustum Culling
  *
  * IDEAS
  *  - Idea for desert: shakuhachi, sitar, bongo, conga
@@ -114,7 +114,7 @@ struct FogSystem
 #include "frustum.h"
 #include "particles.h"
 #include "note.h"
-#include "trans.h"
+#include "boundary.h"
 #include "water.h"
 
 using namespace std;

@@ -43,7 +43,37 @@ struct Terrain
     // [x][z]
     vector<vector<float>> pointsData;
 
+    float lerp(float a, float b, float x)
+    {
+        return a + (b - a) * x;
+    }
+
+    /*
+    float heightAt(float x, float z)
+    {
+        int leftSide = (int)x + height / 2;
+        int rightSide = leftSide + 1;
+        int bottomSide = (int)z + width / 2;
+        int topSide = bottomSide + 1;
+
+        float Xamount = (x + (float)height / 2.0f) - leftSide;
+        float Zamount = (z + (float)width / 2.0f) - bottomSide;
+        //cout << leftSide << " - " << rightSide << " | " << bottomSide << " - " << topSide << "\n";
+        //cout << Xamount << "//" << Zamount << "\n";
+        // L vs R
+        float Xval = lerp(pointsData[leftSide][bottomSide], pointsData[rightSide][bottomSide], Xamount);
+        float Zval = lerp(pointsData[leftSide][bottomSide], pointsData[leftSide][topSide], Zamount);
+        cout << Xval << " || || " << Zval << "\n";
+
+        float ret = Xval + Zval / 2.0f;
+        cout << ret;
+        
+        return ret;
+    }
+    */
+
     // Takes an x and z value in world space.
+    // Uses Barycentric Coordinates to return the height at a point.
     float heightAt(float x, float z)
     {
         float lam1, lam2, lam3;
@@ -70,7 +100,10 @@ struct Terrain
         lam3 = 1 - lam1 - lam2;
         //cout << lam1 << "=" << lam2 << "=" << lam3 << "\n";
 
-        return p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
+        float ret = p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
+        //cout << ret << "\n";
+
+        return ret;
     }
 
     void init(string p, float y_scale, Material mat)
