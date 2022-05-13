@@ -256,14 +256,11 @@ int main(void)
 
     Frustum frustum;
 
-    Transition t;
-    t.init();
+    Boundary bound;
+    bound.init(vec3(0.5f, 0.5f, 0.2f));
 
     Water water;
     water.gpuSetup();
-
-    Boundary boundary;
-    boundary.init();
 
     // // Sound System
     ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
@@ -311,16 +308,14 @@ int main(void)
         processInput(window, objects);
         if (camera.Mode == WALK || camera.Mode == SPRINT)
         {
-            if (camera.Position.x > terrain.widthExtent - 2 || // For Weird bounds checking error
-                camera.Position.x < -terrain.widthExtent + 1 ||
-                camera.Position.z > terrain.heightExtent - 2 ||
-                camera.Position.z < -terrain.heightExtent + 1)
-            {
+	    float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
+	    if(dist > terrain.widthExtent - 2)
+	    {
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain);
-                t.counter = 157;
-                t.active = true;
+                bound.counter = 157;
+                bound.active = true;
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT;
         }
@@ -344,13 +339,14 @@ int main(void)
             skybox.Draw(m.shaders.skyboxShader);
         }
 
-        boundary.Draw(m.shaders.boundaryShader, terrain.width);
-
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
         {
             m.shaders.lightShader.setMat4("projection", projection);
             m.shaders.lightShader.setMat4("view", view);
+
+	    model = mat4(1.0f);
+	    m.shaders.lightShader.setMat4("model", model);
 
             if (drawPointLights)
             {
@@ -411,31 +407,22 @@ int main(void)
             emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
         }
 
-        if(camera.Position.y < -4.6f)
-            m.notes.aurelius1.Draw(m.shaders.noteShader);
-
-         if(t.active)
+        if(bound.active)
         {
-            t.Draw(m.shaders.transShader);
-            if(t.counter == 314)
+            bound.Draw(m.shaders.transShader);
+            if(bound.counter == 314)
             {
-                t.active = false;
+                bound.active = false;
             }
-            t.counter++;
+            bound.counter++;
         }
+        bound.DrawWall(m.shaders.boundaryShader, terrain.width / 2.0f, 8.0f, &m.models.cylinder);
 
         // Render Note
         if (drawNote)
         {
             m.notes.aurelius1.Draw(m.shaders.noteShader);
         }
-
-        unsigned int lineNumber = 1;
-        char buffer[256];
-        sprintf(buffer, "You will DIE");
-        Text.RenderText(buffer, m.shaders.typeShader, SCREEN_WIDTH/2 - 65, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber+40), 1.0f, vec3(0.5, 0.8, 0.2));
-
-        //t.Draw(m.shaders.transShader);
 
         if (EditorMode == SELECTION)
         {

@@ -2,8 +2,9 @@
 out vec4 outColor;
 
 uniform float amount;
+uniform vec3 color;
 
 void main()
 {
-    outColor = vec4(1.0, 1.0, 1.0, amount);
+    outColor = vec4(color, amount);
 }
