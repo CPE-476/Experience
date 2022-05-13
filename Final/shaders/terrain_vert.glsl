@@ -14,6 +14,6 @@ void main()
 {
     Normal = attribVertexNormal;
     Height = attribVertexPosition.y;
-    Position = (view * model * vec4(attribVertexPosition, 1.0)).xyz;
+    Position = attribVertexPosition;
     gl_Position = projection * view * model * vec4(attribVertexPosition, 1.0);
 }

@@ -13,6 +13,7 @@
 #include <glad/glad.h> 
 
 #include "shader.h"
+#include "light.h"
 
 #include <string>
 #include <vector>
@@ -217,7 +218,7 @@ struct Terrain
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     }
 
-    void Draw(Shader &shader, DirLight *dirLight)
+    void Draw(Shader &shader, vector<Light> *lights, DirLight *dirLight, FogSystem *fog)
     {
         shader.bind();
         {
@@ -232,7 +233,18 @@ struct Terrain
             shader.setVec3("top", top);
             shader.setVec3("dirt", dirt);
 
+            shader.setFloat("maxFogDistance", fog->maxDistance);
+            shader.setFloat("minFogDistance", fog->minDistance);
+            shader.setVec4("fogColor", fog->color);
+
             dirLight->Render(shader);
+
+            shader.setInt("size", lights->size());
+            for (int i = 0; i < lights->size(); ++i)
+            {
+                lights->at(i).Render(shader, i);
+            }
+
             shader.setVec3("viewPos", camera.Position);
 
             glBindVertexArray(VAO);

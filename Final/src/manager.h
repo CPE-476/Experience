@@ -237,7 +237,7 @@ struct Manager
         }
     }
 
-    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight dirLight, FogSystem fog)
+    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -292,11 +292,11 @@ struct Manager
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, entry.model->textures_loaded[0].id);
 
-                shaders.textureShader.setFloat("maxFogDistance", fog.maxDistance);
-                shaders.textureShader.setFloat("minFogDistance", fog.minDistance);
-                shaders.textureShader.setVec4("fogColor", fog.color);
+                shaders.textureShader.setFloat("maxFogDistance", fog->maxDistance);
+                shaders.textureShader.setFloat("minFogDistance", fog->minDistance);
+                shaders.textureShader.setVec4("fogColor", fog->color);
 
-                dirLight.Render(shaders.textureShader);
+                dirLight->Render(shaders.textureShader);
 
                 shaders.textureShader.setInt("size", lights->size());
                 for (int i = 0; i < lights->size(); ++i)

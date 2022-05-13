@@ -4,8 +4,6 @@
 // Date: May 2022
 
 /* TODO
- * Smoother Terrain Movement
- * Better Terrain Snap
  * Frustum Culling
  *
  * IDEAS
@@ -254,7 +252,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(0.5f, 0.5f, 0.2f));
 
-    lvl.LoadLevel("../levels/test.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/base.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
 
     Frustum frustum;
@@ -332,7 +330,7 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
-        m.DrawAllModels(&objects, &lights, dirLight, fog);
+        m.DrawAllModels(&objects, &lights, &dirLight, &fog);
  
         // Render Skybox
         if (drawSkybox)
@@ -397,7 +395,7 @@ int main(void)
         // Render Terrain
         if (drawTerrain)
         {
-            terrain.Draw(m.shaders.terrainShader, &dirLight);
+            terrain.Draw(m.shaders.terrainShader, &lights, &dirLight, &fog);
         }
 
         water.Draw(m.shaders.waterShader, deltaTime);
@@ -473,8 +471,8 @@ int main(void)
                 ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
                 ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
                 ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
-                ImGui::SliderFloat4("Start Color", (float *)&emitters[selectedParticle].startColor, 0.0f, 1.0f);
-                ImGui::SliderFloat4("End Color", (float *)&emitters[selectedParticle].endColor, 0.0f, 1.0f);
+                ImGui::ColorEdit4("Start Color", (float *)&emitters[selectedParticle].startColor);
+                ImGui::ColorEdit4("End Color", (float *)&emitters[selectedParticle].endColor);
                 ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 20.0f);
                 ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 20.0f);
                 // NOTE(Alex): Broken, for some reason.
@@ -545,9 +543,9 @@ int main(void)
 
                 ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -128.0f, 128.0f);
 
-                ImGui::SliderFloat3("Ambient", (float *)&lights[selectedLight].ambient, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Diffuse", (float *)&lights[selectedLight].diffuse, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Specular", (float *)&lights[selectedLight].specular, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Ambient", (float *)&lights[selectedLight].ambient);
+                ImGui::ColorEdit3("Diffuse", (float *)&lights[selectedLight].diffuse);
+                ImGui::ColorEdit3("Specular", (float *)&lights[selectedLight].specular);
 
                 ImGui::SliderFloat("Constant", (float *)&lights[selectedLight].constant, 0.0f, 1.0f);
                 ImGui::SliderFloat("Linear", (float *)&lights[selectedLight].linear, 0.0f, 1.0f);
@@ -583,9 +581,9 @@ int main(void)
                 ImGui::Begin("DirLight Editor");
                 ImGui::SliderFloat3("Direction", (float *)&dirLight.direction, -1.0f, 1.0f);
 
-                ImGui::SliderFloat3("Ambient", (float *)&dirLight.ambient, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Diffuse", (float *)&dirLight.diffuse, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Specular", (float *)&dirLight.specular, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Ambient", (float *)&dirLight.ambient);
+                ImGui::ColorEdit3("Diffuse", (float *)&dirLight.diffuse);
+                ImGui::ColorEdit3("Specular", (float *)&dirLight.specular);
                 ImGui::End();
             }
 
@@ -593,9 +591,9 @@ int main(void)
             {
                 ImGui::Begin("Fog Editor");
 
-                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 1.0f, 400.0f);
-                ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 400.0f);
-                ImGui::SliderFloat4("Color", (float *)&fog.color, 0.0f, 1.0f);
+                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 1.0f, 1000.0f);
+                ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 1000.0f);
+                ImGui::ColorEdit3("Color", (float *)&fog.color);
                 ImGui::End();
             }
 
@@ -624,9 +622,9 @@ int main(void)
                             terrain.bottom, terrain.top, terrain.dirt);
                 }
 
-                ImGui::SliderFloat3("Bottom", (float *)&terrain.bottom, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Top", (float *)&terrain.top, 0.0f, 1.0f);
-                ImGui::SliderFloat3("Dirt", (float *)&terrain.dirt, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Bottom", (float *)&terrain.bottom);
+                ImGui::ColorEdit3("Top", (float *)&terrain.top);
+                ImGui::ColorEdit3("Dirt", (float *)&terrain.dirt);
                 ImGui::SliderFloat("Water Level", (float *)&water.height, -6.0f, 6.0f);
                 ImGui::End();
             }
@@ -634,7 +632,7 @@ int main(void)
 	    if (showBoundaryEditor)
 	    {
                 ImGui::Begin("Object Editor");
-                ImGui::SliderFloat3("Color", (float *)&bound.color, 0.0f, 1.0f);
+                ImGui::ColorEdit3("Color", (float *)&bound.color);
 		ImGui::End();
 	    }
 
