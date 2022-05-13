@@ -254,7 +254,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(0.5f, 0.5f, 0.2f));
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/test.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
 
     Frustum frustum;

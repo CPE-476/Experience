@@ -46,37 +46,35 @@ struct Terrain
     // [x][z]
     vector<vector<float>> pointsData;
 
-    float lerp(float a, float b, float x)
+    // Uses Bilinear Interpolation to return the height at a point.
+    float heightAt(float worldX, float worldZ)
     {
-        return a + (b - a) * x;
+        // Gets us into pointsData space.
+        float x = (worldX + height / 2);
+        float z = (worldZ + width / 2);
+
+        int x1 = (int)x;
+        int x2 = x1 + 1;
+        int z1 = (int)z;
+        int z2 = z1 + 1;
+
+        float x_minus_x1 = x - x1;
+        float z_minus_z1 = z - z1;
+        float x2_minus_x = 1 - x_minus_x1;
+        float z2_minus_z = 1 - z_minus_z1;
+
+        float fxz1 = x2_minus_x * pointsData[x1][z1] + x_minus_x1 * pointsData[x2][z1];
+        float fxz2 = x2_minus_x * pointsData[x1][z2] + x_minus_x1 * pointsData[x2][z2];
+
+        float fxz = z2_minus_z * fxz1 + z_minus_z1 * fxz2;
+
+        return fxz;
     }
 
-    /*
-    float heightAt(float x, float z)
-    {
-        int leftSide = (int)x + height / 2;
-        int rightSide = leftSide + 1;
-        int bottomSide = (int)z + width / 2;
-        int topSide = bottomSide + 1;
-
-        float Xamount = (x + (float)height / 2.0f) - leftSide;
-        float Zamount = (z + (float)width / 2.0f) - bottomSide;
-        //cout << leftSide << " - " << rightSide << " | " << bottomSide << " - " << topSide << "\n";
-        //cout << Xamount << "//" << Zamount << "\n";
-        // L vs R
-        float Xval = lerp(pointsData[leftSide][bottomSide], pointsData[rightSide][bottomSide], Xamount);
-        float Zval = lerp(pointsData[leftSide][bottomSide], pointsData[leftSide][topSide], Zamount);
-        cout << Xval << " || || " << Zval << "\n";
-
-        float ret = Xval + Zval / 2.0f;
-        cout << ret;
-        
-        return ret;
-    }
-    */
-
+/*
     // Takes an x and z value in world space.
     // Uses Barycentric Coordinates to return the height at a point.
+    // Note: Broken for some reason.
     float heightAt(float x, float z)
     {
         float lam1, lam2, lam3;
@@ -108,6 +106,7 @@ struct Terrain
 
         return ret;
     }
+*/
 
     void init(string p, float y_scale, vec3 b, vec3 t, vec3 d)
     {
