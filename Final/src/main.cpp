@@ -10,6 +10,10 @@
  *
  * IDEAS
  *  - Idea for desert: shakuhachi, sitar, bongo, conga
+ *  - Plateau/Vantage Point
+ *  - Note Collection/Inventory
+ *  - Skunkworks Bear Model
+ *  GIVE CREDIT
  */
 
 #include <iostream>
