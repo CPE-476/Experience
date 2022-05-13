@@ -25,6 +25,7 @@
 #include "particles.h"
 #include "skybox.h"
 #include "terrain.h"
+#include "boundary.h"
 
 using namespace std;
 using namespace glm;
@@ -49,7 +50,8 @@ struct Level
     void LoadLevel(string Filename, vector<Object> *objects, 
             vector<Light> *lights, DirLight *dirLight, 
             vector<Emitter> *emitters, FogSystem *fog, 
-            Skybox *skybox, Terrain *terrain)
+            Skybox *skybox, Terrain *terrain,
+            Boundary *bound)
     {
         currentLevel = Filename;
 
@@ -218,6 +220,14 @@ struct Level
                         
                         terrain->init(path, y_scale, bottom, top, dirt);
                     }
+                    else if (Type == "BND")
+                    {
+                        cout << "Boundary loaded from file\n";
+                        vec3 color;
+                        
+                        color = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
+                        bound->init(color);
+                    }
                     else if (Type == "SKY")
                     {
                         cout << "Skybox loaded from file\n";
@@ -262,7 +272,8 @@ struct Level
     void SaveLevel(string Filename, vector<Object> *objects, 
             vector<Light> *lights, DirLight *dirLight, 
             vector<Emitter> *emitters, FogSystem *fog,
-            Skybox *skybox, Terrain *terrain)
+            Skybox *skybox, Terrain *terrain,
+            Boundary *bound)
     {
         ofstream fp;
         fp.open(Filename);
@@ -409,6 +420,13 @@ struct Level
 	fp << "\nCOM Skybox: <SKY dir>\n";
 	fp << "SKY ";
 	fp << skybox->dir;
+	fp << "\n";
+
+	fp << "\nCOM Boundary: <BND col.r, col.g, col.b>\n";
+	fp << "BND ";
+	fp << bound->color.x << " ";
+	fp << bound->color.y << " ";
+	fp << bound->color.z << " ";
 	fp << "\n";
 
 	fp.close();

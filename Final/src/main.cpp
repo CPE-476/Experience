@@ -251,13 +251,13 @@ int main(void)
 
     Level lvl;
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
-                  &dirLight, &emitters, &fog, &skybox, &terrain);
-
-    Frustum frustum;
-
     Boundary bound;
     bound.init(vec3(0.5f, 0.5f, 0.2f));
+
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+                  &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
+
+    Frustum frustum;
 
     Water water;
     water.gpuSetup();
@@ -273,6 +273,7 @@ int main(void)
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showObjectEditor = false;
+    bool showBoundaryEditor = false;
 
     bool snapToTerrain = true;
     bool drawTerrain = true;
@@ -313,7 +314,7 @@ int main(void)
 	    {
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain);
+                              &emitters, &fog, &skybox, &terrain, &bound);
                 bound.counter = 157;
                 bound.active = true;
             }
@@ -629,6 +630,13 @@ int main(void)
                 ImGui::SliderFloat("Water Level", (float *)&water.height, -6.0f, 6.0f);
                 ImGui::End();
             }
+
+	    if (showBoundaryEditor)
+	    {
+                ImGui::Begin("Object Editor");
+                ImGui::SliderFloat3("Color", (float *)&bound.color, 0.0f, 1.0f);
+		ImGui::End();
+	    }
 
             if (showObjectEditor)
             {
@@ -1048,8 +1056,8 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.SaveLevel(str, &objects, &lights,
-                              &dirLight, &emitters, &fog, &skybox, &terrain);
+                lvl.SaveLevel(str, &objects, &lights, &dirLight, 
+		    &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level saved: " << str << "\n";
             }
             ImGui::SameLine();
@@ -1058,7 +1066,7 @@ int main(void)
                 string str = "../levels/";
                 str.append(levelName);
                 lvl.LoadLevel(str, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain);
+                              &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level loaded: " << str << "\n";
             }
             ImGui::SameLine();
@@ -1072,7 +1080,7 @@ int main(void)
             if (ImGui::Button("Next"))
             {
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain);
+                              &emitters, &fog, &skybox, &terrain, &bound);
             }
 
             // Editors
@@ -1090,6 +1098,8 @@ int main(void)
             ImGui::Checkbox("Skybox", &showSkyboxEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Terrain", &showTerrainEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
 
             ImGui::NewLine();
