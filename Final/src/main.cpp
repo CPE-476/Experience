@@ -896,6 +896,21 @@ int main(void)
                                                  vec3(1), 1, m.findbyId(18).collision_radius * small_scale, small_scale));
                         selectedObject = objects.size() - 1;
                     }
+                    // for (int i = 0; i < 5; i++){
+                    //     for (int j = 33; j < 43; j++){
+                    //         float pos_x = randCoord();
+                    //         float pos_z = randCoord();
+                    //         if (snapToTerrain)
+                    //             pos_y = terrain.heightAt(pos_x, pos_z);
+                    //         vec3 pos = vec3(pos_x, pos_y, pos_z);
+                    //         objects.push_back(Object(j,
+                    //                                  pos,
+                    //                                  -1.6f, 0.0f, 0.0f,
+                    //                                  vec3(1), 1, m.findbyId(j).collision_radius * default_scale, 
+                    //                                  default_scale));
+                    //         selectedObject = objects.size() - 1;
+                    //     }
+                    // }
                     for (int i = 0; i < 2000; i++)
                     {
                         for (int j = 23; j < 32; j++)
