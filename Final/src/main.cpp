@@ -77,8 +77,8 @@ enum EditorModes
 };
 int EditorMode = MOVEMENT;
 
-const float MusicVolume = 0.1f;
-const float SFXVolume = 0.1f;
+const float MusicVolume = 0.5f;
+const float SFXVolume = 1.0f;
 
 int drawnObjects;
 
@@ -118,11 +118,12 @@ struct FogSystem
 #include "note.h"
 #include "boundary.h"
 #include "water.h"
+#include "sound.h"
 
 using namespace std;
 using namespace glm;
 
-void processInput(GLFWwindow *window, vector<Object> objects);
+void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sounds);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -205,27 +206,22 @@ int main(void)
     TextRenderer Text = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
     Text.Load("../resources/verdanab.ttf", TEXT_SIZE);
 
-    /* Miniaudio */
-    ma_result result;
-    ma_engine musicEngine;
-    if (ma_engine_init(NULL, &musicEngine) != MA_SUCCESS)
-    {
-        cout << "Failed to initialize audio engine.\n";
-        return -1;
-    }
-    ma_engine sfxEngine;
-    if (ma_engine_init(NULL, &sfxEngine) != MA_SUCCESS)
-    {
-        cout << "Failed to initialize audio engine.\n";
-        return -1;
-    }
-
     // Manager Object. Loads Shaders, Models, Notes, Skyboxes, Terrains
     Manager m;
 
     vector<Object> objects;
     vector<Light> lights;
     vector<Emitter> emitters;
+    vector<Sound*> sounds;
+
+    /* Miniaudio */
+    //Sound beam = Sound("../resources/audio/beam.wav", vec3(0, 0, 0), 1.0f, 20.0f, 50.0f, true, false);
+    Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
+    Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
+    Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
+    
+    Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
+    sounds.push_back(&walk); // sounds goes into process input and sound[0] is the walking sound
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
@@ -260,9 +256,6 @@ int main(void)
     Water water;
     water.gpuSetup();
 
-    // // Sound System
-    ma_engine_play_sound(&musicEngine, "../resources/audio/BGM/愛にできることはまだあるかい.mp3", NULL);
-
     // Editor Settings
     bool showParticleEditor = false;
     bool showLightEditor = false;
@@ -292,6 +285,10 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
+        //beam.updateSound();
+        rock.updateSound();
+        welcome.updateSound();
+        //music.updateSound();
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -304,7 +301,7 @@ int main(void)
 
         // Input Resolution
         glfwPollEvents();
-        processInput(window, objects);
+        processInput(window, objects, sounds);
         if (camera.Mode == WALK || camera.Mode == SPRINT)
         {
 	    float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
@@ -318,9 +315,6 @@ int main(void)
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT;
         }
-
-        ma_engine_set_volume(&sfxEngine, SFXVolume);
-        ma_engine_set_volume(&musicEngine, MusicVolume);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1187,7 +1181,7 @@ void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m)
     lineNumber++;
 }
 
-void processInput(GLFWwindow *window, vector<Object> objects)
+void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sounds)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -1253,6 +1247,22 @@ void processInput(GLFWwindow *window, vector<Object> objects)
             }
         }
     }
+
+    if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
+            glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
+            glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
+            glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+        {
+            if(!ma_sound_is_playing(&sounds[0]->sound))
+                ma_sound_start(&sounds[0]->sound);
+        }
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
+            glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
+            glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
+            glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
+        {
+            ma_sound_stop(&sounds[0]->sound);
+        }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
         camera.Mode = FAST;
