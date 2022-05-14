@@ -8,10 +8,6 @@
  *
  * IDEAS
  *  - Idea for desert: shakuhachi, sitar, bongo, conga
- *  - Plateau/Vantage Point
- *  - Note Collection/Inventory
- *  - Skunkworks Bear Model
- *  GIVE CREDIT
  */
 
 #include <iostream>
@@ -49,7 +45,7 @@ const float default_scale = 1.0f;
 
 const unsigned int TEXT_SIZE = 16;
 
-const float PLAYER_HEIGHT = 1.0f;
+const float PLAYER_HEIGHT = 2.0f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
@@ -103,7 +99,7 @@ struct FogSystem
     vec4 color;
 };
 
-// My Headers
+// Project Headers
 #include "shader.h"
 #include "model.h"
 #include "manager.h"
@@ -118,6 +114,7 @@ struct FogSystem
 #include "note.h"
 #include "boundary.h"
 #include "water.h"
+#include "spline.h"
 
 using namespace std;
 using namespace glm;
@@ -138,11 +135,6 @@ float randFloat()
 float randCoord()
 {
     return (randFloat() * 220.0f) - 100.0f;
-}
-
-float lerp(float a, float b, float x)
-{
-    return a + (b - a) * x;
 }
 
 float objectDis(vec3 curPos, vec3 objectPos)
@@ -181,8 +173,7 @@ int main(void)
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void)io;
+    ImGuiIO &io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     ImGui::StyleColorsDark();
@@ -257,6 +248,8 @@ int main(void)
 
     Frustum frustum;
 
+    Spline spline;
+
     Water water;
     water.gpuSetup();
 
@@ -292,6 +285,11 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
+        ma_engine_set_volume(&sfxEngine, SFXVolume);
+        ma_engine_set_volume(&musicEngine, MusicVolume);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -299,8 +297,6 @@ int main(void)
         ++frameCount;
 
         drawnObjects = 0;
-
-        // cout << 1000 * deltaTime << " " << 1.0/deltaTime << endl;
 
         // Input Resolution
         glfwPollEvents();
@@ -319,11 +315,13 @@ int main(void)
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT;
         }
 
-        ma_engine_set_volume(&sfxEngine, SFXVolume);
-        ma_engine_set_volume(&musicEngine, MusicVolume);
+        // Spline
+        spline.update(deltaTime);
+        if(spline.active)
+        {
+            camera.Position = spline.getPosition();
+        }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
         mat4 view = camera.GetViewMatrix();
         mat4 model;
@@ -363,10 +361,6 @@ int main(void)
             {
                 for (int i = 0; i < objects.size(); ++i)
                 {
-                    // if (i == selectedObject)
-                    // {
-                    //     objects[i].Draw(&m.shaders.lightShader, m.findbyId(objects[i].id).model, m.findbyId(objects[i].id).shader_type);
-                    // }
                     model = mat4(1.0f);
                     model = scale(model, vec3(objects[i].view_radius));
                     model = translate(model, objects[i].position);
@@ -1123,6 +1117,12 @@ int main(void)
             ImGui::Text("Location: (%.02f %.02f %.02f)", camera.Position.x, camera.Position.y, camera.Position.z);
             ImGui::Text("Orientation: (%.02f %.02f %.02f)", camera.Front.x, camera.Front.y, camera.Front.z);
             ImGui::Text("Level: %s | Next: %s", lvl.currentLevel.c_str(), lvl.nextLevel.c_str());
+
+            if(ImGui::Button("SPLINE!"))
+            {
+                spline.init(camera.Position, vec3(0.0f, 3.0f, 0.0f), 1.0f);
+                spline.active = true;
+            }
 
             ImGui::End();
 
