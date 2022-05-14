@@ -7,10 +7,11 @@ COM Next Level: <NXT path>
 NXT ../levels/base.txt
 
 COM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>
-POV 0 0 0 0 0 -1 
+POV 0 0 5 0 0 -1 
 
 COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>
-OBJ 0 -2.471 0 0 -1.6 0 0 1 1 1 1 1 1
+OBJ 2 -50 4 0 -1.6 0 0 1 1 1 1 1 1
+OBJ 10 25 4 0 -1.6 0 0 1 1 1 1 1 1
 
 COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>
 LGT 0 0 -6.919 0 0.05 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 
