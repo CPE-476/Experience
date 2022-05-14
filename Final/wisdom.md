@@ -16,6 +16,11 @@ Do not go where the path may lead, go instead where there is no path and leave a
 Make the most of yourself... for that is all there is of you.
 - Ralph Waldo Emerson
 
+Be, and not seem.
+- Ralph Waldo Emerson
+
+It takes a good deal of time to eat or sleep, or to earn a hundred dollars, and a very little time to entertain a hope and an insight that becomes the light of our lives.
+- Ralph Waldo Emerson
 
 # Desert #
 Unless you try to do something beyond what you have already mastered, you will never grow.
@@ -30,6 +35,17 @@ unless I caused it.
 What matters most is how well you walk through the fire.
 - Charles Bukowski
 
+Every good that is worth possessing must be paid for in strokes of daily effort.
+- William James
+
 # Night #
 Finish each day and be done with it. You have done what you could. Some blunders and absurdities no doubt crept in; forget them as soon as you can. Tomorrow is a new day. You shall begin it serenely and with too high a spirit to be encumbered with your old nonsense.
 - Ralph Waldo Emerson
+
+The universe has an unlimited supply of generosity and surprise, and we as designers only need to keep our eyes open to what is here."
+- Jonathan Blow
+
+Make it your study, then, to confront every harsh impression with the words, "You are but an impression, and not all that you seem to be."
+- Epictetus
+
+
