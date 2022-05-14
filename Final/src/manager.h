@@ -12,9 +12,6 @@
  * and the loading of geometry, including the following things:
  *  - Models
  *  - Notes
- *
- * It isn't intended to subsume Objects, Lights, Particles, etc.
- * Its basic job is to hold stuff we hard code in the game like Models and Shaders.
  */
 
 #include <glad/glad.h>

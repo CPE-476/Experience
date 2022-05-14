@@ -24,9 +24,7 @@ enum Camera_Movement {
 
 enum Modes {
     FREE,
-    FAST,
-    WALK,
-    SPRINT
+    WALK
 };
 
 const float YAW = -90.0f;
@@ -53,6 +51,8 @@ public:
 
     int Mode;
 
+    bool Fast;
+
     Camera(vec3 position = vec3(0.0f, 0.0f, 0.0f), 
            vec3 up = vec3(0.0f, 1.0f, 0.0f),
            float yaw = YAW, float pitch = PITCH) : 
@@ -63,6 +63,7 @@ public:
         Yaw = yaw;
         Pitch = pitch;
         updateCameraVectors();
+        Fast = false;
     }
 
     mat4 GetProjectionMatrix()
@@ -78,15 +79,12 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = 0;
-        if(Mode == FREE || Mode == WALK)
-        {
             velocity = SPEED * deltaTime;
-        }
-        else if(Mode == FAST || Mode == SPRINT)
+        if(Fast)
         {
             velocity = FASTSPEED * deltaTime;
         }
-        if(Mode == FREE || Mode == FAST)
+        if(Mode == FREE)
         {
             if(direction == FORWARD)
                 Position += Front * velocity;
@@ -97,7 +95,7 @@ public:
             if(direction == RIGHT)
                 Position += Right * velocity;
         }
-        else if(Mode == WALK || Mode == SPRINT)
+        else if(Mode == WALK)
         {
             if(direction == FORWARD)
                 Position += cross(WorldUp, Right) * velocity;

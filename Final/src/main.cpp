@@ -57,8 +57,6 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
-bool CollisionMode = true;
-
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 
@@ -120,7 +118,7 @@ struct FogSystem
 using namespace std;
 using namespace glm;
 
-void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sounds);
+void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -136,11 +134,6 @@ float randFloat()
 float randCoord()
 {
     return (randFloat() * 220.0f) - 100.0f;
-}
-
-float objectDis(vec3 curPos, vec3 objectPos)
-{
-    return sqrt(pow(curPos.x - objectPos.x, 2) + pow(curPos.z - objectPos.z, 2));
 }
 
 int main(void)
@@ -292,8 +285,8 @@ int main(void)
 
         // Input Resolution
         glfwPollEvents();
-        processInput(window, objects, sounds);
-        if (camera.Mode == WALK || camera.Mode == SPRINT)
+        processInput(window, &objects, sounds);
+        if (camera.Mode == WALK)
         {
 	    float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
 	    if(dist > terrain.widthExtent - 2)
@@ -1181,7 +1174,24 @@ void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m)
     lineNumber++;
 }
 
-void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sounds)
+float objectDis(vec3 curPos, vec3 objectPos)
+{
+    return sqrt(pow(curPos.x - objectPos.x, 2) + pow(curPos.z - objectPos.z, 2));
+}
+
+bool Colliding(vector<Object> *objects)
+{
+    for (int i = 0; i < objects->size(); i++)
+    {
+	if (objectDis(camera.Position, objects->at(i).position) < objects->at(i).collision_radius)
+	{
+	    return true;
+	}
+    }
+    return false;
+}
+
+void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -1190,88 +1200,56 @@ void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sou
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(FORWARD, deltaTime);
-        if (CollisionMode)
+        if (camera.Mode == WALK && Colliding(objects))
         {
-            for (int i = 0; i < objects.size(); i++)
-            {
-                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
-                {
-                    camera.ProcessKeyboard(BACKWARD, deltaTime);
-                    break;
-                }
-            }
+	    camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-        if (CollisionMode)
+        if (camera.Mode == WALK && Colliding(objects))
         {
-            for (int i = 0; i < objects.size(); i++)
-            {
-                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
-                {
-                    camera.ProcessKeyboard(FORWARD, deltaTime);
-                    break;
-                }
-            }
+	    camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(LEFT, deltaTime);
-        if (CollisionMode)
+        if (camera.Mode == WALK && Colliding(objects))
         {
-            for (int i = 0; i < objects.size(); i++)
-            {
-                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
-                {
-                    camera.ProcessKeyboard(RIGHT, deltaTime);
-                    break;
-                }
-            }
+	    camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(RIGHT, deltaTime);
-        if (CollisionMode)
+        if (camera.Mode == WALK && Colliding(objects))
         {
-            for (int i = 0; i < objects.size(); i++)
-            {
-                if (objectDis(camera.Position, objects[i].position) < objects[i].collision_radius)
-                {
-                    camera.ProcessKeyboard(LEFT, deltaTime);
-                    break;
-                }
-            }
+	    camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
 
     if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
-            glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
-            glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
-            glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+				glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
+				glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
+				glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
         {
             if(!ma_sound_is_playing(&sounds[0]->sound))
                 ma_sound_start(&sounds[0]->sound);
         }
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
-            glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
-            glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
-            glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
-        {
-            ma_sound_stop(&sounds[0]->sound);
-        }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
+	glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
+	glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
+	glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
+    {
+	ma_sound_stop(&sounds[0]->sound);
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == FREE)
-        camera.Mode = FAST;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == FAST)
-        camera.Mode = FREE;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && camera.Mode == WALK)
-        camera.Mode = SPRINT;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE && camera.Mode == SPRINT)
-        camera.Mode = WALK;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.Fast = true;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+        camera.Fast = false;
 
     if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
         camera.Mode = WALK;
@@ -1305,10 +1283,6 @@ void processInput(GLFWwindow *window, vector<Object> objects, vector<Sound*> sou
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-        CollisionMode = true;
-    if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-        CollisionMode = false;
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
