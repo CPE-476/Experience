@@ -210,12 +210,7 @@ private:
                     p.pos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
                     if(fogMode)
                     {
-                        p.pos = vec3(150*cos(theta), startPosition.y, 150*sin(theta));
-                        fogArray[0] = vec3(width/2, startPosition.y, -width/2 + randFloat(0, width));
-                        fogArray[1] = vec3(-width/2, startPosition.y, -width/2 + randFloat(0, width));
-                        fogArray[2] = vec3(-width/2+ randFloat(0, width), startPosition.y, width/2);
-                        fogArray[3] = vec3(-width/2+ randFloat(0, width), startPosition.y, -width/2);
-                        p.pos = fogArray[(int)randFloat(0, 4)];
+                        p.pos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
                     }
                     vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
                     float rTop = radiusTop * sqrt(randFloat(0, 1));
