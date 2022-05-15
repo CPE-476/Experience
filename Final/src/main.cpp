@@ -185,11 +185,12 @@ int main(void)
     vector<Sound*> sounds;
 
     /* Miniaudio */
-    //Sound beam = Sound("../resources/audio/beam.wav", vec3(0, 0, 0), 1.0f, 20.0f, 50.0f, true, false);
+    Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
-    
+    Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
+
     Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
     sounds.push_back(&walk); // sounds goes into process input and sound[0] is the walking sound
 
@@ -258,6 +259,15 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
+
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        {
+            whistle.setPitch((randFloat()*0.5 + 0.75));
+            whistle.startSound();
+        }
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
+            whistle.reset();
+        
         //beam.updateSound();
         rock.updateSound();
         welcome.updateSound();

@@ -19,7 +19,7 @@ struct Sound {
 
     vec3 pos;
     float volume, rolloff, minDistance, maxDistance;
-    bool isLooping, isDir, isMusic;
+    bool isLooping, isDir, isMusic, hasPlayed;
     const char* path;
 
     Sound(string path, vec3 pos, float volume, float rolloff, float minDistance, float maxDistance, bool isLooping, bool isMusic){
@@ -32,6 +32,7 @@ struct Sound {
         this->isLooping = isLooping;
         this->isDir = true;
         this->isMusic = isMusic;
+        this->hasPlayed = false;
         setupSound();
     }
 
@@ -44,6 +45,7 @@ struct Sound {
         this->isLooping = isLooping;
         this->isDir = false;
         this->isMusic = true;
+        this->hasPlayed = false;
         setupSound();
     }
 
@@ -80,13 +82,12 @@ struct Sound {
         ma_sound_set_rolloff(&sound, rolloff);
         ma_sound_set_min_distance(&sound, minDistance);
         ma_sound_set_min_distance(&sound, maxDistance);
-        ma_sound_set_looping(&sound, true);
+        ma_sound_set_looping(&sound, isLooping);
     }
 
     void updateSound(){
 
-        if(!ma_sound_is_playing(&sound))
-            ma_sound_start(&sound);
+        startSound();
 
         ma_sound_set_position(&sound, pos.x, pos.y, pos.z);
         ma_engine_listener_set_position(&engine, 0, camera.Position.x, camera.Position.y, camera.Position.z);
@@ -96,6 +97,26 @@ struct Sound {
             ma_engine_listener_set_direction(&engine, 0, camera.Front.x, camera.Front.y, camera.Front.z);
             ma_engine_listener_set_world_up(&engine, 0, camera.WorldUp.x, camera.WorldUp.y, camera.WorldUp.z);
         }
+    }
+
+    void startSound(){
+        if(!ma_sound_is_playing(&sound) && hasPlayed == false)
+            ma_sound_start(&sound);
+
+        if(!isLooping)
+            hasPlayed = true;
+    }
+
+    void stopSound(){
+        ma_sound_stop(&sound);
+    }
+
+    void reset(){
+        hasPlayed = false;
+    }
+
+    void setPitch(float pitch){
+        ma_sound_set_pitch(&sound, pitch);
     }
 };
 
