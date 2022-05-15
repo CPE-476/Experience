@@ -3,13 +3,6 @@
 // File: Main
 // Date: May 2022
 
-/* TODO
- * Frustum Culling
- *
- * IDEAS
- *  - Idea for desert: shakuhachi, sitar, bongo, conga
- */
-
 #include <iostream>
 #include <time.h>
 #include <unordered_map>
@@ -41,11 +34,9 @@ using namespace glm;
 // NOTE(Alex): Global State!
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
-const float default_scale = 1.0f;
-
 const unsigned int TEXT_SIZE = 16;
-
 const float PLAYER_HEIGHT = 2.0f;
+const float default_scale = 1.0f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
@@ -69,10 +60,8 @@ enum EditorModes
     GUI,
     SELECTION
 };
-int EditorMode = MOVEMENT;
 
-const float MusicVolume = 0.5f;
-const float SFXVolume = 1.0f;
+int EditorMode = MOVEMENT;
 
 int drawnObjects;
 
@@ -120,10 +109,8 @@ using namespace glm;
 
 void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m);
 
 float randFloat()
 {
@@ -161,7 +148,6 @@ int main(void)
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -258,6 +244,7 @@ int main(void)
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
+    bool drawParticles = true;
     bool drawNote = false;
 
     char levelName[128] = "";
@@ -381,11 +368,13 @@ int main(void)
 
         water.Draw(m.shaders.waterShader, deltaTime);
 
-        // Draw Particle Systems
-        for (int i = 0; i < emitters.size(); ++i)
-        {
-            emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
-        }
+	if(drawParticles)
+	{
+	    for (int i = 0; i < emitters.size(); ++i)
+	    {
+		emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
+	    }
+	}
 
         if(bound.active)
         {
@@ -612,7 +601,7 @@ int main(void)
 
 	    if (showBoundaryEditor)
 	    {
-                ImGui::Begin("Object Editor");
+                ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
 		ImGui::End();
 	    }
@@ -1110,8 +1099,10 @@ int main(void)
             ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
             ImGui::SameLine();
             ImGui::Checkbox("Draw Collision Spheres", &drawCollisionSpheres);
-            ImGui::SameLine();
+
             ImGui::Checkbox("Draw Note", &drawNote);
+            ImGui::SameLine();
+            ImGui::Checkbox("Draw Particles", &drawParticles);
 
             ImGui::Text("%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
 
@@ -1149,31 +1140,6 @@ int main(void)
     return 0;
 }
 
-void RenderDebugText(TextRenderer *Text, Level *lvl, Manager *m)
-{
-    unsigned int lineNumber = 1;
-    char buffer[256];
-    sprintf(buffer, "%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
-    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "Drawn Objects: %d", drawnObjects);
-    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "Location: (%.02f %.02f %.02f)", camera.Position.x, camera.Position.y, camera.Position.z);
-    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "Orientation: (%.02f %.02f %.02f)", camera.Front.x, camera.Front.y, camera.Front.z);
-    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-
-    sprintf(buffer, "Level: %s | Next: %s", lvl->currentLevel.c_str(), lvl->nextLevel.c_str());
-    Text->RenderText(buffer, m->shaders.typeShader, 0.0f, SCREEN_HEIGHT - (TEXT_SIZE * lineNumber), 1.0f, vec3(0.5, 0.8, 0.2));
-    lineNumber++;
-}
-
 float objectDis(vec3 curPos, vec3 objectPos)
 {
     return sqrt(pow(curPos.x - objectPos.x, 2) + pow(curPos.z - objectPos.z, 2));
@@ -1196,7 +1162,6 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // NOTE(Lucas) checking all possible collisions
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -1234,10 +1199,11 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
 				glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
 				glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
 				glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
-        {
-            if(!ma_sound_is_playing(&sounds[0]->sound))
-                ma_sound_start(&sounds[0]->sound);
-        }
+    {
+	if(!ma_sound_is_playing(&sounds[0]->sound))
+	    ma_sound_start(&sounds[0]->sound);
+    }
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
 	glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
 	glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
@@ -1323,10 +1289,6 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 
         selectorRay = normalize(objcoord - camera.Position);
     }
-}
-
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
-{
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
