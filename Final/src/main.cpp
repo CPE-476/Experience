@@ -240,12 +240,13 @@ int main(void)
     bool showBoundaryEditor = false;
 
     bool snapToTerrain = true;
+
     bool drawTerrain = true;
-    bool drawSkybox = true;
-    bool drawBoundingSpheres = false;
+    bool drawSkybox = false;
+    bool drawBoundingSpheres = true;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
-    bool drawParticles = true;
+    bool drawParticles = false;
     bool drawNote = false;
 
     char levelName[128] = "";
@@ -346,8 +347,8 @@ int main(void)
                 for (int i = 0; i < objects.size(); ++i)
                 {
                     model = mat4(1.0f);
-                    model = scale(model, vec3(objects[i].view_radius));
                     model = translate(model, objects[i].position);
+                    model = scale(model, vec3(objects[i].view_radius));
                     m.shaders.lightShader.setMat4("model", model);
                     m.models.sphere.Draw(m.shaders.lightShader);
                 }
@@ -719,7 +720,7 @@ int main(void)
                         objects.push_back(Object(0,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(0).collision_radius * default_scale, default_scale));
+                                                 vec3(1), m.findbyId(0).model->MaximumExtent, m.findbyId(0).collision_radius * default_scale, default_scale));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)

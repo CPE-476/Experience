@@ -28,9 +28,9 @@ public:
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
-    string directory;
-    bool gammaCorrection;
-
+    string          directory;
+    bool            gammaCorrection;
+    float           MaximumExtent;
 
     // constructor, expects a filepath to a 3D model.
     Model()
@@ -42,6 +42,7 @@ public:
         gammaCorrection = gamma;
         loadModel(path);
         resize_model();
+        computeMaxExtent();
     }
 
     // draws the model, and thus all its meshes
@@ -210,8 +211,45 @@ private:
         return textures;
     }
 
+    void computeMaxExtent()
+    {
+        float minX, minY, minZ;
+        float maxX, maxY, maxZ;
 
-    //TODO(Alex): Not working???
+        minX = minY = minZ = 1.1754E+38F;
+        maxX = maxY = maxZ = -1.1754E+38F;
+
+        //Go through all vertices to determine min and max of each dimension
+        for (size_t i = 0; i < meshes.size(); i++) {
+            for (size_t v = 0; v < meshes[i].vertices.size(); v++) {
+                if(meshes[i].vertices[v].Position.x < minX) minX = meshes[i].vertices[v].Position.x;
+                if(meshes[i].vertices[v].Position.x > maxX) maxX = meshes[i].vertices[v].Position.x;
+
+                if(meshes[i].vertices[v].Position.y < minY) minY = meshes[i].vertices[v].Position.y;
+                if(meshes[i].vertices[v].Position.y > maxY) maxY = meshes[i].vertices[v].Position.y;
+
+                if(meshes[i].vertices[v].Position.z < minZ) minZ = meshes[i].vertices[v].Position.z;
+                if(meshes[i].vertices[v].Position.z > maxZ) maxZ = meshes[i].vertices[v].Position.z;
+            }
+        }
+
+        //From min and max compute necessary scale and shift for each dimension
+        float xExtent, yExtent, zExtent;
+        xExtent = maxX-minX;
+        yExtent = maxY-minY;
+        zExtent = maxZ-minZ;
+        if (xExtent >= yExtent && xExtent >= zExtent) {
+            MaximumExtent = xExtent;
+        }
+        else if (yExtent >= zExtent) {
+            MaximumExtent = yExtent;
+        }
+        else {
+            MaximumExtent = zExtent;
+        } 
+    }
+
+    // TODO(Alex): Problem, doesn't actually affect the geometry we use.
     /* Transforms new meshes to always be the same size. 
      * [-1, 1] in all three axes. */
     void resize_model()
@@ -254,16 +292,18 @@ private:
         {
             maxExtent = zExtent;
         }
-        scaleX = 2.0 /maxExtent;
-        shiftX = minX + (xExtent/ 2.0);
-        scaleY = 2.0 / maxExtent;
-        shiftY = minY + (yExtent / 2.0);
-        scaleZ = 2.0/ maxExtent;
-        shiftZ = minZ + (zExtent)/2.0;
+        scaleX = 2.0f / maxExtent;
+        shiftX = minX + (xExtent / 2.0f);
+        scaleY = 2.0f / maxExtent;
+        shiftY = minY + (yExtent / 2.0f);
+        scaleZ = 2.0f / maxExtent;
+        shiftZ = minZ + (zExtent/2.0f);
 
         //Go through all vertices shift and scale them
-        for (size_t i = 0; i < meshes.size(); i++) {
-            for (size_t v = 0; v < meshes[i].vertices.size(); v++) {
+        for (size_t i = 0; i < meshes.size(); i++)
+        {
+            for (size_t v = 0; v < meshes[i].vertices.size(); v++)
+            {
                 meshes[i].vertices[v].Position.x = (meshes[i].vertices[v].Position.x - shiftX) * scaleX;
                 assert(meshes[i].vertices[v].Position.x >= -1.0 - epsilon);
                 assert(meshes[i].vertices[v].Position.x <= 1.0 + epsilon);
