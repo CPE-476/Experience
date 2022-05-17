@@ -17,22 +17,26 @@ using namespace glm;
 
 class Object {
 public:
-    int id;
+    int      id;
     Material material;
-    vec3 position;
-    float angleX;
-    float angleY;
-    float angleZ;
-    float scaleFactor;
-    vec3 velocity;
-    float view_radius;
-    float collision_radius;
-    mat4 matrix;
+
+    vec3     position;
+    float    angleX;
+    float    angleY;
+    float    angleZ;
+    float    scaleFactor;
+    vec3     velocity;
+    float    view_radius;
+    float    collision_radius;
+    mat4     matrix;
+
+    bool     interactible;
+    int      noteNum;
 
     int shader_type;
 
     Object (int id, vec3 pos, float agl_x, float agl_y, float agl_z, 
-            vec3 vel, float rad_v, float rad_c, float scl)
+            vec3 vel, float rad_v, float rad_c, float scl, bool inter, int noteN)
     {
         this->id = id;
         this->position = pos;
@@ -45,6 +49,8 @@ public:
         this->collision_radius = rad_c;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
         UpdateModel();
+        this->interactible = inter;
+        this->noteNum = noteN;
     }
 
     void UpdateModel()

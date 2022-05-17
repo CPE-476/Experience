@@ -12,24 +12,30 @@
 using namespace std;
 using namespace glm;
 
+/* TODO (Alex):
+ * Animal Dialogue
+ *  Spline
+ *  Sound
+ */
+
 struct Note
 {
     unsigned int VBO, VAO, EBO;
     unsigned int noteTexture;
 
     float vertices[32] = {
-         // positions         // colors           // texture coords
-         1.0f, -0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-         0.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-         0.0f, -0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
+         // positions        // texture coords
+         0.5f,  0.5f, 0.0f,  1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f  // top left
     };
     unsigned int indices[6] = {
         0, 2, 1, // first triangle
         0, 3, 2  // second triangle
     };
 
-    void init(string path)
+    Note(string path)
     {
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -43,14 +49,11 @@ struct Note
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
         glBindVertexArray(0);
 
         glGenTextures(1, &noteTexture);
@@ -76,18 +79,64 @@ struct Note
         }
         stbi_image_free(data);
     }
+    int counter = 0;
+    float speed = 100.0f;
+
+    float scl = 1.0f;
+    vec3 pos  = vec3(0.0f, 0.0f, 0.0f);
 
     void Draw(Shader &shader)
     {
         shader.bind();
         {
             shader.setFloat("noteTexture", noteTexture);
+            shader.setFloat("amount", sin((float)counter / this->speed));
+            mat4 transform = mat4(1.0f);
+            transform = scale(transform, vec3(scl));
+            transform = translate(transform, pos);
+            shader.setMat4("transform", transform);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, noteTexture);
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
         shader.unbind();
+    }
+
+    void DrawSmall(Shader &shader, int xIndex, int yIndex)
+    {
+        shader.bind();
+        {
+            shader.setFloat("noteTexture", noteTexture);
+            shader.setFloat("amount", 1.0f);
+            mat4 transform = mat4(1.0f);
+            transform = scale(transform, vec3(0.5));
+            transform = translate(transform, vec3((float)xIndex - 1.5, 1.5 - (float)yIndex, 0.0f));
+            shader.setMat4("transform", transform);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, noteTexture);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
+        shader.unbind();
+    }
+
+    void Update()
+    {
+        if(!pauseNote)
+        {
+            counter++;
+        }
+        if(counter == 157)
+        {
+            counter++;
+            pauseNote = true;
+        }
+        if(counter >= 314)
+        {
+            drawNote = false;
+            counter = 0;
+        }
     }
 };
 

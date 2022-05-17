@@ -42,14 +42,17 @@ const float default_scale = 1.0f;
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_WIDTH / 2.0f;
-bool firstMouse = true;
+bool  firstMouse = true;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+float        deltaTime = 0.0f;
+float        lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
+bool checkInteraction = false;
+bool drawNote = false;
+bool pauseNote = false;
 
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
@@ -57,8 +60,7 @@ vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 enum EditorModes
 {
     MOVEMENT,
-    GUI,
-    SELECTION
+    GUI
 };
 
 int EditorMode = MOVEMENT;
@@ -109,6 +111,7 @@ using namespace glm;
 
 void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -149,6 +152,7 @@ int main(void)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     IMGUI_CHECKVERSION();
@@ -176,13 +180,38 @@ int main(void)
     TextRenderer Text = TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
     Text.Load("../resources/verdanab.ttf", TEXT_SIZE);
 
-    // Manager Object. Loads Shaders, Models, Notes, Skyboxes, Terrains
+    // Manager Object. Loads Shaders, Models.
     Manager m;
 
     vector<Object> objects;
     vector<Light> lights;
     vector<Emitter> emitters;
     vector<Sound*> sounds;
+    vector<Note> notes;
+    vector<bool> discoveredNotes;
+
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/testing/grass.jpg"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    discoveredNotes.push_back(false);
 
     /* Miniaudio */
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
@@ -238,6 +267,7 @@ int main(void)
     bool showSkyboxEditor = false;
     bool showObjectEditor = false;
     bool showBoundaryEditor = false;
+    bool showNoteEditor = false;
 
     bool snapToTerrain = true;
 
@@ -247,7 +277,7 @@ int main(void)
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
     bool drawParticles = false;
-    bool drawNote = false;
+    bool drawCollection = false;
 
     char levelName[128] = "";
     char skyboxPath[128] = "";
@@ -255,12 +285,13 @@ int main(void)
     char object_id[3] = "";
 
     int selectedObject = 0;
+    int interactingObject = 0;
     int selectedLight = 0;
     int selectedParticle = 0;
+    int selectedNote = 0;
 
     while (!glfwWindowShouldClose(window))
     {
-
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         {
             whistle.setPitch((randFloat()*0.5 + 0.75));
@@ -286,9 +317,9 @@ int main(void)
         processInput(window, &objects, sounds);
         if (camera.Mode == WALK)
         {
-	    float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
-	    if(dist > terrain.widthExtent - 2)
-	    {
+            float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
+            if(dist > terrain.widthExtent - 2)
+            {
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, &bound);
@@ -307,6 +338,7 @@ int main(void)
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
         mat4 view = camera.GetViewMatrix();
         mat4 model;
@@ -327,8 +359,8 @@ int main(void)
             m.shaders.lightShader.setMat4("projection", projection);
             m.shaders.lightShader.setMat4("view", view);
 
-	    model = mat4(1.0f);
-	    m.shaders.lightShader.setMat4("model", model);
+            model = mat4(1.0f);
+            m.shaders.lightShader.setMat4("model", model);
 
             if (drawPointLights)
             {
@@ -379,13 +411,13 @@ int main(void)
 
         water.Draw(m.shaders.waterShader, deltaTime);
 
-	if(drawParticles)
-	{
-	    for (int i = 0; i < emitters.size(); ++i)
-	    {
-		emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
-	    }
-	}
+        if(drawParticles)
+        {
+            for (int i = 0; i < emitters.size(); ++i)
+            {
+                emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
+            }
+        }
 
         if(bound.active)
         {
@@ -399,13 +431,9 @@ int main(void)
         bound.DrawWall(m.shaders.boundaryShader, terrain.width / 2.0f, 8.0f, &m.models.cylinder);
 
         // Render Note
-        if (drawNote)
+        if(checkInteraction)
         {
-            m.notes.aurelius1.Draw(m.shaders.noteShader);
-        }
-
-        if (EditorMode == SELECTION)
-        {
+            interactingObject = 0;
             for (int i = 0; i < objects.size(); ++i)
             {
                 // Ray collision detection.
@@ -423,7 +451,42 @@ int main(void)
                 if (aSquared > rSquared) // If our closest approach is outside the sphere:
                     continue;            // No collision.
 
-                selectedObject = i;
+                if(EditorMode == MOVEMENT)
+                {
+                    interactingObject = i;
+                }
+                else
+                {
+                    selectedObject = i;
+                }
+            }
+            if(objects[interactingObject].interactible)
+            {
+                drawNote = true;
+                selectedNote = objects[interactingObject].noteNum;
+                discoveredNotes[selectedNote] = true;
+            }
+            checkInteraction = false;
+        }
+
+        if(drawNote)
+        {
+            notes[selectedNote].Update();
+            notes[selectedNote].Draw(m.shaders.noteShader);
+        }
+
+        if(drawCollection)
+        {
+            int xInd = 0;
+            int yInd = 0;
+            for(int i = 0; i < notes.size(); ++i)
+            {
+                xInd = i % 4;
+                yInd = i / 4;
+                if(discoveredNotes[i]) // Draw only discovered notes.
+                {
+                    notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
+                }
             }
         }
 
@@ -610,12 +673,32 @@ int main(void)
                 ImGui::End();
             }
 
-	    if (showBoundaryEditor)
-	    {
+            if (showBoundaryEditor)
+            {
                 ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
-		ImGui::End();
-	    }
+                ImGui::End();
+            }
+
+            if (showNoteEditor)
+            {
+                ImGui::Begin("Note Editor");
+                for (int n = 0; n < notes.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if (ImGui::Button(buffer))
+                        selectedNote = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+                ImGui::Text("Note = %d.", selectedNote);
+
+                ImGui::SliderFloat("Scale", (float *)&notes[selectedNote].scl, 0.0f, 5.0f);
+                ImGui::SliderFloat2("Position", (float *)&notes[selectedNote].pos, -1.0f, 1.0f);
+
+                ImGui::End();
+            }
 
             if (showObjectEditor)
             {
@@ -660,6 +743,10 @@ int main(void)
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
                 }
 
+                ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
+
+                ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
+
                 if (ImGui::SliderFloat("Collison Radius", (float *)&objects[selectedObject].collision_radius, 0.0f, 50.0f))
                     objects[selectedObject].UpdateModel();
 
@@ -687,7 +774,8 @@ int main(void)
                                                   terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
-                                             vec3(1), 1, cr * default_scale, default_scale));
+                                             vec3(1), 1, cr * default_scale, 
+                                             default_scale, false, 0));
                     selectedObject = objects.size() - 1;
                 }
 
@@ -700,7 +788,8 @@ int main(void)
                                                   terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
-                                             vec3(1), 1, cr * default_scale, default_scale));
+                                             vec3(1), 1, cr * default_scale, 
+                                             default_scale, false, 0));
                     selectedObject = objects.size() - 1;
                 }
                 if (ImGui::Button("Forest"))
@@ -720,7 +809,9 @@ int main(void)
                         objects.push_back(Object(0,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), m.findbyId(0).model->MaximumExtent, m.findbyId(0).collision_radius * default_scale, default_scale));
+                                                 vec3(1), m.findbyId(0).model->MaximumExtent, 
+                                                 m.findbyId(0).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -734,7 +825,8 @@ int main(void)
                         objects.push_back(Object(1,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(1).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(1).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -748,7 +840,8 @@ int main(void)
                         objects.push_back(Object(2,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(2).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(2).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -762,7 +855,8 @@ int main(void)
                         objects.push_back(Object(3,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(3).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(3).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -776,7 +870,8 @@ int main(void)
                         objects.push_back(Object(4,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(4).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(4).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -790,7 +885,8 @@ int main(void)
                         objects.push_back(Object(5,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(5).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(5).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -804,7 +900,8 @@ int main(void)
                         objects.push_back(Object(6,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(6).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(6).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -818,7 +915,8 @@ int main(void)
                         objects.push_back(Object(7,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(7).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(7).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -832,7 +930,8 @@ int main(void)
                         objects.push_back(Object(8,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -846,7 +945,8 @@ int main(void)
                         objects.push_back(Object(16,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(16).collision_radius * small_scale, small_scale));
+                                                 vec3(1), 1, m.findbyId(16).collision_radius * small_scale, 
+                                                 small_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -860,7 +960,8 @@ int main(void)
                         objects.push_back(Object(17,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, default_scale));
+                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -874,7 +975,8 @@ int main(void)
                         objects.push_back(Object(18,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(18).collision_radius * small_scale, small_scale));
+                                                 vec3(1), 1, m.findbyId(18).collision_radius * small_scale, 
+                                                 small_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     // for (int i = 0; i < 5; i++){
@@ -918,7 +1020,7 @@ int main(void)
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
                                                      vec3(1), 0.03, m.findbyId(j).collision_radius * grass_scale, 
-                                                     grass_scale));
+                                                     default_scale, false, 0));
                             selectedObject = objects.size() - 1;
                         }
                     }
@@ -932,7 +1034,8 @@ int main(void)
                         objects.push_back(Object(9,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -940,7 +1043,8 @@ int main(void)
                         objects.push_back(Object(10,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -948,7 +1052,8 @@ int main(void)
                         objects.push_back(Object(11,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -956,7 +1061,8 @@ int main(void)
                         objects.push_back(Object(12,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -964,7 +1070,8 @@ int main(void)
                         objects.push_back(Object(13,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -972,7 +1079,8 @@ int main(void)
                         objects.push_back(Object(14,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -980,7 +1088,8 @@ int main(void)
                         objects.push_back(Object(15,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -988,7 +1097,8 @@ int main(void)
                         objects.push_back(Object(3,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -996,7 +1106,8 @@ int main(void)
                         objects.push_back(Object(4,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, randFloat() * 1.5f));
+                                                 vec3(1), 1, 1, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -1004,7 +1115,8 @@ int main(void)
                         objects.push_back(Object(19,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, 20, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -1012,7 +1124,8 @@ int main(void)
                         objects.push_back(Object(20,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, 20, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -1020,7 +1133,8 @@ int main(void)
                         objects.push_back(Object(21,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, randFloat() * 1.5f));
+                                                 vec3(1), 1, 20, 
+                                                 randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                 }
@@ -1032,7 +1146,8 @@ int main(void)
                         objects.push_back(Object(32,
                                                  vec3(0.0f, 0.0f, 0.0f + i * 250.0f),
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 1.0f));
+                                                 vec3(1), 1, 20, 1.0f,
+                                                 false, 0));
                         selectedObject = objects.size() - 1;
                     }
                 }
@@ -1051,7 +1166,7 @@ int main(void)
                 string str = "../levels/";
                 str.append(levelName);
                 lvl.SaveLevel(str, &objects, &lights, &dirLight, 
-		    &emitters, &fog, &skybox, &terrain, &bound);
+                    &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level saved: " << str << "\n";
             }
             ImGui::SameLine();
@@ -1079,15 +1194,13 @@ int main(void)
 
             // Editors
             ImGui::Text("Editors");
+            ImGui::Checkbox("Object", &showObjectEditor);
+            ImGui::SameLine();
             ImGui::Checkbox("Particle", &showParticleEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Light", &showLightEditor);
             ImGui::SameLine();
             ImGui::Checkbox("DirLight", &showDirLightEditor);
-            ImGui::SameLine();
-            ImGui::Checkbox("Fog", &showFogEditor);
-            ImGui::SameLine();
-            ImGui::Checkbox("Object", &showObjectEditor);
 
             ImGui::Checkbox("Skybox", &showSkyboxEditor);
             ImGui::SameLine();
@@ -1095,8 +1208,10 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
+            ImGui::Checkbox("Fog", &showFogEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Note", &showNoteEditor);
 
-            ImGui::NewLine();
             ImGui::NewLine();
 
             // Settings
@@ -1111,9 +1226,8 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Draw Collision Spheres", &drawCollisionSpheres);
 
-            ImGui::Checkbox("Draw Note", &drawNote);
-            ImGui::SameLine();
             ImGui::Checkbox("Draw Particles", &drawParticles);
+            ImGui::Checkbox("Draw Collection", &drawCollection);
 
             ImGui::Text("%d ms (%d FPS)", (int)(1000 * deltaTime), (int)(1.0f / deltaTime));
 
@@ -1160,10 +1274,10 @@ bool Colliding(vector<Object> *objects)
 {
     for (int i = 0; i < objects->size(); i++)
     {
-	if (objectDis(camera.Position, objects->at(i).position) < objects->at(i).collision_radius)
-	{
-	    return true;
-	}
+        if (objectDis(camera.Position, objects->at(i).position) < objects->at(i).collision_radius)
+        {
+            return true;
+        }
     }
     return false;
 }
@@ -1178,7 +1292,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
         camera.ProcessKeyboard(FORWARD, deltaTime);
         if (camera.Mode == WALK && Colliding(objects))
         {
-	    camera.ProcessKeyboard(BACKWARD, deltaTime);
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -1186,7 +1300,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
         camera.ProcessKeyboard(BACKWARD, deltaTime);
         if (camera.Mode == WALK && Colliding(objects))
         {
-	    camera.ProcessKeyboard(BACKWARD, deltaTime);
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -1194,7 +1308,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
         camera.ProcessKeyboard(LEFT, deltaTime);
         if (camera.Mode == WALK && Colliding(objects))
         {
-	    camera.ProcessKeyboard(BACKWARD, deltaTime);
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -1202,25 +1316,25 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
         camera.ProcessKeyboard(RIGHT, deltaTime);
         if (camera.Mode == WALK && Colliding(objects))
         {
-	    camera.ProcessKeyboard(BACKWARD, deltaTime);
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
         }
     }
 
     if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
-				glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
-				glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
-				glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
+                                glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
+                                glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
+                                glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
     {
-	if(!ma_sound_is_playing(&sounds[0]->sound))
-	    ma_sound_start(&sounds[0]->sound);
+        if(!ma_sound_is_playing(&sounds[0]->sound))
+            ma_sound_start(&sounds[0]->sound);
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
-	glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
-	glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
-	glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
+        glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE && 
+        glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
+        glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
     {
-	ma_sound_stop(&sounds[0]->sound);
+        ma_sound_stop(&sounds[0]->sound);
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
@@ -1244,17 +1358,6 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         firstMouse = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && EditorMode == GUI)
-    {
-        EditorMode = SELECTION;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        firstMouse = true;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE && EditorMode == SELECTION)
-    {
-        EditorMode = GUI;
-    }
 
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1264,10 +1367,13 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
+    float xpos;
+    float ypos;
+
     if (EditorMode == MOVEMENT)
     {
-        float xpos = static_cast<float>(xposIn);
-        float ypos = static_cast<float>(yposIn);
+        xpos = static_cast<float>(xposIn);
+        ypos = static_cast<float>(yposIn);
 
         if (firstMouse)
         {
@@ -1283,22 +1389,42 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 
         camera.ProcessMouseMovement(xoffset, yoffset);
     }
+}
 
-    if (EditorMode == SELECTION)
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
+{
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        double xpos;
+        double ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        if(EditorMode == MOVEMENT)
+        {
+            xpos = SCREEN_WIDTH / 2.0f;
+            ypos = SCREEN_HEIGHT / 2.0f;
+        }
+
         GLbyte color[4];
         GLfloat depth;
         GLuint index;
 
-        glReadPixels(xposIn, SCREEN_HEIGHT - yposIn - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-        glReadPixels(xposIn, SCREEN_HEIGHT - yposIn - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-        glReadPixels(xposIn, SCREEN_HEIGHT - yposIn - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
 
         vec4 viewport = vec4(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        vec3 wincoord = vec3(xposIn, SCREEN_HEIGHT - yposIn - 1, depth);
+        vec3 wincoord = vec3(xpos, SCREEN_HEIGHT - ypos - 1, depth);
         vec3 objcoord = unProject(wincoord, camera.GetViewMatrix(), camera.GetProjectionMatrix(), viewport);
 
-        selectorRay = normalize(objcoord - camera.Position);
+        selectorRay = normalize(objcoord - camera.Position);    
+        if(!drawNote)
+        {
+            checkInteraction = true;
+        }
+        else
+        {
+            pauseNote = false;
+        }
     }
 }
 

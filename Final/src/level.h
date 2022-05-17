@@ -32,10 +32,6 @@ using namespace glm;
 
 struct Level
 {
-    // NOTE(Alex): It might be a good idea for this to hold all the data, so it's
-    // a class for now. But if we dislike that idea, we'll just turn this into two
-    // Functions that do work on their constituent elements.
-    
     string currentLevel = "../levels/base.txt";
 
     vec3 startPosition = vec3(0.0f, 0.0f, 0.0f);
@@ -94,6 +90,7 @@ struct Level
                     else if(Type == "OBJ")
                     {
                         int id;
+
                         vec3 pos;
                         float angleX;
                         float angleY;
@@ -102,6 +99,9 @@ struct Level
                         float rad_v;
                         float rad_c;
                         float scaleFactor;
+
+                        bool inter;
+                        int noteN;
 
                         // get the id and other data
                         id = (int)atof(conPrt[0]);
@@ -113,7 +113,9 @@ struct Level
                         rad_v = (float)atof(conPrt[10]);
                         rad_c = (float)atof(conPrt[11]);
                         scaleFactor = (float)atof(conPrt[12]);
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor));
+                        inter = (bool)atoi(conPrt[13]);
+                        noteN = atoi(conPrt[14]);
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, noteN));                        
                     }
                     else if (Type == "LGT")
                     {
@@ -300,7 +302,7 @@ struct Level
         fp << "\n";
 
 	// Save Object Data
-	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale>\n";
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? noteN>\n";
 	for(int i = 0; i < objects->size(); ++i)
 	{
 	    fp << "OBJ ";
@@ -316,7 +318,9 @@ struct Level
 	    fp << objects->at(i).velocity.z << " ";
 	    fp << objects->at(i).view_radius << " ";
 	    fp << objects->at(i).collision_radius << " ";
-	    fp << objects->at(i).scaleFactor;
+	    fp << objects->at(i).scaleFactor << " ";
+	    fp << objects->at(i).interactible << " ";
+	    fp << objects->at(i).noteNum << " ";
 	    fp << "\n";
 	}
 

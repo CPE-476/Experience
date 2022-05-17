@@ -8,10 +8,8 @@
 
 /*
  * NOTE(Alex):
- * The purpose of the manager is to abstract away the compilation of shaders
- * and the loading of geometry, including the following things:
- *  - Models
- *  - Notes
+ * The purpose of the manager is to abstract away the 
+ * compilation of shaders and the loading of geometry.
  */
 
 #include <glad/glad.h>
@@ -116,16 +114,10 @@ struct Model_Container
     Model road;
 };
 
-struct Note_Container
-{
-    Note aurelius1;
-};
-
 struct Manager
 {
     Shader_Container shaders;
     Model_Container models;
-    Note_Container notes;
     ID_Entry Lookup[100] = {};
     unsigned int bufferIds[100] = {};
 
@@ -143,8 +135,6 @@ struct Manager
         this->shaders.transShader.init("../shaders/trans_vert.glsl", "../shaders/trans_frag.glsl");
         this->shaders.waterShader.init("../shaders/water_vert.glsl", "../shaders/water_frag.glsl");
         this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
-
-        this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");
@@ -195,7 +185,6 @@ struct Manager
         // this->models.squirrel.init("../resources/models/animals/squirrel.fbx");
         // this->models.wolf.init("../resources/models/animals/wolf.fbx");
 
-        
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
 
@@ -238,20 +227,17 @@ struct Manager
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE, 0.0f};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE, 0.0f};
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, MATERIAL, 0.0f};
-        // Lookup[33] = {33, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[34] = {34, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[35] = {35, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[36] = {36, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[37] = {37, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[38] = {38, &this->models.hedhog, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[39] = {39, &this->models.owl, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[40] = {40, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[41] = {41, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[42] = {42, &this->models.wolf, &this->shaders.materialShader, MATERIAL, 0.0f};
-
-
-
-        Lookup[99] = {99, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f};
+        Lookup[33] = {33, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f};
+        // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[37] = {37, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[38] = {38, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[39] = {39, &this->models.hedhog, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[40] = {40, &this->models.owl, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[41] = {41, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[42] = {42, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[43] = {43, &this->models.wolf, &this->shaders.materialShader, MATERIAL, 0.0f};
     }
 
     void genInstanceBuffers()
@@ -339,6 +325,7 @@ struct Manager
                 {
                     entry.model->meshes[i].SetTextureParams(shaders.textureShader);
                     glBindVertexArray(entry.model->meshes[i].VAO);
+
                     glDrawElementsInstanced(GL_TRIANGLES, 
                             static_cast<unsigned int>(entry.model->meshes[i].indices.size()),
                             GL_UNSIGNED_INT, 0,
