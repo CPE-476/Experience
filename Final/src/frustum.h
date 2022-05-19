@@ -111,7 +111,7 @@ struct Frustum
         planes[5] = Far;
     }
 
-    int ViewFrustCull(vec3 center, float radius)
+    bool ViewFrustCull(vec3 center, float radius)
     {
         float dist;
         for(int i=0; i < 6; i++) 
@@ -119,10 +119,10 @@ struct Frustum
             dist = DistToPlane(planes[i].x, planes[i].y, planes[i].z, planes[i].w, center);
             if(dist < 0 && fabs(dist) > radius)
             {
-                return 1;
+                return true;
             }
         }
-        return 0;
+        return false;
     }
 };
 
