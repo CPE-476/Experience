@@ -48,6 +48,10 @@ float        deltaTime = 0.0f;
 float        lastFrame = 0.0f;
 unsigned int frameCount = 0;
 
+int bobbingCounter = 0;
+int bobbingSpeed = 6;
+float bobbingAmount = 0.07;
+
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
 bool checkInteraction = false;
@@ -62,9 +66,7 @@ enum EditorModes
     MOVEMENT,
     GUI
 };
-
 int EditorMode = MOVEMENT;
-
 int drawnObjects;
 
 enum ShaderTypes
@@ -326,7 +328,8 @@ int main(void)
                 bound.counter = 157;
                 bound.active = true;
             }
-            camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT;
+            camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
+            cout << bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed) << "\n";
         }
 
         // Spline
@@ -1242,6 +1245,9 @@ int main(void)
                 spline.active = true;
             }
 
+            ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);
+            ImGui::SliderFloat("Amount", &bobbingAmount, 0.0f, 0.2f);
+
             ImGui::End();
 
             ImGui::Render();
@@ -1327,6 +1333,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
     {
         if(!ma_sound_is_playing(&sounds[0]->sound))
             ma_sound_start(&sounds[0]->sound);
+        bobbingCounter++;
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE && 
