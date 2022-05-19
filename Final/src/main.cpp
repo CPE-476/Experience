@@ -313,11 +313,6 @@ int main(void)
             whistle.reset();
 	}
 
-	for(int i = 1; i < sounds.size(); ++i)
-	{
-	    //sounds[i]->updateSound();
-	}
-
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -731,7 +726,8 @@ int main(void)
 		if(ImGui::Button("Play"))
 		{
 		    cout << "In play button\n";
-		    sounds[selectedSound].startSound();
+		    //sounds[selectedSound].startSound();
+		    whistle.startSound();
 		}
 		if(ImGui::Button("Pause"))
 		{
