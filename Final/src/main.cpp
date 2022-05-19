@@ -379,13 +379,13 @@ int main(void)
 
         water.Draw(m.shaders.waterShader, deltaTime);
 
-	if(drawParticles)
-	{
-	    for (int i = 0; i < emitters.size(); ++i)
-	    {
-		emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
-	    }
-	}
+        if(drawParticles)
+        {
+            for (int i = 0; i < emitters.size(); ++i)
+            {
+            emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
+            }
+        }
 
         if(bound.active)
         {
