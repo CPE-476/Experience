@@ -25,6 +25,7 @@
 #include "note.h"
 #include "object.h"
 #include "light.h"
+#include "frustum.h"
 
 using namespace std;
 using namespace glm;
@@ -254,7 +255,7 @@ struct Manager
         }
     }
 
-    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog)
+    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog, Frustum *frustum)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -267,7 +268,7 @@ struct Manager
             vector<mat4> modelMatrices;
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
-                if(objects->at(objInd).id == entry.ID)
+                if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
                 {
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }

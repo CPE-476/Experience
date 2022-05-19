@@ -3,10 +3,6 @@
 // File: Terrain
 // Date: April 2022
 
-/* TODO(Alex)
- * Interpolate Values
- */
-
 #ifndef TERRAIN_H
 #define TERRAIN_H
 

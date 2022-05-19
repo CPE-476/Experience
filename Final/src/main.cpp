@@ -100,7 +100,6 @@ struct FogSystem
 #include "text.h"
 #include "skybox.h"
 #include "terrain.h"
-#include "frustum.h"
 #include "particles.h"
 #include "note.h"
 #include "boundary.h"
@@ -348,7 +347,7 @@ int main(void)
 
         frustum.ExtractVFPlanes(projection, view);
 
-        m.DrawAllModels(&objects, &lights, &dirLight, &fog);
+        m.DrawAllModels(&objects, &lights, &dirLight, &fog, &frustum);
  
         // Render Skybox
         if (drawSkybox)
@@ -798,7 +797,6 @@ int main(void)
                 if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
-                    float small_scale = 0.05f;
                     float grass_scale = (randFloat()* 0.5) + 0.03;
 
                     for (int i = 0; i < 10; i++)
@@ -948,8 +946,8 @@ int main(void)
                         objects.push_back(Object(16,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(16).collision_radius * small_scale, 
-                                                 small_scale, false, 0));
+                                                 vec3(1), 1, m.findbyId(16).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++)
@@ -978,8 +976,8 @@ int main(void)
                         objects.push_back(Object(18,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(18).collision_radius * small_scale, 
-                                                 small_scale, false, 0));
+                                                 vec3(1), 1, m.findbyId(18).collision_radius * default_scale, 
+                                                 default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
                     // for (int i = 0; i < 5; i++){
