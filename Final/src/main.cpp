@@ -329,7 +329,7 @@ int main(void)
                 bound.active = true;
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
-            cout << bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed) << "\n";
+            // cout << bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed) << "\n";
         }
 
         // Spline
