@@ -48,7 +48,7 @@ struct Level
             vector<Light> *lights, DirLight *dirLight, 
             vector<Emitter> *emitters, FogSystem *fog, 
             Skybox *skybox, Terrain *terrain,
-            Boundary *bound, vector<Sound *> *sounds)
+            Boundary *bound, vector<Sound> *sounds)
     {
         currentLevel = Filename;
 
@@ -266,8 +266,7 @@ struct Level
                         vol = (float)atof(conPrt[1]);
                         loop = (bool)atoi(conPrt[2]);
 
-                        // TODO : Load sounds.
-                        //sounds->push_back(Sound(path, vol, loop));
+                        sounds->push_back(Sound(path, vol, loop));
                     }
                     else if (Type == "SND")
                     {
@@ -286,7 +285,7 @@ struct Level
                         max = (float)atof(conPrt[7]);
                         loop = (bool)atoi(conPrt[8]);
 
-                        //sounds->push_back(Sound(path, pos, vol, roll, min, max, loop, false));
+                        sounds->push_back(Sound(path, pos, vol, roll, min, max, loop, false));
                     }
                     else
                     {
@@ -308,7 +307,7 @@ struct Level
             vector<Light> *lights, DirLight *dirLight, 
             vector<Emitter> *emitters, FogSystem *fog,
             Skybox *skybox, Terrain *terrain,
-            Boundary *bound, vector<Sound *> *sounds)
+            Boundary *bound, vector<Sound> *sounds)
     {
         ofstream fp;
         fp.open(Filename);
@@ -433,25 +432,25 @@ struct Level
         fp << "\nCOM Sound: <SND path pos.x pos.y pos.z vol roll min max loop?>\n";
         for(int i = 0; i < sounds->size(); ++i)
         {
-            if(sounds->at(i)->isMusic)
+            if(sounds->at(i).isMusic)
             {
                 fp << "MUS ";
-                fp << sounds->at(i)->path << " ";
-                fp << sounds->at(i)->volume << " ";
-                fp << sounds->at(i)->isLooping << " ";
+                fp << sounds->at(i).path << " ";
+                fp << sounds->at(i).volume << " ";
+                fp << sounds->at(i).isLooping << " ";
             }
             else
             {
                 fp << "SND ";
-                fp << sounds->at(i)->path << " ";
-                fp << sounds->at(i)->pos.x << " ";
-                fp << sounds->at(i)->pos.y << " ";
-                fp << sounds->at(i)->pos.z << " ";
-                fp << sounds->at(i)->volume << " ";
-                fp << sounds->at(i)->rolloff << " ";
-                fp << sounds->at(i)->minDistance << " ";
-                fp << sounds->at(i)->maxDistance << " ";
-                fp << sounds->at(i)->isLooping << " ";
+                fp << sounds->at(i).path << " ";
+                fp << sounds->at(i).pos.x << " ";
+                fp << sounds->at(i).pos.y << " ";
+                fp << sounds->at(i).pos.z << " ";
+                fp << sounds->at(i).volume << " ";
+                fp << sounds->at(i).rolloff << " ";
+                fp << sounds->at(i).minDistance << " ";
+                fp << sounds->at(i).maxDistance << " ";
+                fp << sounds->at(i).isLooping << " ";
             }
             fp << "\n";
         }
