@@ -270,6 +270,7 @@ struct Manager
             {
                 if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
                 {
+		    drawnObjects++;
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }

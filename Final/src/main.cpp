@@ -328,7 +328,6 @@ int main(void)
                 bound.active = true;
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
-            cout << bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed) << "\n";
         }
 
         // Spline
@@ -705,7 +704,8 @@ int main(void)
             if (showObjectEditor)
             {
                 ImGui::Begin("Object Editor");
-                ImGui::Text("Object = %d/%lu. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(),
+                ImGui::Text("Object = %d/%lu. ID = %d. Position = (%.02f %.02f %.02f)", selectedObject, objects.size(),
+                            objects[selectedObject].id,
                             objects[selectedObject].position.x, objects[selectedObject].position.y, objects[selectedObject].position.z);
 
                 ImGui::Checkbox("Terrain Snap", &snapToTerrain);
