@@ -38,6 +38,7 @@ struct ID_Entry
     Shader *shader;
     int shader_type;
     float collision_radius;
+    float y_offset;
 };
 
 struct Shader_Container
@@ -195,40 +196,40 @@ struct Manager
 
     void Populate()
     {
-        Lookup[0] = {0, &this->models.tree_1, &this->shaders.textureShader, TEXTURE, 1.3f};
-        Lookup[1] = {1, &this->models.tree_2, &this->shaders.textureShader, TEXTURE, 2.8f};
-        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 2.8f};
-        Lookup[3] = {3, &this->models.tree_4, &this->shaders.textureShader, TEXTURE, 2.8f};
-        Lookup[4] = {4, &this->models.tree_5, &this->shaders.textureShader, TEXTURE, 2.0f};
-        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.1f};
-        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f};
-        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f};
-        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.1f};
-        Lookup[9] = {9, &this->models.rock_5, &this->shaders.textureShader, TEXTURE, 1.9f};
-        Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE, 1.3f};
-        Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE, 1.0f};
-        Lookup[12] = {12, &this->models.rock_8, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE, 2.8f};
-        Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE, 2.0f};
-        Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE, 13.5f};
-        Lookup[16] = {16, &this->models.campfire, &this->shaders.textureShader, TEXTURE, 50.0f};
-        Lookup[17] = {17, &this->models.snail, &this->shaders.textureShader, TEXTURE, 1.7f};
-        Lookup[18] = {18, &this->models.fern, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[19] = {19, &this->models.cactus_1, &this->shaders.textureShader, TEXTURE, 1.0f};
-        Lookup[20] = {20, &this->models.cactus_2, &this->shaders.textureShader, TEXTURE, 1.0f};
-        Lookup[21] = {21, &this->models.cactus_3, &this->shaders.textureShader, TEXTURE, 1.0f};
-        Lookup[22] = {22, &this->models.trumbleweed, &this->shaders.textureShader, TEXTURE, 3.6f};
-        Lookup[23] = {23, &this->models.grass_1, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[24] = {24, &this->models.grass_2, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[25] = {25, &this->models.grass_3, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[26] = {26, &this->models.grass_4, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[27] = {27, &this->models.grass_5, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[28] = {28, &this->models.grass_6, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE, 0.0f};
-        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, MATERIAL, 0.0f};
-        Lookup[33] = {33, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f};
+        Lookup[0] = {0, &this->models.tree_1, &this->shaders.textureShader, TEXTURE, 0.452f, 0.55f};
+        Lookup[1] = {1, &this->models.tree_2, &this->shaders.textureShader, TEXTURE, 0.412f, 1.0f};
+        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 1.3f};
+        Lookup[3] = {3, &this->models.tree_4, &this->shaders.textureShader, TEXTURE, 0.43f, 0.85f};
+        Lookup[4] = {4, &this->models.tree_5, &this->shaders.textureShader, TEXTURE, 0.2f, 0.1f};
+        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.85f};
+        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f, 0.85f};
+        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f, 0.85f};
+        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.0f, 0.85f};
+        Lookup[9] = {9, &this->models.rock_5, &this->shaders.textureShader, TEXTURE, 2.1f, 0.85f};
+        Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE, 1.3f, 0.5f};
+        Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE, 3.43f, 0.85f};
+        Lookup[12] = {12, &this->models.rock_8, &this->shaders.textureShader, TEXTURE, 5.1f, 1.0f};
+        Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE, 2.8f, 1.0f};
+        Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE, 2.0f, 0.85f};
+        Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE, 12.64f, 0.85f};
+        Lookup[16] = {16, &this->models.campfire, &this->shaders.textureShader, TEXTURE, 2.0f, 0.8f};
+        Lookup[17] = {17, &this->models.snail, &this->shaders.textureShader, TEXTURE, 1.1f, 0.85f};
+        Lookup[18] = {18, &this->models.fern, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[19] = {19, &this->models.cactus_1, &this->shaders.textureShader, TEXTURE, 0.5f, 1.0f};
+        Lookup[20] = {20, &this->models.cactus_2, &this->shaders.textureShader, TEXTURE, 0.5f, 1.85f};
+        Lookup[21] = {21, &this->models.cactus_3, &this->shaders.textureShader, TEXTURE, 0.5f, 2.0f};
+        Lookup[22] = {22, &this->models.trumbleweed, &this->shaders.textureShader, TEXTURE, 3.6f, 2.0f};
+        Lookup[23] = {23, &this->models.grass_1, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[24] = {24, &this->models.grass_2, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[25] = {25, &this->models.grass_3, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[26] = {26, &this->models.grass_4, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[27] = {27, &this->models.grass_5, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[28] = {28, &this->models.grass_6, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
+        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, MATERIAL, 0.0f, 1.0f};
+        Lookup[33] = {33, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
@@ -343,6 +344,7 @@ struct Manager
     ID_Entry findbyId(int id) {
         return Lookup[id];
     }
+
 };
 
 #endif
