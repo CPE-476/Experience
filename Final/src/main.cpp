@@ -35,7 +35,7 @@ using namespace glm;
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 const unsigned int TEXT_SIZE = 16;
-const float PLAYER_HEIGHT = 2.0f;
+const float PLAYER_HEIGHT = 0.0f;
 const float default_scale = 1.0f;
 
 #include "camera.h"
@@ -47,6 +47,7 @@ bool  firstMouse = true;
 float        deltaTime = 0.0f;
 float        lastFrame = 0.0f;
 unsigned int frameCount = 0;
+const float y_offset = 1.0f;
 
 int bobbingCounter = 0;
 int bobbingSpeed = 6;
@@ -274,7 +275,7 @@ int main(void)
 
     bool drawTerrain = true;
     bool drawSkybox = false;
-    bool drawBoundingSpheres = true;
+    bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
     bool drawParticles = false;
@@ -715,7 +716,7 @@ int main(void)
                     if (snapToTerrain)
                     {
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
-                                                                              objects[selectedObject].position.z);
+                                                                              objects[selectedObject].position.z) + objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset;
                     }
                     objects[selectedObject].UpdateModel();
                 }
@@ -728,7 +729,7 @@ int main(void)
                     if (snapToTerrain)
                     {
                         objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x,
-                                                                              objects[selectedObject].position.z);
+                                                                              objects[selectedObject].position.z) + objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset;
                     }
                     objects[selectedObject].UpdateModel();
                 }
@@ -743,6 +744,7 @@ int main(void)
                 if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f)){
                     objects[selectedObject].UpdateModel();
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
+                    objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x, objects[selectedObject].position.z) + objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset;
                 }
 
                 ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
@@ -773,7 +775,7 @@ int main(void)
                     float cr = m.findbyId(id).collision_radius;
                     objects.push_back(Object(id,
                                              vec3(camera.Position.x,
-                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  terrain.heightAt(camera.Position.x, camera.Position.z) + default_scale * m.findbyId(id).y_offset,
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
                                              vec3(1), 1, cr * default_scale, 
@@ -804,7 +806,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(0).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
                         
                         objects.push_back(Object(0,
@@ -820,7 +822,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(1).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(1,
@@ -835,7 +837,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(2).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(2,
@@ -850,7 +852,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(3).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(3,
@@ -865,7 +867,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(4).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(4,
@@ -880,7 +882,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(5).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(5,
@@ -895,7 +897,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(6).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(6,
@@ -910,7 +912,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(7).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(7,
@@ -925,7 +927,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(8).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(8,
@@ -940,7 +942,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(16).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(16,
@@ -955,7 +957,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(17).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(17,
@@ -970,7 +972,7 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z);
+                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(18).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(18,
@@ -1007,7 +1009,7 @@ int main(void)
                             pos_x = randCoord();
                             pos_z = randCoord();
                             if (snapToTerrain){
-                                pos_y = terrain.heightAt(pos_x, pos_z);
+                                pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(j).y_offset;
                                 if(pos_y > (water.height + 0.6))
                                     goodVal = 1;
                             }
@@ -1021,7 +1023,7 @@ int main(void)
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
                                                      vec3(1), 0.03, m.findbyId(j).collision_radius * grass_scale, 
-                                                     default_scale, false, 0));
+                                                     grass_scale, false, 0));
                             selectedObject = objects.size() - 1;
                         }
                     }
