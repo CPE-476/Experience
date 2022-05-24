@@ -27,6 +27,7 @@ Unless you try to do something beyond what you have already mastered, you will n
 - Ralph Waldo Emerson
 
 If you do not change direction, you may end up where you are heading.
+- Lao Tzu
 
 I was waiting
 for something extraordinary to happen
