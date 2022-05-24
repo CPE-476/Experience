@@ -238,6 +238,7 @@ public:
 			4, 0
 		};
 
+        // tangent vector
 		float GTBO[] = {
 			1, 0, 0,
 			1, 0, 0,
@@ -247,6 +248,7 @@ public:
 			1, 0, 0
 		};
 
+        // bi-normal
 		float GBNBO[] = {
 			0, 0, -1,
 			0, 0, -1,
@@ -379,7 +381,7 @@ public:
 		// Intialize textures
 		//////////////////////////////////////////////////////
 		texture0 = make_shared<Texture>();
-		texture0->setFilename(resourceDirectory + "/bump1.bmp");
+		texture0->setFilename(resourceDirectory + "/bump2.jpg");
 		texture0->init();
 		texture0->setUnit(0);
 		texture0->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -519,6 +521,14 @@ public:
 		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, GrndTexBuffObj);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glEnableVertexAttribArray(3);
+        glBindBuffer(GL_ARRAY_BUFFER, GrndTanBO);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        
+        glEnableVertexAttribArray(4);
+        glBindBuffer(GL_ARRAY_BUFFER, GrndBNBO);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 		// draw!
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GIndxBuffObj);
@@ -527,7 +537,8 @@ public:
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
-
+        glDisableVertexAttribArray(3);
+        glDisableVertexAttribArray(4);
 
 		if (TexOn) {
 			texture0->bind(texID0);
