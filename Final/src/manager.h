@@ -93,7 +93,7 @@ struct Model_Container
     Model deer_1;
     Model deer_2;
     Model fox;
-    Model hedhog;
+    Model hedgehog;
     Model owl;
     Model rabbit;
     Model squirrel;
@@ -181,7 +181,7 @@ struct Manager
         // this->models.deer_1.init("../resources/models/animals/deer_1.fbx");
         // this->models.deer_2.init("../resources/models/animals/deer_2.fbx");
         // this->models.fox.init("../resources/models/animals/fox.fbx");
-        // this->models.hedhog.init("../resources/models/animals/hedhog.fbx");
+        // this->models.hedgehog.init("../resources/models/animals/hedhog.fbx");
         // this->models.owl.init("../resources/models/animals/owl.fbx");
         // this->models.rabbit.init("../resources/models/animals/rabbit.fbx");
         // this->models.squirrel.init("../resources/models/animals/squirrel.fbx");
@@ -235,7 +235,7 @@ struct Manager
         // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[37] = {37, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[38] = {38, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[39] = {39, &this->models.hedhog, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[39] = {39, &this->models.hedgehog, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[40] = {40, &this->models.owl, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[41] = {41, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[42] = {42, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
@@ -271,6 +271,7 @@ struct Manager
             {
                 if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
                 {
+		    drawnObjects++;
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }

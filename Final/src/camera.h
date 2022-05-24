@@ -78,8 +78,7 @@ public:
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = 0;
-            velocity = SPEED * deltaTime;
+        float velocity = SPEED * deltaTime;
         if(Fast)
         {
             velocity = FASTSPEED * deltaTime;
@@ -134,7 +133,7 @@ public:
         if(Zoom > 45.0f)
             Zoom = 45.0f;
     }
-private:
+
     void updateCameraVectors()
     {
         vec3 front;
