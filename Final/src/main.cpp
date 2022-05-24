@@ -35,7 +35,7 @@ using namespace glm;
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 const unsigned int TEXT_SIZE = 16;
-const float PLAYER_HEIGHT = 0.0f;
+const float PLAYER_HEIGHT = 1.0f;
 const float default_scale = 1.0f;
 
 #include "camera.h"
@@ -47,10 +47,10 @@ bool  firstMouse = true;
 float        deltaTime = 0.0f;
 float        lastFrame = 0.0f;
 unsigned int frameCount = 0;
-const float y_offset = 1.0f;
+const float  y_offset = 1.0f;
 
-int bobbingCounter = 0;
-int bobbingSpeed = 6;
+int   bobbingCounter = 0;
+int   bobbingSpeed = 6;
 float bobbingAmount = 0.07;
 
 // For Selector.
@@ -250,12 +250,13 @@ int main(void)
     Boundary bound;
     bound.init(vec3(0.5f, 0.5f, 0.2f));
 
-    lvl.LoadLevel("../levels/base.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
 
     Frustum frustum;
 
     Spline spline;
+    FloatSpline fspline;
 
     Water water;
     water.gpuSetup();
@@ -333,10 +334,7 @@ int main(void)
 
         // Spline
         spline.update(deltaTime);
-        if(spline.active)
-        {
-            camera.Position = spline.getPosition();
-        }
+	fspline.update(deltaTime);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -465,6 +463,8 @@ int main(void)
             if(objects[interactingObject].interactible)
             {
                 drawNote = true;
+                fspline.init(camera.Zoom, 15.0f, 0.5f);
+                fspline.active = true;
                 selectedNote = objects[interactingObject].noteNum;
                 discoveredNotes[selectedNote] = true;
             }
@@ -473,6 +473,11 @@ int main(void)
 
         if(drawNote)
         {
+            cout << camera.Zoom << "\n";
+            if(fspline.active)
+            {
+                camera.Zoom = fspline.getPosition();
+            }
             notes[selectedNote].Update();
             notes[selectedNote].Draw(m.shaders.noteShader);
         }
@@ -1241,8 +1246,14 @@ int main(void)
 
             if(ImGui::Button("SPLINE!"))
             {
-                spline.init(camera.Position, vec3(0.0f, 3.0f, 0.0f), 1.0f);
-                spline.active = true;
+                fspline.init(camera.Zoom, 15.0f, 0.5f);
+                fspline.active = true;
+            }
+
+            if(ImGui::Button("SPLINE OUT!"))
+            {
+                fspline.init(camera.Zoom, 45.0f, 0.5f);
+                fspline.active = true;
             }
 
             ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);

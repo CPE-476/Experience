@@ -83,7 +83,7 @@ struct Note
     float speed = 100.0f;
 
     float scl = 1.0f;
-    vec3 pos  = vec3(0.0f, 0.0f, 0.0f);
+    vec3 pos  = vec3(0.0f, -0.5f, 0.0f);
 
     void Draw(Shader &shader)
     {
