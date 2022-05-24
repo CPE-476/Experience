@@ -36,7 +36,6 @@ struct Level
     string currentLevel = "../levels/base.txt";
 
     vec3 startPosition = vec3(0.0f, 0.0f, 0.0f);
-    vec3 startDirection = vec3(0.0f, 0.0f, -1.0f);
     string nextLevel = "../levels/base.txt";
 
     Level()
@@ -102,6 +101,7 @@ struct Level
                         float scaleFactor;
 
                         bool inter;
+                        bool disap;
                         int noteN;
 
                         // get the id and other data
@@ -115,8 +115,9 @@ struct Level
                         rad_c = (float)atof(conPrt[11]);
                         scaleFactor = (float)atof(conPrt[12]);
                         inter = (bool)atoi(conPrt[13]);
-                        noteN = atoi(conPrt[14]);
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, noteN));                        
+                        disap = (bool)atoi(conPrt[14]);
+                        noteN = atoi(conPrt[15]);
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, disap, noteN));
                     }
                     else if (Type == "LGT")
                     {
@@ -244,17 +245,10 @@ struct Level
                     {
                         cout << "Camera Position loaded from file\n";
                         vec3 pos;
-                        vec3 dir;
                         pos = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
-                        dir = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
 
                         this->startPosition = pos;
-                        this->startDirection = dir;
                         camera.Position = pos;
-                        //camera.Front = dir;
-
-                        // TODO(Alex): Fix weird direction bug when loading new level.
-                        //firstMouse = true;
                     }
                     else
                     {
@@ -292,18 +286,15 @@ struct Level
         fp << "\n";
 
         // Save Desired Camera Position
-        fp << "\nCOM Camera Setup: <POV pos.x pos.y pos.z dir.x dir.y dir.z>\n";
+        fp << "\nCOM Camera Setup: <POV pos.x pos.y pos.z>\n";
         fp << "POV ";
         fp << startPosition.x << " ";
         fp << startPosition.y << " ";
         fp << startPosition.z << " ";
-        fp << startDirection.x << " ";
-        fp << startDirection.y << " ";
-        fp << startDirection.z << " ";
         fp << "\n";
 
 	// Save Object Data
-	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? noteN>\n";
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN>\n";
 	for(int i = 0; i < objects->size(); ++i)
 	{
 	    fp << "OBJ ";
@@ -321,6 +312,7 @@ struct Level
 	    fp << objects->at(i).collision_radius << " ";
 	    fp << objects->at(i).scaleFactor << " ";
 	    fp << objects->at(i).interactible << " ";
+	    fp << objects->at(i).disappearing << " ";
 	    fp << objects->at(i).noteNum << " ";
 	    fp << "\n";
 	}

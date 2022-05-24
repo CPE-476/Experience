@@ -9,6 +9,7 @@
 #include <glad/glad.h>
 
 #include "shader.h"
+#include "spline.h"
 using namespace std;
 using namespace glm;
 
@@ -79,18 +80,17 @@ struct Note
         }
         stbi_image_free(data);
     }
-    int counter = 0;
-    float speed = 100.0f;
+    float counter = 0;
 
     float scl = 1.0f;
-    vec3 pos  = vec3(0.0f, 0.0f, 0.0f);
+    vec3 pos  = vec3(0.0f, -0.5f, 0.0f);
 
     void Draw(Shader &shader)
     {
         shader.bind();
         {
             shader.setFloat("noteTexture", noteTexture);
-            shader.setFloat("amount", sin((float)counter / this->speed));
+            shader.setFloat("amount", sin(counter / 100.0f));
             mat4 transform = mat4(1.0f);
             transform = scale(transform, vec3(scl));
             transform = translate(transform, pos);
@@ -121,15 +121,16 @@ struct Note
         shader.unbind();
     }
 
-    void Update()
+    // TODO(Alex): Tweak these values so you can edit spline dynamically.
+    void Update(FloatSpline *fspline)
     {
         if(!pauseNote)
         {
-            counter++;
+            counter += 2.0f;
         }
-        if(counter == 157)
+        if(counter == 158)
         {
-            counter++;
+            counter += 2.0f;
             pauseNote = true;
         }
         if(counter >= 314)

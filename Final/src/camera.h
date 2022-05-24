@@ -29,7 +29,7 @@ enum Modes {
 
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 5.0f;
+const float SPEED = 2.5f;
 const float FASTSPEED = 100.0f;
 const float SENSITIVITY = 0.03f;
 const float ZOOM = 45.0f;
@@ -78,8 +78,7 @@ public:
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = 0;
-            velocity = SPEED * deltaTime;
+        float velocity = SPEED * deltaTime;
         if(Fast)
         {
             velocity = FASTSPEED * deltaTime;
@@ -134,7 +133,7 @@ public:
         if(Zoom > 45.0f)
             Zoom = 45.0f;
     }
-private:
+
     void updateCameraVectors()
     {
         vec3 front;
