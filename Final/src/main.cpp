@@ -61,8 +61,6 @@ bool drawNote = false;
 bool drawCollection = false;
 bool pauseNote = false;
 
-bool drawCollection = false;
-
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
