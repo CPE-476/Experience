@@ -132,6 +132,11 @@ float randCoord()
     return (randFloat() * 220.0f) - 100.0f;
 }
 
+float randRange(float min, float max)
+{
+    return (rand() % (int)(max - min) + min);
+}
+
 int main(void)
 {
     srand(time(NULL));
@@ -262,6 +267,9 @@ int main(void)
     Water water;
     water.gpuSetup();
 
+    Spline sunspline;
+    Spline ambspline;
+
     // Editor Settings
     bool showParticleEditor = false;
     bool showLightEditor = false;
@@ -334,12 +342,26 @@ int main(void)
         }
 
         // Spline
-	fspline.update(deltaTime);
+        fspline.update(deltaTime);
+        sunspline.update(deltaTime);
+        ambspline.update(deltaTime);
 
-	if(fspline.active)
-	{
-	    camera.Zoom = fspline.getPosition();
-	}
+        if(fspline.active)
+        {
+            camera.Zoom = fspline.getPosition();
+        }
+
+        if(sunspline.active)
+        {
+            dirLight.direction = sunspline.getPosition();
+            cout << to_string(dirLight.direction) << "\n";
+        }
+        
+        if(ambspline.active)
+        {
+            dirLight.ambient = ambspline.getPosition();
+            cout << to_string(dirLight.ambient) << "\n";
+        }
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -748,7 +770,7 @@ int main(void)
                     objects[selectedObject].UpdateModel();
 
                 if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
-		{
+                {
                     objects[selectedObject].UpdateModel();
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
                     objects[selectedObject].view_radius = default_view * objects[selectedObject].scaleFactor;
@@ -809,12 +831,13 @@ int main(void)
                     float pos_y = 0.0f;
                     float grass_scale = (randFloat()* 0.5) + 0.03;
 
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Standard Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(3.5f, 4.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(0).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(0).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
                         
                         objects.push_back(Object(0,
@@ -822,192 +845,208 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, 
                                                  m.findbyId(0).collision_radius * default_scale,
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Tall Standard Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(3.5f, 4.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(1).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(1).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(1,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(1).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Birch Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(3.5f, 4.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(2).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(2).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(2,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(2).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Dead Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(3.5f, 4.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(3).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(3).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(3,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(3).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Stump
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(2.5f, 3.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(4).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(4).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(4,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(4).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Rock 1
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(0.2f, 0.3f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(5).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(5).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(5,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(5).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Rock 2
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(0.2f, 0.4f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(6).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(6).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(6,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(6).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Rock 2
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(0.1f, 0.3f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(7).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(7).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(7,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(7).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Square Rock
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(0.4f, 0.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(8).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(8).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(8,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(8).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Campfire
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = 0.3f;
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(16).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(16).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(16,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(16).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Snail
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = 0.1f;
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(17).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(17).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(17,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(8).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 10; i++) // Fern
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
+                        float scale = randRange(0.5f, 1.0f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(18).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(18).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
                         objects.push_back(Object(18,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), default_view, m.findbyId(18).collision_radius * default_scale, 
-                                                 default_scale, false, 0));
+                                                 scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 2000; i++)
+                    for (int i = 0; i < 4000; i++) // Grass
                     {
-                        for (int j = 23; j < 32; j++)
+                        for (int j = 23; j < 32; j++) // Types
                         {
                             int goodVal = 0;
                             float pos_x;
                             float pos_z;
                             while(!goodVal)
                             {
-                            pos_x = randCoord();
-                            pos_z = randCoord();
-                            if (snapToTerrain){
-                                pos_y = terrain.heightAt(pos_x, pos_z) + default_scale * m.findbyId(j).y_offset;
-                                if(pos_y > (water.height + 0.6))
+                                pos_x = randCoord();
+                                pos_z = randCoord();
+                                if (snapToTerrain)
+                                {
+                                    pos_y = terrain.heightAt(pos_x, pos_z) + grass_scale * m.findbyId(j).y_offset;
+                                    if(pos_y > (water.height + 0.6))
+                                    {
+                                        goodVal = 1;
+                                    }
+                                }
+                                else
+                                {
                                     goodVal = 1;
-                            }
-                            else
-                                goodVal = 1;
+                                }
                             }
 
                             vec3 pos = vec3(pos_x, pos_y, pos_z);
@@ -1235,6 +1274,21 @@ int main(void)
             ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);
             ImGui::SliderFloat("Amount", &bobbingAmount, 0.0f, 0.2f);
 
+            if(ImGui::Button("Sunset!"))
+            {
+                sunspline.init(dirLight.direction, vec3(0.0f, 0.0f, -1.0f), 10.0f);
+                sunspline.active = true;
+                ambspline.init(dirLight.ambient, vec3(0.01f, 0.0f, 0.0f), 10.0f);
+                ambspline.active = true;
+            }
+            if(ImGui::Button("Sunrise!"))
+            {
+                sunspline.init(dirLight.direction, vec3(-0.5f, -0.2f, -0.7f), 10.0f);
+                sunspline.active = true;
+                ambspline.init(dirLight.ambient, vec3(0.4f, 0.2f, 0.2f), 10.0f);
+                ambspline.active = true;
+            }
+
             ImGui::End();
 
             ImGui::Render();
@@ -1418,8 +1472,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         else
         {
             pauseNote = false;
-	    fspline.init(camera.Zoom, 45.0f, 0.5f);
-	    fspline.active = true;
+            fspline.init(camera.Zoom, 45.0f, 0.5f);
+            fspline.active = true;
         }
     }
 }
