@@ -37,6 +37,7 @@ const unsigned int SCREEN_HEIGHT = 800;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.0f;
 const float default_scale = 1.0f;
+const float default_view = 1.414f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
@@ -110,6 +111,9 @@ struct FogSystem
 
 using namespace std;
 using namespace glm;
+
+// TODO(Alex): This probably shouldn't have to be global.
+FloatSpline fspline;
 
 void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
@@ -255,9 +259,6 @@ int main(void)
 
     Frustum frustum;
 
-    Spline spline;
-    FloatSpline fspline;
-
     Water water;
     water.gpuSetup();
 
@@ -333,8 +334,12 @@ int main(void)
         }
 
         // Spline
-        spline.update(deltaTime);
 	fspline.update(deltaTime);
+
+	if(fspline.active)
+	{
+	    camera.Zoom = fspline.getPosition();
+	}
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -471,14 +476,10 @@ int main(void)
             checkInteraction = false;
         }
 
+
         if(drawNote)
         {
-            cout << camera.Zoom << "\n";
-            if(fspline.active)
-            {
-                camera.Zoom = fspline.getPosition();
-            }
-            notes[selectedNote].Update();
+            notes[selectedNote].Update(&fspline);
             notes[selectedNote].Draw(m.shaders.noteShader);
         }
 
@@ -746,9 +747,11 @@ int main(void)
                 if (ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
                     objects[selectedObject].UpdateModel();
 
-                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f)){
+                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
+		{
                     objects[selectedObject].UpdateModel();
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
+                    objects[selectedObject].view_radius = default_view * objects[selectedObject].scaleFactor;
                     objects[selectedObject].position.y = terrain.heightAt(objects[selectedObject].position.x, objects[selectedObject].position.z) + objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset;
                 }
 
@@ -783,7 +786,7 @@ int main(void)
                                                   terrain.heightAt(camera.Position.x, camera.Position.z) + default_scale * m.findbyId(id).y_offset,
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
-                                             vec3(1), 1, cr * default_scale, 
+                                             vec3(1), default_view, cr * default_scale, 
                                              default_scale, false, 0));
                     selectedObject = objects.size() - 1;
                 }
@@ -797,7 +800,7 @@ int main(void)
                                                   terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
-                                             vec3(1), 1, cr * default_scale, 
+                                             vec3(1), default_view, cr * default_scale, 
                                              default_scale, false, 0));
                     selectedObject = objects.size() - 1;
                 }
@@ -817,8 +820,8 @@ int main(void)
                         objects.push_back(Object(0,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), m.findbyId(0).model->MaximumExtent, 
-                                                 m.findbyId(0).collision_radius * default_scale, 
+                                                 vec3(1), default_view, 
+                                                 m.findbyId(0).collision_radius * default_scale,
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -833,7 +836,7 @@ int main(void)
                         objects.push_back(Object(1,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(1).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(1).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -848,7 +851,7 @@ int main(void)
                         objects.push_back(Object(2,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(2).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(2).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -863,7 +866,7 @@ int main(void)
                         objects.push_back(Object(3,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(3).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(3).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -878,7 +881,7 @@ int main(void)
                         objects.push_back(Object(4,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(4).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(4).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -893,7 +896,7 @@ int main(void)
                         objects.push_back(Object(5,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(5).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(5).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -908,7 +911,7 @@ int main(void)
                         objects.push_back(Object(6,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(6).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(6).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -923,7 +926,7 @@ int main(void)
                         objects.push_back(Object(7,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(7).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(7).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -938,7 +941,7 @@ int main(void)
                         objects.push_back(Object(8,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(8).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -953,7 +956,7 @@ int main(void)
                         objects.push_back(Object(16,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(16).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(16).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -968,7 +971,7 @@ int main(void)
                         objects.push_back(Object(17,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(8).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(8).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -983,25 +986,10 @@ int main(void)
                         objects.push_back(Object(18,
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, m.findbyId(18).collision_radius * default_scale, 
+                                                 vec3(1), default_view, m.findbyId(18).collision_radius * default_scale, 
                                                  default_scale, false, 0));
                         selectedObject = objects.size() - 1;
                     }
-                    // for (int i = 0; i < 5; i++){
-                    //     for (int j = 33; j < 43; j++){
-                    //         float pos_x = randCoord();
-                    //         float pos_z = randCoord();
-                    //         if (snapToTerrain)
-                    //             pos_y = terrain.heightAt(pos_x, pos_z);
-                    //         vec3 pos = vec3(pos_x, pos_y, pos_z);
-                    //         objects.push_back(Object(j,
-                    //                                  pos,
-                    //                                  -1.6f, 0.0f, 0.0f,
-                    //                                  vec3(1), 1, m.findbyId(j).collision_radius * default_scale, 
-                    //                                  default_scale));
-                    //         selectedObject = objects.size() - 1;
-                    //     }
-                    // }
                     for (int i = 0; i < 2000; i++)
                     {
                         for (int j = 23; j < 32; j++)
@@ -1027,7 +1015,7 @@ int main(void)
                             objects.push_back(Object(j,
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
-                                                     vec3(1), 0.03, m.findbyId(j).collision_radius * grass_scale, 
+                                                     vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
                                                      grass_scale, false, 0));
                             selectedObject = objects.size() - 1;
                         }
@@ -1042,7 +1030,7 @@ int main(void)
                         objects.push_back(Object(9,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1051,7 +1039,7 @@ int main(void)
                         objects.push_back(Object(10,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1060,7 +1048,7 @@ int main(void)
                         objects.push_back(Object(11,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1069,7 +1057,7 @@ int main(void)
                         objects.push_back(Object(12,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1078,7 +1066,7 @@ int main(void)
                         objects.push_back(Object(13,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1087,7 +1075,7 @@ int main(void)
                         objects.push_back(Object(14,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1096,7 +1084,7 @@ int main(void)
                         objects.push_back(Object(15,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1105,7 +1093,7 @@ int main(void)
                         objects.push_back(Object(3,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1114,7 +1102,7 @@ int main(void)
                         objects.push_back(Object(4,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 1, 
+                                                 vec3(1), default_view, 1, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1123,7 +1111,7 @@ int main(void)
                         objects.push_back(Object(19,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 
+                                                 vec3(1), default_view, 20, 
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1132,7 +1120,7 @@ int main(void)
                         objects.push_back(Object(20,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 
+                                                 vec3(1), default_view, 20,
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1141,7 +1129,7 @@ int main(void)
                         objects.push_back(Object(21,
                                                  vec3(randCoord(), 0.0f, randCoord()),
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 
+                                                 vec3(1), default_view, 20,
                                                  randFloat() * 1.5f, false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1154,7 +1142,7 @@ int main(void)
                         objects.push_back(Object(32,
                                                  vec3(0.0f, 0.0f, 0.0f + i * 250.0f),
                                                  0.0f, 0.0f, 0.0f,
-                                                 vec3(1), 1, 20, 1.0f,
+                                                 vec3(1), default_view, 20, 1.0f,
                                                  false, 0));
                         selectedObject = objects.size() - 1;
                     }
@@ -1243,18 +1231,6 @@ int main(void)
             ImGui::Text("Location: (%.02f %.02f %.02f)", camera.Position.x, camera.Position.y, camera.Position.z);
             ImGui::Text("Orientation: (%.02f %.02f %.02f)", camera.Front.x, camera.Front.y, camera.Front.z);
             ImGui::Text("Level: %s | Next: %s", lvl.currentLevel.c_str(), lvl.nextLevel.c_str());
-
-            if(ImGui::Button("SPLINE!"))
-            {
-                fspline.init(camera.Zoom, 15.0f, 0.5f);
-                fspline.active = true;
-            }
-
-            if(ImGui::Button("SPLINE OUT!"))
-            {
-                fspline.init(camera.Zoom, 45.0f, 0.5f);
-                fspline.active = true;
-            }
 
             ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);
             ImGui::SliderFloat("Amount", &bobbingAmount, 0.0f, 0.2f);
@@ -1442,6 +1418,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         else
         {
             pauseNote = false;
+	    fspline.init(camera.Zoom, 45.0f, 0.5f);
+	    fspline.active = true;
         }
     }
 }
