@@ -3,13 +3,16 @@
 layout(location = 0) in vec3 vertPos;
 layout(location = 1) in vec3 vertNor;
 layout(location = 2) in vec2 vertTex;
+layout(location = 3) in vec3 vertTan;
+layout(location = 4) in vec3 vertBN;
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat4 LS;
 
 uniform vec3 lightDir;
-out vec3 lDir;
+
+out vec3 lightTS;
 
 out OUT_struct {
 	vec3 fPos;
@@ -21,6 +24,13 @@ out OUT_struct {
 
 void main() {
 
+    
+    mat3 TBN;
+    vec3 wN = (M*vec4(vertNor, 0.0)).xyz;
+    vec3 wT = (M*vec4(vertTan, 0.0)).xyz;
+    vec3 wBN = (M*vec4(vertBN, 0.0)).xyz;
+    TBN = transpose(mat3(wT, wBN, wN));
+    
   /* First model transforms */
   gl_Position = P * V * M * vec4(vertPos.xyz, 1.0);
 
@@ -34,5 +44,6 @@ void main() {
   out_struct.fPosLS = LS*vec4(out_struct.fPos, 1.0);
   /* a color that could be blended - or be shading */
   out_struct.vColor = vec3(max(dot(normalize(out_struct.fragNor), normalize(lightDir)), 0));
-  lDir = lightDir;
+  //out_struct.vColor = abs(normalize(out_struct.fragNor));
+  lightTS = TBN * lightDir;
 }

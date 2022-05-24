@@ -6,7 +6,7 @@ uniform sampler2D shadowDepth;
 uniform int normMapFlag;
 
 out vec4 Outcolor;
-in vec3 lDir;
+in vec3 lightTS;
 
 
 in OUT_struct {
@@ -50,11 +50,12 @@ void main() {
   vec3 normaladj = normal.xyz * 2.0 - vec3(1.0);
 
   //TODO replace first set with normal mapped result when ready
-  float dCoeff = max(0, dot(normalize(lDir), normaladj));
+  float dCoeff = max(0, dot(normalize(lightTS), normaladj));
   if (normMapFlag < 1)
     dCoeff =  BaseColor.x;
 
-  //Outcolor = amb*tColor + (1.0-Shade)*(BaseColor*tColor);
-  Outcolor = vec4(vec3(dCoeff), 1.0);
+  Outcolor = amb*tColor + (1.0-Shade)*(dCoeff*tColor);
+  //Outcolor = vec4(vec3(dCoeff), 1.0);
+  //Outcolor = vec4(in_struct.vColor, 1.0f);
 }
 
