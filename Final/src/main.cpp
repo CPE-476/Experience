@@ -61,6 +61,8 @@ bool drawNote = false;
 bool drawCollection = false;
 bool pauseNote = false;
 
+bool drawCollection = false;
+
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
@@ -113,10 +115,9 @@ struct FogSystem
 using namespace std;
 using namespace glm;
 
-// TODO(Alex): This probably shouldn't have to be global.
-FloatSpline fspline;
+void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *sounds);
 
-void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds);
+FloatSpline fspline;
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -198,10 +199,11 @@ int main(void)
     vector<Object> objects;
     vector<Light> lights;
     vector<Emitter> emitters;
-    vector<Sound*> sounds;
+    vector<Sound *> sounds;
     vector<Note> notes;
     vector<bool> discoveredNotes;
 
+    // Notes
     notes.push_back(Note("../resources/notes/aurelius1.png"));
     discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/testing/grass.jpg"));
@@ -225,18 +227,25 @@ int main(void)
     notes.push_back(Note("../resources/notes/aurelius1.png"));
     discoveredNotes.push_back(false);
 
-    /* Miniaudio */
+    // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
-
     Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
-    sounds.push_back(&walk); // sounds goes into process input and sound[0] is the walking sound
+
+    // DEBUG
+    sounds.push_back(&walk);
+    sounds.push_back(&whistle);
+    sounds.push_back(&rock);
+    sounds.push_back(&welcome);
+    sounds.push_back(&music);
+    sounds.push_back(&alert);
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
+    // Default value.
     skybox.init("../resources/skyboxes/sunsky/", false);
 
     Terrain terrain;
@@ -258,7 +267,8 @@ int main(void)
     Level lvl;
 
     Boundary bound;
-    bound.init(vec3(0.5f, 0.5f, 0.2f));
+    bound.init(vec3(1.0f, 1.0f, 1.0f));
+
 
     lvl.LoadLevel("../levels/desert.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
@@ -280,6 +290,8 @@ int main(void)
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showBoundaryEditor = false;
+    bool showNoteEditor = false;
+    bool showSoundEditor = false;
 
     bool snapToTerrain = true;
 
@@ -288,7 +300,8 @@ int main(void)
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
-    bool drawParticles = true;
+    bool drawParticles = false;
+
 
     char levelName[128] = "";
     char skyboxPath[128] = "";
@@ -300,21 +313,19 @@ int main(void)
     int selectedLight = 0;
     int selectedParticle = 0;
     int selectedNote = 0;
+    int selectedSound = 0;
 
     while (!glfwWindowShouldClose(window))
     {
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         {
-            whistle.setPitch((randFloat()*0.5 + 0.75));
+            whistle.setPitch(randFloat()*0.5 + 0.75);
             whistle.startSound();
         }
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
+	{
             whistle.reset();
-        
-        //beam.updateSound();
-        rock.updateSound();
-        welcome.updateSound();
-        //music.updateSound();
+	}
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -325,7 +336,7 @@ int main(void)
 
         // Input Resolution
         glfwPollEvents();
-        processInput(window, &objects, sounds);
+        processInput(window, &objects, &sounds);
         if (camera.Mode == WALK)
         {
             float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
@@ -333,7 +344,8 @@ int main(void)
             {
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain, &bound);
+                              &emitters, &fog, &skybox, &terrain, 
+			      &bound);
                 bound.counter = 157;
                 bound.active = true;
             }
@@ -717,6 +729,66 @@ int main(void)
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
                 ImGui::End();
             }
+
+            if (showNoteEditor)
+            {
+                ImGui::Begin("Note Editor");
+                for (int n = 0; n < notes.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if (ImGui::Button(buffer))
+                        selectedNote = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+                ImGui::Text("Note = %d.", selectedNote);
+
+                ImGui::SliderFloat("Scale", (float *)&notes[selectedNote].scl, 0.0f, 5.0f);
+                ImGui::SliderFloat2("Position", (float *)&notes[selectedNote].pos, -1.0f, 1.0f);
+
+                ImGui::End();
+            }
+
+	    if (showSoundEditor)
+	    {
+		ImGui::Begin("Sound Editor");
+                for (int n = 0; n < sounds.size(); ++n)
+                {
+                    char buffer[256];
+                    sprintf(buffer, "%d", n);
+                    if (ImGui::Button(buffer))
+                        selectedSound = n;
+                    ImGui::SameLine();
+                }
+                ImGui::NewLine();
+                ImGui::Text("%s\nSound = %d. Position = (%.02f %.02f %.02f)", sounds[selectedSound]->path.c_str(), selectedSound, sounds[selectedSound]->pos.x, sounds[selectedSound]->pos.y, sounds[selectedSound]->pos.z);
+
+		if(ImGui::Button("Play"))
+		{
+		    cout << "In play button\n";
+		    sounds[selectedSound]->startSound();
+		}
+		if(ImGui::Button("Pause"))
+		{
+		    sounds[selectedSound]->stopSound();
+		}
+		if(ImGui::Button("Reset"))
+		{
+		    sounds[selectedSound]->reset();
+		}
+
+                ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -128.0f, 128.0f);
+                ImGui::SliderFloat("Volume", (float *)&sounds[selectedSound]->volume, 0.0f, 1.0f);
+                ImGui::SliderFloat("Rolloff", (float *)&sounds[selectedSound]->rolloff, 0.0f, 100.0f);
+                ImGui::SliderFloat("Min", (float *)&sounds[selectedSound]->minDistance, 0.0f, 100.0f);
+                ImGui::SliderFloat("Max", (float *)&sounds[selectedSound]->maxDistance, 0.0f, 100.0f);
+		ImGui::Checkbox("Looping?", &sounds[selectedSound]->isLooping);
+		ImGui::Checkbox("Music?", &sounds[selectedSound]->isMusic);
+		ImGui::Checkbox("Has Played?", &sounds[selectedSound]->hasPlayed);
+
+		ImGui::End();
+	    }
 
             if (showObjectEditor)
             {
@@ -1268,7 +1340,7 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.SaveLevel(str, &objects, &lights, &dirLight, 
+                lvl.SaveLevel(str, &objects, &lights, &dirLight,
                     &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level saved: " << str << "\n";
             }
@@ -1278,7 +1350,8 @@ int main(void)
                 string str = "../levels/";
                 str.append(levelName);
                 lvl.LoadLevel(str, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain, &bound);
+                              &emitters, &fog, &skybox, &terrain, 
+			      &bound);
                 cout << "Level loaded: " << str << "\n";
             }
             ImGui::SameLine();
@@ -1292,7 +1365,8 @@ int main(void)
             if (ImGui::Button("Next"))
             {
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
-                              &emitters, &fog, &skybox, &terrain, &bound);
+                              &emitters, &fog, &skybox, &terrain, 
+			      &bound);
             }
 
             // Editors
@@ -1312,6 +1386,8 @@ int main(void)
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Fog", &showFogEditor);
+
+            ImGui::Checkbox("Sound", &showSoundEditor);
 
             ImGui::NewLine();
 
@@ -1395,10 +1471,14 @@ bool Colliding(vector<Object> *objects)
     return false;
 }
 
-void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> sounds)
+void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *sounds)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+	drawCollection = true;
 
     if(!drawNote)
     {
@@ -1440,8 +1520,8 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
         {
-            if(!ma_sound_is_playing(&sounds[0]->sound))
-                ma_sound_start(&sounds[0]->sound);
+            if(!ma_sound_is_playing(&sounds->at(0)->sound))
+                ma_sound_start(&sounds->at(0)->sound);
             bobbingCounter++;
         }
 
@@ -1450,7 +1530,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound*> so
             glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE && 
             glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
         {
-            ma_sound_stop(&sounds[0]->sound);
+            ma_sound_stop(&sounds->at(0)->sound);
         }
     }
 

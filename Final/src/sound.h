@@ -20,10 +20,12 @@ struct Sound {
     vec3 pos;
     float volume, rolloff, minDistance, maxDistance;
     bool isLooping, isDir, isMusic, hasPlayed;
-    const char* path;
+    string path;
 
-    Sound(string path, vec3 pos, float volume, float rolloff, float minDistance, float maxDistance, bool isLooping, bool isMusic){
-        this->path = path.c_str();
+    Sound(string path, vec3 pos, float volume, float rolloff, float minDistance, 
+            float maxDistance, bool isLooping, bool isMusic)
+    {
+        this->path = path;
         this->pos = pos;
         this->volume = volume;
         this->rolloff = rolloff;
@@ -36,8 +38,9 @@ struct Sound {
         setupSound();
     }
 
-    Sound(string path, float volume, bool isLooping){
-        this->path = path.c_str();
+    Sound(string path, float volume, bool isLooping)
+    {
+        this->path = path;
         this->pos = vec3(0);
         this->volume = volume;
         this->rolloff = 1.0f;
@@ -49,7 +52,8 @@ struct Sound {
         setupSound();
     }
 
-    void setupSound(){
+    void setupSound()
+    {
         engineConfig = ma_engine_config_init();
         engineConfig.listenerCount = 1;
         if (ma_engine_init(&engineConfig, &engine) != MA_SUCCESS)
@@ -62,7 +66,7 @@ struct Sound {
 
         ma_engine_set_volume(&engine, volume);
 
-        ma_sound_init_from_file(&engine, path, MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC, NULL, NULL, &sound);
+        ma_sound_init_from_file(&engine, path.c_str(), MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC, NULL, NULL, &sound);
 
         if(!isDir)
             ma_sound_set_spatialization_enabled(&sound, false);
@@ -85,8 +89,8 @@ struct Sound {
         ma_sound_set_looping(&sound, isLooping);
     }
 
-    void updateSound(){
-
+    void updateSound()
+    {
         startSound();
 
         ma_sound_set_position(&sound, pos.x, pos.y, pos.z);
@@ -99,23 +103,32 @@ struct Sound {
         }
     }
 
-    void startSound(){
+    void startSound()
+    {
         if(!ma_sound_is_playing(&sound) && hasPlayed == false)
+        {
+            cout << "Here\n";
             ma_sound_start(&sound);
+        }
 
+        /*
         if(!isLooping)
             hasPlayed = true;
+        */
     }
 
-    void stopSound(){
+    void stopSound()
+    {
         ma_sound_stop(&sound);
     }
 
-    void reset(){
+    void reset()
+    {
         hasPlayed = false;
     }
 
-    void setPitch(float pitch){
+    void setPitch(float pitch)
+    {
         ma_sound_set_pitch(&sound, pitch);
     }
 };
