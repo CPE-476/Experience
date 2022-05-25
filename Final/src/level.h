@@ -26,6 +26,7 @@
 #include "skybox.h"
 #include "terrain.h"
 #include "boundary.h"
+#include "sound.h"
 
 using namespace std;
 using namespace glm;
