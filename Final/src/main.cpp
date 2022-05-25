@@ -1245,15 +1245,31 @@ int main(void)
                 ImGui::SameLine();
                 if (ImGui::Button("Street"))
                 {
-                    for (int i = 0; i < 3; i++)
-                    {
+                    float road_scale = 2.0f;
+                    float lamp_scale = 0.5f;
+                    for (int i = 0; i < 10; i++){
                         objects.push_back(Object(32,
-                                                 vec3(0.0f, 0.0f, 0.0f + i * 250.0f),
-                                                 0.0f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20, 1.0f,
-                                                 false, false, 0));
+                                                vec3(0,0,-128 + 15.8f * i),
+                                                -1.5708f, 0.0f, 0.0f,
+                                                vec3(1), road_scale * default_view, m.findbyId(32).collision_radius * road_scale, 
+                                                road_scale, false, false, 0));
                         selectedObject = objects.size() - 1;
                     }
+
+                    for (int i = 0; i < 10; i++){
+                        objects.push_back(Object(34,
+                                                vec3(2.0f,2.5f,-128 + 12 * i),
+                                                0.0f, 3.2f, 0.0f,
+                                                vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
+                                                lamp_scale, false, false, 0));
+                        objects.push_back(Object(34,
+                                                vec3(-2.0f,2.5f,-128 + 12 * i),
+                                                0.0f, 0.0f, 0.0f,
+                                                vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
+                                                lamp_scale, false, false, 0));
+                        selectedObject = objects.size() - 2;
+                    }
+
                 }
                 ImGui::End();
             }
