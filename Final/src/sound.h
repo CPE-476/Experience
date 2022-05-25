@@ -107,7 +107,6 @@ struct Sound {
     {
         if(!ma_sound_is_playing(&sound) && hasPlayed == false)
         {
-            cout << "Here\n";
             ma_sound_start(&sound);
         }
 

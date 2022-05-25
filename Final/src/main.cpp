@@ -202,27 +202,11 @@ int main(void)
     vector<bool> discoveredNotes;
 
     // Notes
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
+    notes.push_back(Note("../resources/notes/note1.png"));
+    discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/note2.png"));
     discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/testing/grass.jpg"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
-    discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/aurelius1.png"));
     discoveredNotes.push_back(false);
 
     // Sounds
@@ -300,7 +284,6 @@ int main(void)
     bool drawPointLights = false;
     bool drawParticles = false;
 
-
     char levelName[128] = "";
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
@@ -359,13 +342,11 @@ int main(void)
         {
             camera.Zoom = fspline.getPosition();
         }
-
         if(sunspline.active)
         {
             dirLight.direction = sunspline.getPosition();
             cout << to_string(dirLight.direction) << "\n";
-        }
-        
+        } 
         if(ambspline.active)
         {
             dirLight.ambient = ambspline.getPosition();
@@ -1425,7 +1406,7 @@ int main(void)
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Fog", &showFogEditor);
-
+	    ImGui::SameLine();
             ImGui::Checkbox("Sound", &showSoundEditor);
 
             ImGui::NewLine();

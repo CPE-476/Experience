@@ -8,5 +8,10 @@ uniform float amount;
 
 void main()
 {
-    outColor = vec4(vec3(texture(noteTexture, texCoords)), amount);
+    vec4 col = texture(noteTexture, texCoords);
+    if(col.a < 0.001)
+    {
+        discard;
+    }
+    outColor = vec4(col.rgb, amount);
 }

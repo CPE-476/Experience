@@ -13,12 +13,6 @@
 using namespace std;
 using namespace glm;
 
-/* TODO (Alex):
- * Animal Dialogue
- *  Spline
- *  Sound
- */
-
 struct Note
 {
     unsigned int VBO, VAO, EBO;
@@ -26,10 +20,10 @@ struct Note
 
     float vertices[32] = {
          // positions        // texture coords
-         0.5f,  0.5f, 0.0f,  1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f  // top left
+         0.9f,  0.225f, 0.0f,  1.0f, 1.0f, // top right
+         0.9f, -0.45f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.9f, -0.45f, 0.0f,   0.0f, 0.0f, // bottom left
+        -0.9f,  0.225f, 0.0f,  0.0f, 1.0f  // top left
     };
     unsigned int indices[6] = {
         0, 2, 1, // first triangle

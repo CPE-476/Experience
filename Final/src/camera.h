@@ -146,4 +146,5 @@ public:
         Up = normalize(cross(Right, Front));
     }
 };
+
 #endif
