@@ -34,10 +34,12 @@ public:
     bool     disappearing;
     int      noteNum;
 
-    int shader_type;
+    int      sound;
+
+    int      shader_type;
 
     Object (int id, vec3 pos, float agl_x, float agl_y, float agl_z, 
-            vec3 vel, float rad_v, float rad_c, float scl, bool inter, bool disap, int noteN)
+            vec3 vel, float rad_v, float rad_c, float scl, bool inter, bool disap, int noteN, int snd)
     {
         this->id = id;
         this->position = pos;
@@ -53,6 +55,7 @@ public:
         this->interactible = inter;
         this->disappearing = disap;
         this->noteNum = noteN;
+        this->sound = snd;
     }
 
     void UpdateModel()

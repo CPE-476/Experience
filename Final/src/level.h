@@ -103,6 +103,7 @@ struct Level
                         bool inter;
                         bool disap;
                         int noteN;
+                        int snd;
 
                         // get the id and other data
                         id = (int)atof(conPrt[0]);
@@ -117,7 +118,9 @@ struct Level
                         inter = (bool)atoi(conPrt[13]);
                         disap = (bool)atoi(conPrt[14]);
                         noteN = atoi(conPrt[15]);
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, disap, noteN));
+                        snd = atoi(conPrt[16]);
+
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, disap, noteN, snd));
                     }
                     else if (Type == "LGT")
                     {
@@ -212,17 +215,19 @@ struct Level
                         cout << "Terrain loaded from file\n";
                         string path;
                         float y_scale;
+                        float y_shift;
                         vec3 bottom;
                         vec3 top;
                         vec3 dirt;
 
                         path = conPrt[0];
                         y_scale = (float)atof(conPrt[1]);
-                        bottom = vec3((float)atof(conPrt[2]), (float)atof(conPrt[3]), (float)atof(conPrt[4]));
-                        top = vec3((float)atof(conPrt[5]), (float)atof(conPrt[6]), (float)atof(conPrt[7]));
-                        dirt = vec3((float)atof(conPrt[8]), (float)atof(conPrt[9]), (float)atof(conPrt[10]));
+                        y_shift = (float)atof(conPrt[2]);
+                        bottom = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
+                        top = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
+                        dirt = vec3((float)atof(conPrt[9]), (float)atof(conPrt[10]), (float)atof(conPrt[11]));
                         
-                        terrain->init(path, y_scale, bottom, top, dirt);
+                        terrain->init(path, y_scale, y_shift, bottom, top, dirt);
                     }
                     else if (Type == "BND")
                     {
@@ -294,7 +299,7 @@ struct Level
         fp << "\n";
 
 	// Save Object Data
-	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN>\n";
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN sound>\n";
 	for(int i = 0; i < objects->size(); ++i)
 	{
 	    fp << "OBJ ";
@@ -314,6 +319,7 @@ struct Level
 	    fp << objects->at(i).interactible << " ";
 	    fp << objects->at(i).disappearing << " ";
 	    fp << objects->at(i).noteNum << " ";
+	    fp << objects->at(i).sound << " ";
 	    fp << "\n";
 	}
 
@@ -399,10 +405,11 @@ struct Level
 	fp << fog->color.a;
 	fp << "\n";
 
-	fp << "\nCOM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
+	fp << "\nCOM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>\n";
 	fp << "TER ";
 	fp << terrain->path << " ";
 	fp << terrain->yScale << " ";
+	fp << terrain->yShift << " ";
 	fp << terrain->bottom.x << " ";
 	fp << terrain->bottom.y << " ";
 	fp << terrain->bottom.z << " ";

@@ -248,7 +248,7 @@ int main(void)
 
     Terrain terrain;
     // Default value.
-    terrain.init("../resources/heightmaps/lake.jpeg", 16.0f,
+    terrain.init("../resources/heightmaps/lake.jpeg", 16.0f, 16.0f,
                  vec3(0.676, 0.691, 0.484),
                  vec3(0.459, 0.525, 0.275),
                  vec3(0.25, 0.129, 0.000));
@@ -504,18 +504,17 @@ int main(void)
                 if(objects[interactingObject].disappearing)
                 {
                     objects.erase(objects.begin() + interactingObject);
-                    // TODO(Alex): PLAY NOTE PICKUP SOUND
+		    sounds[1]->startSound();
                 }
                 else
                 {
                     fspline.init(camera.Zoom, 20.0f, 0.5f);
                     fspline.active = true;
-                    // TODO(Alex): PLAY ANIMAL DIALOGUE SOUND
+		    sounds[objects[interactingObject].sound]->startSound();
                 }
             }
             checkInteraction = false;
         }
-
 
         if(drawNote)
         {
@@ -706,11 +705,12 @@ int main(void)
                 ImGui::Begin("Terrain Editor");
 
                 ImGui::InputText("Name", terrainPath, IM_ARRAYSIZE(terrainPath));
-                ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 100.0f);
+                ImGui::SliderFloat("Y Scale", &terrain.yScale, 0.0f, 200.0f);
+                ImGui::SliderFloat("Y Shift", &terrain.yShift, 0.0f, 200.0f);
 
                 if (ImGui::Button("Update"))
                 {
-                    terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale,
+                    terrain.init("../resources/heightmaps/" + string(terrainPath), terrain.yScale, terrain.yShift,
                             terrain.bottom, terrain.top, terrain.dirt);
                 }
 
@@ -836,7 +836,9 @@ int main(void)
                 }
 
                 ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
+		ImGui::SameLine();
                 ImGui::Checkbox("Disappearing?", &objects[selectedObject].disappearing);
+		ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 20);
 
                 ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
 
@@ -868,7 +870,7 @@ int main(void)
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
                                              vec3(1), default_view * default_scale, cr * default_scale, 
-                                             default_scale, false, false, 0));
+                                             default_scale, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
 
@@ -882,7 +884,7 @@ int main(void)
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
                                              vec3(1), default_view, cr * default_scale, 
-                                             default_scale, false, false, 0));
+                                             default_scale, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
                 if (ImGui::Button("Forest"))
@@ -904,7 +906,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(0).collision_radius * scale,
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 70; i++) // Tall Standard Tree
@@ -920,7 +922,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(1).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 20; i++) // Birch Tree
@@ -936,7 +938,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(2).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 30; i++) // Dead Tree
@@ -952,7 +954,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(3).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 20; i++) // Stump
@@ -968,7 +970,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(4).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 30; i++) // Rock 1
@@ -984,7 +986,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(5).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 20; i++) // Rock 2
@@ -1000,7 +1002,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(6).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 30; i++) // Rock 2
@@ -1016,7 +1018,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(7).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 40; i++) // Square Rock
@@ -1032,7 +1034,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(8).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 3; i++) // Campfire
@@ -1049,7 +1051,7 @@ int main(void)
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(16).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 3; i++) // Snail
@@ -1065,7 +1067,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(17).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 20; i++) // Fern
@@ -1081,7 +1083,7 @@ int main(void)
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 4000; i++) // Grass
@@ -1115,7 +1117,7 @@ int main(void)
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
                                                      vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
-                                                     grass_scale, false, false, 0));
+                                                     grass_scale, false, false, 0, 1));
                             selectedObject = objects.size() - 1;
                         }
                     }
@@ -1140,7 +1142,7 @@ int main(void)
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 20; i++) // Formation 1
@@ -1157,7 +1159,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++) // Formation 2
@@ -1174,7 +1176,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 
@@ -1192,7 +1194,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++) // Formation 4
@@ -1209,7 +1211,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++) // Formation 5
@@ -1226,7 +1228,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++) // Formation 6
@@ -1243,7 +1245,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
                     for (int i = 0; i < 10; i++) // Formation 7
@@ -1260,7 +1262,7 @@ int main(void)
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(18).collision_radius * scale, 
-                                                 scale, false, false, 0));
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 
@@ -1322,7 +1324,7 @@ int main(void)
                                                 vec3(0,-10.9f,-128 + 15.8f * i),
                                                 -1.5708f, 0.0f, 0.0f,
                                                 vec3(1), road_scale * default_view, m.findbyId(32).collision_radius * road_scale, 
-                                                road_scale, false, false, 0));
+                                                road_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 
@@ -1331,12 +1333,12 @@ int main(void)
                                                 vec3(3.5f,-7.4f,-128 + 7.9f * i),
                                                 0.0f, 3.2f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
-                                                lamp_scale, false, false, 0));
+                                                lamp_scale, false, false, 0, 1));
                         objects.push_back(Object(34,
                                                 vec3(-3.5f,-7.4f,-128 + 7.9f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
-                                                lamp_scale, false, false, 0));
+                                                lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }
 
@@ -1345,12 +1347,12 @@ int main(void)
                                                 vec3(5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), road_scale, m.findbyId(35).collision_radius, 
-                                                1.0f, false, false, 0));
+                                                1.0f, false, false, 0, 1));
                         objects.push_back(Object(35,
                                                 vec3(-5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), default_view, m.findbyId(35).collision_radius, 
-                                                1.0f, false, false, 0));
+                                                1.0f, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }
 
@@ -1359,7 +1361,7 @@ int main(void)
                                                 vec3(3.5f,-8.0f,-124 + 63.2f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(36).collision_radius * lamp_scale, 
-                                                lamp_scale, false, false, 0));
+                                                lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 

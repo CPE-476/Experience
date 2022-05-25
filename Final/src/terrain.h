@@ -20,7 +20,8 @@ using namespace glm;
 
 struct Terrain
 {
-    float yScale = 16.0f;  // Desired Size
+    float yScale = 16.0f;  // Desired Scale
+    float yShift = 16.0f;  // Amount of Shift downwards.
     vec3 bottom;
     vec3 top;
     vec3 dirt;
@@ -68,44 +69,7 @@ struct Terrain
         return fxz;
     }
 
-/*
-    // Takes an x and z value in world space.
-    // Uses Barycentric Coordinates to return the height at a point.
-    // Note: Broken for some reason.
-    float heightAt(float x, float z)
-    {
-        float lam1, lam2, lam3;
-        vec3 p1, p2, p3;
-        int leftSide = (int)x + height / 2;
-        int bottomSide = (int)z + width / 2;
-        float xamt = (x - (int)x);
-        float zamt = (z - (int)z);
-        if(zamt - xamt < 0)  // On the right triangle.
-        {
-            p1 = vec3(leftSide, pointsData[leftSide][bottomSide], bottomSide);
-            p2 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide], bottomSide);
-            p3 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide+1], bottomSide + 1);
-        }
-        else // On the left triangle.
-        {
-            p1 = vec3(leftSide, pointsData[leftSide][bottomSide], bottomSide);
-            p2 = vec3(leftSide, pointsData[leftSide][bottomSide+1], bottomSide + 1);
-            p3 = vec3(leftSide + 1, pointsData[leftSide+1][bottomSide+1], bottomSide + 1); 
-        }
-
-        lam1 = ((p2.z - p3.z) * ((x + height / 2.0f) - p3.x) + (p3.x - p2.x) * ((z + width / 2.0f) - p3.z)) / ((p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z));
-        lam2 = ((p3.z - p1.z) * ((x + height / 2.0f) - p3.x) + (p1.x - p3.x) * ((z + width / 2.0f) - p3.z)) / ((p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z));
-        lam3 = 1 - lam1 - lam2;
-        //cout << lam1 << "=" << lam2 << "=" << lam3 << "\n";
-
-        float ret = p1.y * lam1 + p2.y * lam2 + p3.y * lam3;
-        //cout << ret << "\n";
-
-        return ret;
-    }
-*/
-
-    void init(string p, float y_scale, vec3 b, vec3 t, vec3 d)
+    void init(string p, float y_scale, float y_shift, vec3 b, vec3 t, vec3 d)
     {
         this->bottom = b;
         this->top = t;
@@ -124,6 +88,7 @@ struct Terrain
 
         this->yScale = y_scale;
         float yScaleNormalized = yScale / height;
+        this->yShift = y_shift;
 
         this->widthExtent = width / 2;
         this->heightExtent = height / 2;
@@ -135,7 +100,7 @@ struct Terrain
             {
                 unsigned char* texel = data + (j + width * i) * nrChannels;
                 unsigned char y = texel[0];
-                float vy = (y * yScaleNormalized - yScale / 2);
+                float vy = (y * yScaleNormalized - yShift);
                 row.push_back(vy);
             }
             pointsData.push_back(row);
