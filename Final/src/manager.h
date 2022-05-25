@@ -114,6 +114,9 @@ struct Model_Container
 
     // street
     Model road;
+    Model street_lamp;
+    Model stop;
+    Model powerline;
 };
 
 struct Manager
@@ -176,6 +179,9 @@ struct Manager
         this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
         this->models.road.init("../resources/models/environment/road/road.fbx");
+        this->models.street_lamp.init("../resources/models/environment/street_light/single_street_light.obj");
+        this->models.powerline.init("../resources/models/environment/powerline/wooden_telephone_pole.obj");
+        this->models.stop.init("../resources/models/environment/stop/traffic_sign_stop.obj");
         // this->models.bear.init("../resources/models/animals/bear.fbx");
         // this->models.boar.init("../resources/models/animals/boar.fbx");
         // this->models.deer_1.init("../resources/models/animals/deer_1.fbx");
@@ -228,8 +234,11 @@ struct Manager
         Lookup[29] = {29, &this->models.grass_7, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
         Lookup[30] = {30, &this->models.grass_8, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
         Lookup[31] = {31, &this->models.grass_9, &this->shaders.textureShader, TEXTURE, 0.0f, 0.05f};
-        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, MATERIAL, 0.0f, 1.0f};
+        Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         Lookup[33] = {33, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[34] = {34, &this->models.street_lamp, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[35] = {35, &this->models.powerline, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[36] = {36, &this->models.stop, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
@@ -271,7 +280,7 @@ struct Manager
             {
                 if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
                 {
-		    drawnObjects++;
+		            drawnObjects++;
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }
