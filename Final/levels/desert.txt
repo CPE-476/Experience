@@ -125,7 +125,7 @@ COM Fog: <FOG max min col.x col.y col.z col.a>
 FOG 293.125 147.619 1 0.737 0.526 1
 
 COM Terrain: <TER path yScale amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
-TER ../resources/heightmaps/dunes.png 16 0.717 0.735 0.295 1 1 0.558 0.814 0.535 0.341 
+TER ../resources/heightmaps/dunes2.png 16 0.717 0.735 0.295 1 1 0.558 0.814 0.535 0.341 
 
 COM Skybox: <SKY dir>
 SKY ../resources/skyboxes/sunsky/
