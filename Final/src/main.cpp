@@ -44,7 +44,7 @@ Camera camera(vec3(25.0f, 25.0f, 25.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_WIDTH / 2.0f;
 bool  firstMouse = true;
-char levelName[128] = "";
+char  levelName[128] = "";
 
 float        deltaTime = 0.0f;
 float        lastFrame = 0.0f;
@@ -57,11 +57,12 @@ float bobbingAmount = 0.015;
 float road_width = 3.0f;
 
 // For Selector.
-vec3 selectorRay = vec3(0.0f);
-bool checkInteraction = false;
-bool drawNote = false;
-bool drawCollection = false;
-bool pauseNote = false;
+vec3  selectorRay = vec3(0.0f);
+bool  checkInteraction = false;
+bool  drawNote = false;
+bool  drawCollection = false;
+float collectionScroll = 0.0f;
+bool  pauseNote = false;
 
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
@@ -201,20 +202,53 @@ int main(void)
     // Manager Object. Loads Shaders, Models.
     Manager m;
 
-    vector<Object> objects;
-    vector<Light> lights;
+    vector<Object>  objects;
+    vector<Light>   lights;
     vector<Emitter> emitters;
     vector<Sound *> sounds;
-    vector<Note> notes;
-    vector<bool> discoveredNotes;
+    vector<Note>    notes;
+    vector<bool>    discoveredNotes;
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
-    discoveredNotes.push_back(false);
+    discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note2.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/note3.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/note4.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/note5.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/testing/grass.jpg"));
+    notes.push_back(Note("../resources/notes/note6.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/note7.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/note8.png"));
     discoveredNotes.push_back(false);
+    notes.push_back(Note("../resources/notes/note9.png"));
+    discoveredNotes.push_back(true);
+
+    notes.push_back(Note("../resources/notes/box1.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box2.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box3.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box4.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box5.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box6.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box7.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box8.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box9.png"));
+    discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box10.png"));
+    discoveredNotes.push_back(true);
 
     // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
@@ -256,10 +290,9 @@ int main(void)
     Level lvl;
 
     Boundary bound;
-    bound.init(vec3(1.0f, 1.0f, 1.0f));
+    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f);
 
-
-    lvl.LoadLevel("../levels/desert.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
@@ -308,9 +341,9 @@ int main(void)
             whistle.startSound();
         }
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
-	{
+        {
             whistle.reset();
-	}
+        }
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -330,7 +363,7 @@ int main(void)
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
-			      &bound);
+                              &bound);
                 memset(levelName, 0, sizeof(levelName));
                 strcpy(levelName, lvl.nextLevel.c_str());
                 bound.counter = 157;
@@ -489,13 +522,13 @@ int main(void)
                 if(objects[interactingObject].disappearing)
                 {
                     objects.erase(objects.begin() + interactingObject);
-		    sounds[1]->startSound();
+                    sounds[1]->startSound();
                 }
                 else
                 {
                     fspline.init(camera.Zoom, 20.0f, 0.5f);
                     fspline.active = true;
-		    sounds[objects[interactingObject].sound]->startSound();
+                    sounds[objects[interactingObject].sound]->startSound();
                 }
             }
             checkInteraction = false;
@@ -513,8 +546,8 @@ int main(void)
             int yInd = 0;
             for(int i = 0; i < notes.size(); ++i)
             {
-                xInd = i % 4;
-                yInd = i / 4;
+                xInd = i / 4;
+                yInd = i % 4;
                 if(discoveredNotes[i]) // Draw only discovered notes.
                 {
                     notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
@@ -702,7 +735,7 @@ int main(void)
                 ImGui::ColorEdit3("Bottom", (float *)&terrain.bottom);
                 ImGui::ColorEdit3("Top", (float *)&terrain.top);
                 ImGui::ColorEdit3("Dirt", (float *)&terrain.dirt);
-                ImGui::SliderFloat("Water Level", (float *)&water.height, -6.0f, 6.0f);
+                ImGui::SliderFloat("Water Level", (float *)&water.height, -40.0f, 5.0f);
                 ImGui::End();
             }
 
@@ -710,6 +743,7 @@ int main(void)
             {
                 ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
+		ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
                 ImGui::End();
             }
 
@@ -733,9 +767,9 @@ int main(void)
                 ImGui::End();
             }
 
-	    if (showSoundEditor)
-	    {
-		ImGui::Begin("Sound Editor");
+            if (showSoundEditor)
+            {
+                ImGui::Begin("Sound Editor");
                 for (int n = 0; n < sounds.size(); ++n)
                 {
                     char buffer[256];
@@ -747,31 +781,31 @@ int main(void)
                 ImGui::NewLine();
                 ImGui::Text("%s\nSound = %d. Position = (%.02f %.02f %.02f)", sounds[selectedSound]->path.c_str(), selectedSound, sounds[selectedSound]->pos.x, sounds[selectedSound]->pos.y, sounds[selectedSound]->pos.z);
 
-		if(ImGui::Button("Play"))
-		{
-		    cout << "In play button\n";
-		    sounds[selectedSound]->startSound();
-		}
-		if(ImGui::Button("Pause"))
-		{
-		    sounds[selectedSound]->stopSound();
-		}
-		if(ImGui::Button("Reset"))
-		{
-		    sounds[selectedSound]->reset();
-		}
+                if(ImGui::Button("Play"))
+                {
+                    cout << "In play button\n";
+                    sounds[selectedSound]->startSound();
+                }
+                if(ImGui::Button("Pause"))
+                {
+                    sounds[selectedSound]->stopSound();
+                }
+                if(ImGui::Button("Reset"))
+                {
+                    sounds[selectedSound]->reset();
+                }
 
                 ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -128.0f, 128.0f);
                 ImGui::SliderFloat("Volume", (float *)&sounds[selectedSound]->volume, 0.0f, 1.0f);
                 ImGui::SliderFloat("Rolloff", (float *)&sounds[selectedSound]->rolloff, 0.0f, 100.0f);
                 ImGui::SliderFloat("Min", (float *)&sounds[selectedSound]->minDistance, 0.0f, 100.0f);
                 ImGui::SliderFloat("Max", (float *)&sounds[selectedSound]->maxDistance, 0.0f, 100.0f);
-		ImGui::Checkbox("Looping?", &sounds[selectedSound]->isLooping);
-		ImGui::Checkbox("Music?", &sounds[selectedSound]->isMusic);
-		ImGui::Checkbox("Has Played?", &sounds[selectedSound]->hasPlayed);
+                ImGui::Checkbox("Looping?", &sounds[selectedSound]->isLooping);
+                ImGui::Checkbox("Music?", &sounds[selectedSound]->isMusic);
+                ImGui::Checkbox("Has Played?", &sounds[selectedSound]->hasPlayed);
 
-		ImGui::End();
-	    }
+                ImGui::End();
+            }
 
             if (showObjectEditor)
             {
@@ -821,9 +855,9 @@ int main(void)
                 }
 
                 ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
-		ImGui::SameLine();
+                ImGui::SameLine();
                 ImGui::Checkbox("Disappearing?", &objects[selectedObject].disappearing);
-		ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 20);
+                ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 20);
 
                 ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
 
@@ -882,13 +916,14 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         float scale = randRange(3.5f, 4.5f);
+                        float rotY = randRange(0.0f, 6.4f);
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(0).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
                         
                         objects.push_back(Object(0,
                                                  pos,
-                                                 -1.6f, 0.0f, 0.0f,
+                                                 -1.6f, 0.0f, rotY,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(0).collision_radius * scale,
                                                  scale, false, false, 0, 1));
@@ -926,7 +961,7 @@ int main(void)
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 30; i++) // Dead Tree
+                    /* for (int i = 0; i < 30; i++) // Dead Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
@@ -941,7 +976,7 @@ int main(void)
                                                  vec3(1), scale * default_view, m.findbyId(3).collision_radius * scale, 
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
-                    }
+                    }*/
                     for (int i = 0; i < 20; i++) // Stump
                     {
                         float pos_x = randCoord();
@@ -1442,7 +1477,7 @@ int main(void)
                 str.append(levelName);
                 lvl.LoadLevel(str, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
-			      &bound);
+                              &bound);
                 cout << "Level loaded: " << str << "\n";
             }
             ImGui::SameLine();
@@ -1457,7 +1492,7 @@ int main(void)
             {
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
-			      &bound);
+                              &bound);
             }
 
             // Editors
@@ -1477,7 +1512,7 @@ int main(void)
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Fog", &showFogEditor);
-	    ImGui::SameLine();
+            ImGui::SameLine();
             ImGui::Checkbox("Sound", &showSoundEditor);
 
             ImGui::NewLine();
@@ -1569,7 +1604,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
 
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
-	drawCollection = true;
+        drawCollection = true;
 
     if(!drawNote)
     {
@@ -1687,14 +1722,12 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
     {
-        if(drawCollection)
-        {
-            drawCollection = false;
-        }
-        else
-        {
-            drawCollection = true;
-        }
+        drawCollection = true;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+    {
+        drawCollection = false;
     }
 
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
@@ -1770,7 +1803,15 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    if (EditorMode == MOVEMENT)
+    if(drawCollection)
+    {
+        collectionScroll -= (float)yoffset / 3.0f;
+        if(collectionScroll < 0.0f)
+            collectionScroll = 0.0f;
+        if(collectionScroll > 4.0f)
+            collectionScroll = 4.0f;
+    }
+    else
     {
         camera.ProcessMouseScroll(static_cast<float>(yoffset));
     }
