@@ -263,6 +263,7 @@ int main(void)
     bool showLightEditor = false;
     bool showDirLightEditor = false;
     bool showFogEditor = false;
+    bool showShadowEditor = false;
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showObjectEditor = false;
@@ -386,7 +387,7 @@ int main(void)
         m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         m.shaders.depthShader.setBool("isT", false);
 
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glViewport(0, 0, SHADOW_WIDTH*2, SHADOW_HEIGHT*2);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
             // glActiveTexture(GL_TEXTURE0);
@@ -405,7 +406,7 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // reset viewport
-        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        glViewport(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m.shaders.shadowShader.bind();
@@ -417,7 +418,7 @@ int main(void)
         m.shaders.shadowShader.setVec3("viewPos", camera.Position);
         m.shaders.shadowShader.setVec3("lightPos", lightPos);
         m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        m.shaders.shadowShader.setBool("isT", true);
+        m.shaders.shadowShader.setBool("isT", false);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, depthMap);
         m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, &dirLight, &fog);
@@ -703,6 +704,18 @@ int main(void)
                 ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
                 ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::ColorEdit3("Color", (float *)&fog.color);
+                ImGui::End();
+            }
+
+            if (showShadowEditor)
+            {
+                ImGui::Begin("Shadow Editor");
+
+                ImGui::SliderFloat("x", (float *)&lightPos.x, -10.0f, 200.0f);
+                ImGui::SliderFloat("y", (float *)&lightPos.y, -10.0f, 200.0f);
+                ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
+                ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
+                ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::End();
             }
 
@@ -1222,6 +1235,8 @@ int main(void)
             ImGui::Checkbox("Terrain", &showTerrainEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
+            ImGui::SameLine();
+            ImGui::Checkbox("Shadow", &showShadowEditor);
             ImGui::SameLine();
 
             ImGui::NewLine();
