@@ -229,4 +229,4 @@ COM Skybox: <SKY dir>
 SKY ../resources/skyboxes/nightsky/
 
 COM Boundary: <BND col.r, col.g, col.b>
-BND 0.965686 0.681661 0.321895 27.193 0 0 
+BND 0.965686 0.681661 0.321895 27.193 128 8.0

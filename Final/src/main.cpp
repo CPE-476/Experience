@@ -293,7 +293,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
-    lvl.LoadLevel("../levels/desert.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
@@ -322,7 +322,7 @@ int main(void)
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
     bool drawPointLights = false;
-    bool drawParticles = false;
+    bool drawParticles = true;
 
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
@@ -375,6 +375,12 @@ int main(void)
         if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE)
         {
             forestMusic1.reset();
+        }
+        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+        {
+            desertMusic.stopSound();
+            forestMusic1.stopSound();
+            streetMusic.stopSound();
         }
 
         float currentFrame = static_cast<float>(glfwGetTime());
