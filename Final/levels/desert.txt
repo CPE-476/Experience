@@ -191,4 +191,4 @@ COM Skybox: <SKY dir>
 SKY ../resources/skyboxes/sunsky/
 
 COM Boundary: <BND col.r, col.g, col.b>
-BND 0.965686 0.681661 0.321895 
+BND 0.965686 0.681661 0.321895 -8.772 

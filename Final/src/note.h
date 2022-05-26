@@ -105,7 +105,7 @@ struct Note
             shader.setFloat("amount", 1.0f);
             mat4 transform = mat4(1.0f);
             transform = scale(transform, vec3(0.5));
-            transform = translate(transform, vec3((float)xIndex - 1.5, 1.5 - (float)yIndex, 0.0f));
+            transform = translate(transform, vec3(collectionScroll + 1.0f - 2 * (float)xIndex, 1.6f - (float)yIndex, 0.0f));
             shader.setMat4("transform", transform);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, noteTexture);
