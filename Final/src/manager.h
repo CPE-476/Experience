@@ -239,7 +239,7 @@ struct Manager
         Lookup[32] = {32, &this->models.road, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         Lookup[33] = {33, &this->models.note, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         Lookup[34] = {34, &this->models.street_lamp, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
-        Lookup[35] = {35, &this->models.powerline, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[35] = {35, &this->models.powerline, &this->shaders.textureShader, TEXTURE, 0.0f, 6.0f};
         Lookup[36] = {36, &this->models.stop, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
