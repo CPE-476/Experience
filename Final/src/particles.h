@@ -103,7 +103,7 @@ public:
         gpuSetup();
     }
 
-    void Draw(Shader &shader, float delta, int terrainWidth)
+    void Draw(Shader &shader, float delta, int terrainWidth, float height)
     {
         mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
@@ -127,7 +127,7 @@ public:
             shader.setMat4("Model", model);
 
 	    // Where the actual draw calls are, involves instancing.
-            update(delta, terrainWidth);
+            update(delta, terrainWidth, height);
 	}
         shader.unbind();
     } 
@@ -172,7 +172,7 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void update(float delta, int width)
+    void update(float delta, int width, float height)
     {
         ++counter;
         width = width + 10;
@@ -180,7 +180,7 @@ private:
         for(int i=0;i<particleAmount;i++)
         {
             if(bugMode || fogMode)
-                startPosition.y = randFloat(-7.5, 18.5);
+                startPosition.y = randFloat(-7.5, height+7.5);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {
@@ -207,7 +207,7 @@ private:
                     p.pos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
                     if(fogMode)
                     {
-                        p.pos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
+                        p.pos = vec3(width*cos(theta), startPosition.y, width*sin(theta));
                     }
                     vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
                     float rTop = radiusTop * sqrt(randFloat(0, 1));
