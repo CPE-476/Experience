@@ -293,7 +293,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/desert.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
@@ -556,7 +556,7 @@ int main(void)
                 if(objects[interactingObject].disappearing)
                 {
                     objects.erase(objects.begin() + interactingObject);
-                    sounds[1]->startSound();
+                    sounds[2]->startSound();
                 }
                 else
                 {
