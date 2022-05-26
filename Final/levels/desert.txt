@@ -119,7 +119,7 @@ COM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x 
 DIR -0.499998 -0.199999 -0.700001 0.399999 0.199999 0.199999 0.863 0.784 1 0 0 0 
 
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
-PAR ../resources/models/particle/part.png 20000 0 5.02991 0 0.2 3 7 9 0 9 1.63345 -0.81 1 0.733 0.544 1 0.7 0.411 0.244 1 14 8 0 1 
+PAR ../resources/models/particle/part.png 20000 0 5.02991 0 0.2 3 7 9 0 9 1.90512 -0.81 1 0.733 0.544 1 0.7 0.411 0.244 1 14 8 0 1 
 
 COM Fog: <FOG max min col.x col.y col.z col.a>
 FOG 667 136.905 0.808824 0.503039 0.257713 1
@@ -131,4 +131,4 @@ COM Skybox: <SKY dir>
 SKY ../resources/skyboxes/sunsky/
 
 COM Boundary: <BND col.r, col.g, col.b>
-BND 0.965686 0.681661 0.321895 
+BND 0.965686 0.681661 0.321895 -8.772 

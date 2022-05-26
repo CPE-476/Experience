@@ -31,9 +31,11 @@ struct Boundary
     };
 
     vec3 color;
+    float boundY;
 
-    void init(vec3 col)
+    void init(vec3 col, float bndY)
     {
+        this->boundY = bndY;
         this->color = col;
 
         glGenVertexArrays(1, &VAO);
@@ -84,7 +86,7 @@ struct Boundary
             shader.setVec3("color", color);
 
             mat4 model = mat4(1.0f);
-            model = translate(model, vec3(0.0f, -5.0f, 0.0f));
+            model = translate(model, vec3(0.0f, -boundY, 0.0f));
             model = scale(model, vec3(size, boundHeight, size));
             shader.setMat4("model", model); 
 	    glCullFace(GL_FRONT);
