@@ -352,7 +352,7 @@ int main(void)
         if (camera.Mode == WALK)
         {
             float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
-            if(dist > terrain.widthExtent - 2)
+            if(dist > bound.width - 2)
             {
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
