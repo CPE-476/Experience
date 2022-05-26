@@ -254,7 +254,7 @@ int main(void)
     bound.init(vec3(1.0f, 1.0f, 1.0f));
 
 
-    lvl.LoadLevel("../levels/desert.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
 
     Frustum frustum;
@@ -881,13 +881,14 @@ int main(void)
                         float pos_x = randCoord();
                         float pos_z = randCoord();
                         float scale = randRange(3.5f, 4.5f);
+                        float rotY = randRange(0.0f, 6.4f);
                         if (snapToTerrain)
                             pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(0).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
                         
                         objects.push_back(Object(0,
                                                  pos,
-                                                 -1.6f, 0.0f, 0.0f,
+                                                 -1.6f, 0.0f, rotY,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(0).collision_radius * scale,
                                                  scale, false, false, 0, 1));
@@ -925,7 +926,7 @@ int main(void)
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 30; i++) // Dead Tree
+                    /* for (int i = 0; i < 30; i++) // Dead Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
@@ -940,7 +941,7 @@ int main(void)
                                                  vec3(1), scale * default_view, m.findbyId(3).collision_radius * scale, 
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
-                    }
+                    }*/
                     for (int i = 0; i < 20; i++) // Stump
                     {
                         float pos_x = randCoord();
