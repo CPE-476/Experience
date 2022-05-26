@@ -541,10 +541,12 @@ int main(void)
                 {
                     interactingObject = i;
                 }
+		/*
                 else
                 {
                     selectedObject = i;
                 }
+		*/
             }
             if(objects[interactingObject].interactible)
             {
