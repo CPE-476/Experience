@@ -250,6 +250,9 @@ int main(void)
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
+    Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
+    Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
+    Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
 
@@ -339,6 +342,37 @@ int main(void)
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
         {
             whistle.reset();
+        }
+
+         if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+        {
+            desertMusic.stopSound();
+            forestMusic1.stopSound();
+            streetMusic.startSound();
+        }
+        if (glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE)
+        {
+            streetMusic.reset();
+        }
+        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+        {
+            streetMusic.stopSound();
+            forestMusic1.stopSound();
+            desertMusic.startSound();
+        }
+        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE)
+        {
+            desertMusic.reset();
+        }
+        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+        {
+            desertMusic.stopSound();
+            streetMusic.stopSound();
+            forestMusic1.startSound();
+        }
+        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE)
+        {
+            forestMusic1.reset();
         }
 
         float currentFrame = static_cast<float>(glfwGetTime());
