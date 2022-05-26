@@ -547,10 +547,12 @@ int main(void)
                 {
                     interactingObject = i;
                 }
+		/*
                 else
                 {
                     selectedObject = i;
                 }
+		*/
             }
             if(objects[interactingObject].interactible)
             {
@@ -941,9 +943,11 @@ int main(void)
                                              vec3(camera.Position.x,
                                                   terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
-                                             -1.6f, 0.0f, 0.0f,
-                                             vec3(1), default_view, cr * default_scale, 
-                                             default_scale, false, false, 0, 1));
+                                             objects[selectedObject].angleX,
+                                             objects[selectedObject].angleY,
+                                             objects[selectedObject].angleZ,
+                                             vec3(1), objects[selectedObject].view_radius, objects[selectedObject].collision_radius, 
+                                             objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
                 if (ImGui::Button("Forest"))
