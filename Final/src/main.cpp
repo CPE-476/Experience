@@ -44,6 +44,7 @@ Camera camera(vec3(25.0f, 25.0f, 25.0f));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_WIDTH / 2.0f;
 bool  firstMouse = true;
+char levelName[128] = "";
 
 float        deltaTime = 0.0f;
 float        lastFrame = 0.0f;
@@ -53,6 +54,7 @@ const float  y_offset = 1.0f;
 int   bobbingCounter = 0;
 int   bobbingSpeed = 3;
 float bobbingAmount = 0.015;
+float road_width = 3.0f;
 
 // For Selector.
 vec3 selectorRay = vec3(0.0f);
@@ -284,7 +286,6 @@ int main(void)
     bool drawPointLights = false;
     bool drawParticles = false;
 
-    char levelName[128] = "";
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
     char object_id[3] = "";
@@ -327,6 +328,8 @@ int main(void)
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
 			      &bound);
+                memset(levelName, 0, sizeof(levelName));
+                strcpy(levelName, lvl.nextLevel.c_str());
                 bound.counter = 157;
                 bound.active = true;
             }
@@ -1309,18 +1312,29 @@ int main(void)
                         selectedObject = objects.size() - 1;
                     }
 
-                    for (int i = 0; i < 25; i++){
+                    for (int i = 0; i < 15; i++){
                         objects.push_back(Object(34,
-                                                vec3(3.5f,-7.4f,-128 + 7.9f * i),
+                                                vec3(3.5f,-7.4f,-128 + 31.6f * i),
                                                 0.0f, 3.2f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
                         objects.push_back(Object(34,
-                                                vec3(-3.5f,-7.4f,-128 + 7.9f * i),
+                                                vec3(-3.5f,-7.4f,-128 + 31.6f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
+
+                        lights.push_back(Light(vec3(2.5f,-5.4f,-128 + 31.6f * i),
+                                                vec3(0.49f,0.46f,0.38f),
+                                                vec3(0.45f,0.31f,0.2f),
+                                                vec3(0.35f,0.20f,0.13f),
+                                                0.4f, 1.0f,0.09f));
+                        lights.push_back(Light(vec3(-2.5f,-5.4f,-128 + 31.6f * i),
+                                                vec3(0.49f,0.46f,0.38f),
+                                                vec3(0.45f,0.31f,0.2f),
+                                                vec3(0.35f,0.20f,0.13f),
+                                                0.4f, 1.0f,0.09f));
                     }
 
                     for (int i = 0; i < 28; i++){
@@ -1502,7 +1516,43 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(!drawNote)
     {
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        if(strcmp(levelName, "street.txt") == 0) {
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            camera.ProcessKeyboard(FORWARD, deltaTime);
+            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            {
+                camera.ProcessKeyboard(BACKWARD, deltaTime);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
+            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            {
+                camera.ProcessKeyboard(FORWARD, deltaTime);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            camera.ProcessKeyboard(LEFT, deltaTime);
+            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            {
+                camera.ProcessKeyboard(RIGHT, deltaTime);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            camera.ProcessKeyboard(RIGHT, deltaTime);
+            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            {
+                camera.ProcessKeyboard(LEFT, deltaTime);
+            }
+        }
+
+        }
+        else{
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
             if (camera.Mode == WALK && Colliding(objects))
@@ -1535,6 +1585,8 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
             }
         }
 
+        }
+        
         if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
