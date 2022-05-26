@@ -246,6 +246,7 @@ int main(void)
 
     // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
+    Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
@@ -255,6 +256,7 @@ int main(void)
     // DEBUG
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
+    sounds.push_back(&pickup);
     sounds.push_back(&rock);
     sounds.push_back(&welcome);
     sounds.push_back(&music);
