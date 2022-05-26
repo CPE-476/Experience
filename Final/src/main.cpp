@@ -1425,6 +1425,7 @@ int main(void)
                 ImGui::SameLine();
                 if (ImGui::Button("Street"))
                 {
+                    float powerline_view = 4.0f;
                     float road_scale = 3.0f;
                     float lamp_scale = 0.5f;
                     for (int i = 0; i < 18; i++){
@@ -1465,12 +1466,12 @@ int main(void)
                         objects.push_back(Object(35,
                                                 vec3(5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), road_scale, m.findbyId(35).collision_radius, 
+                                                vec3(1), road_scale * powerline_view, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         objects.push_back(Object(35,
                                                 vec3(-5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), default_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), road_scale * powerline_view, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }
