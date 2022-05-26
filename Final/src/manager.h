@@ -54,6 +54,9 @@ struct Shader_Container
     Shader transShader;
     Shader waterShader;
     Shader boundaryShader;
+    Shader depthShader;
+    Shader shadowShader;
+    Shader debugShader;
 };
 
 struct Model_Container
@@ -143,6 +146,11 @@ struct Manager
         this->shaders.transShader.init("../shaders/trans_vert.glsl", "../shaders/trans_frag.glsl");
         this->shaders.waterShader.init("../shaders/water_vert.glsl", "../shaders/water_frag.glsl");
         this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
+        this->shaders.depthShader.init("../shaders/depth_vert.glsl", "../shaders/depth_frag.glsl");
+        this->shaders.shadowShader.init("../shaders/shadow_vert.glsl", "../shaders/shadow_frag.glsl");
+        this->shaders.debugShader.init("../shaders/debug_vert.glsl", "../shaders/debug_frag.glsl");
+
+
 
         this->notes.aurelius1.init("../resources/notes/aurelius1.png");
 
@@ -268,7 +276,7 @@ struct Manager
         }
     }
 
-    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog)
+    void DrawAllModels(Shader &shader, vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -311,33 +319,33 @@ struct Manager
             }
 
             // Drawing
-            shaders.textureShader.bind();
+            shader.bind();
             {
                 mat4 projection = camera.GetProjectionMatrix();
                 mat4 view = camera.GetViewMatrix();
-                shaders.textureShader.setMat4("projection", projection);
-                shaders.textureShader.setMat4("view", view);
-                shaders.textureShader.setVec3("viewPos", camera.Position);
+                shader.setMat4("projection", projection);
+                shader.setMat4("view", view);
+                shader.setVec3("viewPos", camera.Position);
 
-                shaders.textureShader.setInt("texture_diffuse1", 0);
+                shader.setInt("texture_diffuse1", 0);
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, entry.model->textures_loaded[0].id);
 
-                shaders.textureShader.setFloat("maxFogDistance", fog->maxDistance);
-                shaders.textureShader.setFloat("minFogDistance", fog->minDistance);
-                shaders.textureShader.setVec4("fogColor", fog->color);
+                shader.setFloat("maxFogDistance", fog->maxDistance);
+                shader.setFloat("minFogDistance", fog->minDistance);
+                shader.setVec4("fogColor", fog->color);
 
-                dirLight->Render(shaders.textureShader);
+                dirLight->Render(shader);
 
-                shaders.textureShader.setInt("size", lights->size());
+                shader.setInt("size", lights->size());
                 for (int i = 0; i < lights->size(); ++i)
                 {
-                    lights->at(i).Render(shaders.textureShader, i);
+                    lights->at(i).Render(shader, i);
                 }
 
                 for(int i = 0; i < entry.model->meshes.size(); i++)
                 {
-                    entry.model->meshes[i].SetTextureParams(shaders.textureShader);
+                    entry.model->meshes[i].SetTextureParams(shader);
                     glBindVertexArray(entry.model->meshes[i].VAO);
                     glDrawElementsInstanced(GL_TRIANGLES, 
                             static_cast<unsigned int>(entry.model->meshes[i].indices.size()),
@@ -347,7 +355,7 @@ struct Manager
                 }
                 glActiveTexture(GL_TEXTURE0);
             }
-            shaders.textureShader.unbind();
+            shader.unbind();
         }
     }
 
