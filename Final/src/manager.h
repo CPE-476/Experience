@@ -217,8 +217,8 @@ struct Manager
         Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE, 1.3f, 0.5f};
         Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE, 3.43f, 0.85f};
         Lookup[12] = {12, &this->models.rock_8, &this->shaders.textureShader, TEXTURE, 5.1f, 1.0f};
-        Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE, 2.8f, 1.0f};
-        Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE, 2.0f, 0.85f};
+        Lookup[13] = {13, &this->models.rock_9, &this->shaders.textureShader, TEXTURE, 8.3f, 1.0f};
+        Lookup[14] = {14, &this->models.rock_10, &this->shaders.textureShader, TEXTURE, 9.5f, 0.85f};
         Lookup[15] = {15, &this->models.rock_11, &this->shaders.textureShader, TEXTURE, 12.64f, 0.85f};
         Lookup[16] = {16, &this->models.campfire, &this->shaders.textureShader, TEXTURE, 2.0f, 0.8f};
         Lookup[17] = {17, &this->models.snail, &this->shaders.textureShader, TEXTURE, 1.1f, 0.85f};

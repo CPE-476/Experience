@@ -85,11 +85,8 @@ public:
                     {
                         int width = 256;
                         lifeSpan = randFloat(1.5f, 2.5f);
-                        fogArray[0] = vec3(width/2, startPosition.y, -width/2 + randFloat(0, width));
-                        fogArray[1] = vec3(-width/2, startPosition.y, -width/2 + randFloat(0, width));
-                        fogArray[2] = vec3(-width/2+ randFloat(0, width), startPosition.y, width/2);
-                        fogArray[3] = vec3(-width/2+ randFloat(0, width), startPosition.y, -width/2);
-                        startPos = fogArray[(int)randFloat(0, 4)];
+                        startPos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
+                        //startPos = fogArray[(int)randFloat(0, 4)];
                     }
             vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
             float rTop = radiusTop * sqrt(randFloat(0, 1));
@@ -183,7 +180,7 @@ private:
         for(int i=0;i<particleAmount;i++)
         {
             if(bugMode || fogMode)
-                startPosition.y = randFloat(-7.5, 7.5);
+                startPosition.y = randFloat(-7.5, 18.5);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {
