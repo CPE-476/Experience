@@ -32,11 +32,15 @@ struct Boundary
 
     vec3 color;
     float boundY;
+    float width;
+    float height;
 
-    void init(vec3 col, float bndY)
+    void init(vec3 col, float bndY, float wid, float hgt)
     {
         this->boundY = bndY;
         this->color = col;
+        this->width = wid;
+        this->height = hgt;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -74,8 +78,8 @@ struct Boundary
         shader.unbind();
     }
 
-    void DrawWall(Shader &shader, int size, 
-            float boundHeight, Model *cylinder) {
+    void DrawWall(Shader &shader, Model *cylinder)
+    {
         shader.bind();
         {
             mat4 projection = camera.GetProjectionMatrix();
@@ -87,7 +91,7 @@ struct Boundary
 
             mat4 model = mat4(1.0f);
             model = translate(model, vec3(0.0f, -boundY, 0.0f));
-            model = scale(model, vec3(size, boundHeight, size));
+            model = scale(model, vec3(width, height, width));
             shader.setMat4("model", model); 
 	    glCullFace(GL_FRONT);
             cylinder->Draw(shader);

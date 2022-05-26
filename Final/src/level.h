@@ -234,11 +234,15 @@ struct Level
                         cout << "Boundary loaded from file\n";
                         vec3 color;
                         float y;
+                        float wid;
+                        float hgt;
                         
                         color = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
                         y = (float)atof(conPrt[3]);
+                        wid = (float)atof(conPrt[4]);
+                        hgt = (float)atof(conPrt[5]);
                         
-                        bound->init(color, y);
+                        bound->init(color, y, wid, hgt);
                     }
                     else if (Type == "SKY")
                     {
@@ -435,6 +439,8 @@ struct Level
 	fp << bound->color.y << " ";
 	fp << bound->color.z << " ";
         fp << bound->boundY << " ";
+        fp << bound->width << " ";
+        fp << bound->height << " ";
 	fp << "\n";
 
 	fp.close();
