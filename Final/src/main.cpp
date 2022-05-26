@@ -211,47 +211,42 @@ int main(void)
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note2.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note3.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note4.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note5.png"));
     discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note6.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note7.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/note8.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/note9.png"));
-    discoveredNotes.push_back(true);
 
     notes.push_back(Note("../resources/notes/box1.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box2.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box3.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box4.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box5.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box6.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box7.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
     notes.push_back(Note("../resources/notes/box8.png"));
-    discoveredNotes.push_back(true);
-    notes.push_back(Note("../resources/notes/box9.png"));
-    discoveredNotes.push_back(true);
-    notes.push_back(Note("../resources/notes/box10.png"));
-    discoveredNotes.push_back(true);
+    discoveredNotes.push_back(false);
 
     // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
+    Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
@@ -261,6 +256,7 @@ int main(void)
     // DEBUG
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
+    sounds.push_back(&pickup);
     sounds.push_back(&rock);
     sounds.push_back(&welcome);
     sounds.push_back(&music);
@@ -290,7 +286,7 @@ int main(void)
     Level lvl;
 
     Boundary bound;
-    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f);
+    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
     lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
@@ -482,7 +478,7 @@ int main(void)
             }
             bound.counter++;
         }
-        bound.DrawWall(m.shaders.boundaryShader, terrain.width / 2.0f, 8.0f, &m.models.cylinder);
+        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
 
         // Render Note
         if(checkInteraction)
@@ -744,6 +740,8 @@ int main(void)
                 ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
 		ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
+		ImGui::SliderFloat("Width", (float *)&bound.width, 0.0f, 500.0f);
+		ImGui::SliderFloat("Height", (float *)&bound.height, 0.0f, 50.0f);
                 ImGui::End();
             }
 
