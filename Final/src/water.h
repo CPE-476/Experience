@@ -43,16 +43,16 @@ struct Water
 
         shader.bind();
 	{
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
-        shader.setVec3("viewPos", camera.Position);
+            shader.setMat4("projection", projection);
+            shader.setMat4("view", view);
+            shader.setVec3("viewPos", camera.Position);
 
-        mat4 model = mat4(1.0f);
-        model =  translate(mat4(1.0f),  vec3(0.0f, height, 0.0f)) * scale(mat4(1.0f), 250.0f * vec3(1.0f, 1.0f, 1.0f));
-        shader.setMat4("model", model);
+            mat4 model = mat4(1.0f);
+            model =  translate(mat4(1.0f),  vec3(0.0f, height, 0.0f)) * scale(mat4(1.0f), 250.0f * vec3(1.0f, 1.0f, 1.0f));
+            shader.setMat4("model", model);
 
-        glBindVertexArray(quadVAO);
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sizeof(indices)), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(quadVAO);
+            glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sizeof(indices)), GL_UNSIGNED_INT, 0);
 	}
         shader.unbind();
         

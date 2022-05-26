@@ -56,7 +56,7 @@ public:
     Camera(vec3 position = vec3(0.0f, 0.0f, 0.0f), 
            vec3 up = vec3(0.0f, 1.0f, 0.0f),
            float yaw = YAW, float pitch = PITCH) : 
-           Front(vec3(0.0f, 0.0f, -1.0f)), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), Mode(FREE)
+           Front(vec3(0.0f, 0.0f, -1.0f)), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), Mode(WALK)
     {
         Position = position;
         WorldUp = up;
