@@ -319,8 +319,9 @@ int main(void)
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(-20.0f, 4.0f, 10.0f);
-    float near_plane = 1.0f, far_plane = 7.5f;
+    glm::vec3 lightPos(-45.0f, 28.0f, 120.0f);
+    float near_plane = 0.0f, far_plane = 50.5f;
+    float shadow_frustum = 50.0f;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -379,7 +380,7 @@ int main(void)
 
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
-        lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, near_plane, far_plane);
+        lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
         lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
         // render scene from light's point of view
@@ -387,7 +388,7 @@ int main(void)
         m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         m.shaders.depthShader.setBool("isT", false);
 
-        glViewport(0, 0, SHADOW_WIDTH*2, SHADOW_HEIGHT*2);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
             // glActiveTexture(GL_TEXTURE0);
@@ -409,12 +410,14 @@ int main(void)
         glViewport(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // reset viewport
+        glViewport(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m.shaders.shadowShader.bind();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH*2 / (float)SCREEN_HEIGHT*2, 0.1f, 100.0f);
         view = camera.GetViewMatrix();
         m.shaders.shadowShader.setMat4("projection", projection);
         m.shaders.shadowShader.setMat4("view", view);
-        // set light uniforms
         m.shaders.shadowShader.setVec3("viewPos", camera.Position);
         m.shaders.shadowShader.setVec3("lightPos", lightPos);
         m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
@@ -423,6 +426,10 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, depthMap);
         m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, &dirLight, &fog);
         m.shaders.shadowShader.bind();
+        m.shaders.shadowShader.setMat4("projection", projection);
+        m.shaders.shadowShader.setMat4("view", view);
+        m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+        m.shaders.shadowShader.setVec3("lightPos", lightPos);
         m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         m.shaders.shadowShader.setBool("isT", true);
 
@@ -716,6 +723,9 @@ int main(void)
                 ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
                 ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
                 ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
+                ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
+
+
                 ImGui::End();
             }
 
