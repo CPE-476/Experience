@@ -499,7 +499,7 @@ int main(void)
         {
             for (int i = 0; i < emitters.size(); ++i)
             {
-                emitters[i].Draw(m.shaders.particleShader, deltaTime, terrain.width);
+                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height);
             }
         }
 
