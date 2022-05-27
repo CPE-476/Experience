@@ -1444,7 +1444,7 @@ int main(void)
                         objects.push_back(Object(32,
                                                 vec3(0,-10.9f,-128 + 15.8f * i),
                                                 -1.5708f, 0.0f, 0.0f,
-                                                vec3(1), road_scale * default_view, m.findbyId(32).collision_radius * road_scale, 
+                                                vec3(1), road_scale * default_view * 1.5f, m.findbyId(32).collision_radius * road_scale, 
                                                 road_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1478,12 +1478,12 @@ int main(void)
                         objects.push_back(Object(35,
                                                 vec3(5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), road_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         objects.push_back(Object(35,
                                                 vec3(-5.5f,-8.0f,-128 + 10.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), road_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }

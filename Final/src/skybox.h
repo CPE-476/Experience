@@ -65,6 +65,7 @@ float skyboxVertices[] = {
 struct Skybox
 {
     string dir;
+    float timer = 0.0f;
 
     unsigned int VAO, VBO;
     unsigned int textureID;
@@ -86,12 +87,14 @@ struct Skybox
 
     void Draw(Shader &shader)
     {
+        timer += 0.0002;
         glDepthFunc(GL_LEQUAL);
         shader.bind();
 	mat4 projection = camera.GetProjectionMatrix();
 
+        mat4 rotY = rotate(mat4(1.0f), timer, vec3(0.0f, 1.0f, 0.0f));
         // Remove Translation part of matrix.
-        mat4 view = mat4(mat3(camera.GetViewMatrix()));
+        mat4 view = mat4(mat3(camera.GetViewMatrix())) * rotY;
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 

@@ -1,7 +1,7 @@
 # Blender MTL File: 'None'
 # Material Count: 3
 
-newmtl cables_Mat
+newmtl cables_Mat.001
 Ns 16.000006
 Ka 1.000000 1.000000 1.000000
 Kd 0.000000 0.000000 0.000000
@@ -14,7 +14,7 @@ map_Kd wooden_telephone_pole/cables_baseColor.png
 map_Ke wooden_telephone_pole/cables_glow.png
 map_d wooden_telephone_pole/cables_opacity.png
 
-newmtl glass_insulators_Mat
+newmtl glass_insulators_Mat.001
 Ns 16.000006
 Ka 1.000000 1.000000 1.000000
 Kd 0.000000 0.000000 0.000000
@@ -27,7 +27,7 @@ map_Kd wooden_telephone_pole/glass_insulators_baseColor.png
 map_Ke wooden_telephone_pole/glass_insulators_glow.png
 map_d wooden_telephone_pole/glass_insulators_opacity.png
 
-newmtl pole_Mat
+newmtl pole_Mat.001
 Ns 16.000006
 Ka 1.000000 1.000000 1.000000
 Kd 0.000000 0.000000 0.000000

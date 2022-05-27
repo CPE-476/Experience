@@ -196,7 +196,7 @@ COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x 
 TER ../resources/heightmaps/dunes2.png 100.613 15.951 0.860587 0.897059 0.277033 0.971453 1 0.0294118 0.955882 0.67383 0.178057 
 
 COM Skybox: <SKY dir>
-SKY ../resources/skyboxes/sunsky/
+SKY ../resources/skyboxes/sunsky2/
 
 COM Boundary: <BND col.r, col.g, col.b>
 BND 0.965686 0.681661 0.321895 -11.062 256.637 20.354 

@@ -36372,7 +36372,7 @@ COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x 
 TER ../resources/heightmaps/lake.jpeg 16 7.937 0.209 0.535 0.295 0.674 0.86 0.756 0.837 0.581 0.2 
 
 COM Skybox: <SKY dir>
-SKY ../resources/skyboxes/sunsky2/
+SKY ../resources/skyboxes/sunsky/
 
 COM Boundary: <BND col.r, col.g, col.b>
 BND 0.5 0.5 0.2 14.602 123.894 16.814 
