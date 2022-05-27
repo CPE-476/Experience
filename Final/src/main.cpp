@@ -1438,56 +1438,23 @@ int main(void)
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
+                    for (int i = 0; i < 30; i++) // Formation 1
+                    {
+                        float pos_x = randCoordDes();
+                        float pos_z = randCoordDes();
+                        float scale = randRange(0.3f, 0.5f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(40).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
 
-
-
-                    /*
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(3,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 1, 
-                                                 randFloat() * 1.5f, false, false, 0));
+                        objects.push_back(Object(40,
+                                                 pos,
+                                                 0.0f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_view, 
+                                                 m.findbyId(40).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(4,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 1, 
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(19,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20, 
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(20,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20,
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(21,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20,
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    */
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Street"))

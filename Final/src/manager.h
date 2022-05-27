@@ -105,6 +105,7 @@ struct Model_Container
     Model cactus_2;
     Model cactus_3;
     Model trumbleweed;
+    Model spider;
 
     // street
     Model road;
@@ -180,6 +181,7 @@ struct Manager
         this->models.deer_1.init("../resources/models/animals/deer1.fbx");
         this->models.deer_2.init("../resources/models/animals/deer2.fbx");
         this->models.fox.init("../resources/models/animals/fox.fbx");
+        this->models.spider.init("../resources/models/animals/spider.fbx");
 
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
@@ -230,6 +232,7 @@ struct Manager
         Lookup[37] = {37, &this->models.deer_1, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
         Lookup[38] = {38, &this->models.deer_2, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
         Lookup[39] = {39, &this->models.fox, &this->shaders.textureShader, TEXTURE, 1.0f, 0.05f};
+        Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
         // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
