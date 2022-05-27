@@ -89,16 +89,9 @@ struct Model_Container
     Model grass_7;
     Model grass_8;
     Model grass_9;
-    Model bear;
-    Model boar;
     Model deer_1;
     Model deer_2;
     Model fox;
-    Model hedgehog;
-    Model owl;
-    Model rabbit;
-    Model squirrel;
-    Model wolf;
 
     // desert
     Model rock_5;
@@ -184,16 +177,9 @@ struct Manager
         this->models.street_lamp.init("../resources/models/environment/street_light/single_street_light.obj");
         this->models.powerline.init("../resources/models/environment/powerline/wooden_telephone_pole.obj");
         this->models.stop.init("../resources/models/environment/stop/traffic_sign_stop.obj");
-        // this->models.bear.init("../resources/models/animals/bear.fbx");
-        // this->models.boar.init("../resources/models/animals/boar.fbx");
-        // this->models.deer_1.init("../resources/models/animals/deer_1.fbx");
-        // this->models.deer_2.init("../resources/models/animals/deer_2.fbx");
-        // this->models.fox.init("../resources/models/animals/fox.fbx");
-        // this->models.hedgehog.init("../resources/models/animals/hedhog.fbx");
-        // this->models.owl.init("../resources/models/animals/owl.fbx");
-        // this->models.rabbit.init("../resources/models/animals/rabbit.fbx");
-        // this->models.squirrel.init("../resources/models/animals/squirrel.fbx");
-        // this->models.wolf.init("../resources/models/animals/wolf.fbx");
+        this->models.deer_1.init("../resources/models/animals/deer1.fbx");
+        this->models.deer_2.init("../resources/models/animals/deer2.fbx");
+        this->models.fox.init("../resources/models/animals/fox.fbx");
 
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
@@ -241,13 +227,16 @@ struct Manager
         Lookup[34] = {34, &this->models.street_lamp, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         Lookup[35] = {35, &this->models.powerline, &this->shaders.textureShader, TEXTURE, 0.0f, 6.0f};
         Lookup[36] = {36, &this->models.stop, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
+        Lookup[37] = {37, &this->models.deer_1, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
+        Lookup[38] = {38, &this->models.deer_2, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
+        Lookup[39] = {39, &this->models.fox, &this->shaders.textureShader, TEXTURE, 1.0f, 0.05f};
         // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[37] = {37, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[38] = {38, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[39] = {39, &this->models.hedgehog, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[40] = {40, &this->models.owl, &this->shaders.materialShader, MATERIAL, 0.0f};
+        // Lookup[40] = {40, &this->models.owl, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         // Lookup[41] = {41, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[42] = {42, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
         // Lookup[43] = {43, &this->models.wolf, &this->shaders.materialShader, MATERIAL, 0.0f};

@@ -1150,6 +1150,61 @@ int main(void)
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
+
+                    for (int i = 0; i < 10; i++) // deer_1
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(37).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(37,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(37).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                    for (int i = 0; i < 10; i++) // deer_2
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(38).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(38,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(38).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                                        for (int i = 0; i < 10; i++) // deer_1
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.3f, 0.7f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(39).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
                     for (int i = 0; i < 4000; i++) // Grass
                     {
                         for (int j = 23; j < 32; j++) // Types
