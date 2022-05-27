@@ -613,7 +613,11 @@ int main(void)
                     ImGui::SameLine();
                 }
                 ImGui::NewLine();
-                ImGui::Text("Particle = %d. Position = (%.02f %.02f %.02f)", selectedParticle, emitters[selectedParticle].startPosition.x, emitters[selectedParticle].startPosition.y, emitters[selectedParticle].startPosition.z);
+                ImGui::Text("Particle = %d. Position = (%.02f %.02f %.02f)", 
+                selectedParticle, 
+                emitters[selectedParticle].startPosition.x, 
+                emitters[selectedParticle].startPosition.y, 
+                emitters[selectedParticle].startPosition.z);
 
                 ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -128.0f, 128.0f);
                 ImGui::SliderFloat3("Velocity", (float *)&emitters[selectedParticle].startVelocity, -50.0f, 50.0f);
@@ -888,7 +892,7 @@ int main(void)
                 if (ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
                     objects[selectedObject].UpdateModel();
 
-                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
+                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 10.0f))
                 {
                     objects[selectedObject].UpdateModel();
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
@@ -1516,6 +1520,24 @@ int main(void)
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(36).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                    for (int i = 0; i < 15; i++){
+
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float pos_y = 0.0f;
+                        float scale = 10.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(41).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(41,
+                                                pos,
+                                                -1.57f, 0.0f, 0.0f,
+                                                vec3(1), scale * default_view, m.findbyId(41).collision_radius * scale, 
+                                                scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 

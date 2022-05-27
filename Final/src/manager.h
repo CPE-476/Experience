@@ -112,6 +112,7 @@ struct Model_Container
     Model street_lamp;
     Model stop;
     Model powerline;
+    Model pillar;
 };
 
 struct Manager
@@ -182,6 +183,7 @@ struct Manager
         this->models.deer_2.init("../resources/models/animals/deer2.fbx");
         this->models.fox.init("../resources/models/animals/fox.fbx");
         this->models.spider.init("../resources/models/animals/spider.fbx");
+        this->models.pillar.init("../resources/models/environment/pillar/pillar.fbx");
 
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
@@ -233,16 +235,7 @@ struct Manager
         Lookup[38] = {38, &this->models.deer_2, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
         Lookup[39] = {39, &this->models.fox, &this->shaders.textureShader, TEXTURE, 1.0f, 0.05f};
         Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
-        // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[37] = {37, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[38] = {38, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[39] = {39, &this->models.hedgehog, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[40] = {40, &this->models.owl, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
-        // Lookup[41] = {41, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[42] = {42, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[43] = {43, &this->models.wolf, &this->shaders.materialShader, MATERIAL, 0.0f};
+        Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()
