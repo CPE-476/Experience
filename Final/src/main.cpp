@@ -1460,11 +1460,11 @@ int main(void)
                 if (ImGui::Button("Street"))
                 {
                     float powerline_view = 4.0f;
-                    float road_scale = 3.0f;
-                    float lamp_scale = 0.5f;
+                    float road_scale = 3.5f;
+                    float lamp_scale = 0.75f;
                     for (int i = 0; i < 18; i++){
                         objects.push_back(Object(32,
-                                                vec3(0,-10.9f,-128 + 15.8f * i),
+                                                vec3(-0.5f,-7.5f,-128 + 15.8f * i),
                                                 -1.5708f, 0.0f, 0.0f,
                                                 vec3(1), road_scale * default_view * 1.5f, m.findbyId(32).collision_radius * road_scale, 
                                                 road_scale, false, false, 0, 1));
@@ -1473,23 +1473,23 @@ int main(void)
 
                     for (int i = 0; i < 15; i++){
                         objects.push_back(Object(34,
-                                                vec3(3.5f,-7.4f,-128 + 31.6f * i),
+                                                vec3(3.2f,-3.4f,-128 + 31.6f * i),
                                                 0.0f, 3.2f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
                         objects.push_back(Object(34,
-                                                vec3(-3.5f,-7.4f,-128 + 31.6f * i),
+                                                vec3(-4.2f,-3.4f,-128 + 31.6f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
 
-                        lights.push_back(Light(vec3(2.5f,-5.4f,-128 + 31.6f * i),
+                        lights.push_back(Light(vec3(2.2f,-2.0f,-128 + 31.6f * i),
                                                 vec3(0.49f,0.46f,0.38f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
                                                 0.4f, 1.0f,0.09f));
-                        lights.push_back(Light(vec3(-2.5f,-5.4f,-128 + 31.6f * i),
+                        lights.push_back(Light(vec3(-3.2f,-2.0f,-128 + 31.6f * i),
                                                 vec3(0.49f,0.46f,0.38f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
@@ -1498,21 +1498,21 @@ int main(void)
 
                     for (int i = 0; i < 28; i++){
                         objects.push_back(Object(35,
-                                                vec3(5.5f,-8.0f,-128 + 10.0f * i),
+                                                vec3(6.0f,-8.5f,-128 + 17.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view * 1.5, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         objects.push_back(Object(35,
-                                                vec3(-5.5f,-8.0f,-128 + 10.0f * i),
+                                                vec3(-7.0f,-8.5f,-128 + 16.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view * 1.5, m.findbyId(35).collision_radius, 
                                                 1.0f, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }
 
                     for (int i = 0; i < 5; i++){
                         objects.push_back(Object(36,
-                                                vec3(3.5f,-8.0f,-124 + 63.2f * i),
+                                                vec3(3.2f,-4.1f,-124 + 63.2f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(36).collision_radius * lamp_scale, 
                                                 lamp_scale, false, false, 0, 1));
@@ -1679,7 +1679,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
             {
                 camera.ProcessKeyboard(BACKWARD, deltaTime);
             }
@@ -1687,7 +1687,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(BACKWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
             {
                 camera.ProcessKeyboard(FORWARD, deltaTime);
             }
@@ -1695,7 +1695,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(LEFT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
             {
                 camera.ProcessKeyboard(RIGHT, deltaTime);
             }
@@ -1703,7 +1703,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(RIGHT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
             {
                 camera.ProcessKeyboard(LEFT, deltaTime);
             }
