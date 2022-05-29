@@ -67,6 +67,7 @@ bool  pauseNote = false;
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
 
+
 enum EditorModes
 {
     MOVEMENT,
@@ -119,6 +120,8 @@ using namespace glm;
 void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *sounds);
 
 FloatSpline fspline;
+Level lvl;
+
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
@@ -288,8 +291,6 @@ int main(void)
     // Default value
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
-    Level lvl;
-
     Boundary bound;
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
@@ -402,9 +403,10 @@ int main(void)
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
-                memset(levelName, 0, sizeof(levelName));
-                strcpy(levelName, lvl.nextLevel.c_str());
-                bound.counter = 157;
+                if (strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+                    water.height = -25.0f;
+                }
+                bound.counter = 157; 
                 bound.active = true;
             }
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
@@ -1697,7 +1699,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(!drawNote)
     {
-        if(strcmp(levelName, "street.txt") == 0) {
+        if(strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") == 0) {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);

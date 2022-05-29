@@ -7,7 +7,7 @@ COM Next Level: <NXT path>
 NXT ../levels/forest.txt
 
 COM Camera Setup: <POV pos.x pos.y pos.z>
-POV 0 -6.7 0 
+POV -0.2 -6.7 110 
 
 COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN sound>
 OBJ 32 0 -10.9 -128 -1.5708 0 0 1 1 1 4.242 0 3 0 0 0 0 
@@ -174,7 +174,7 @@ DIR 0.137 -0.034 -1 0.373 0.216 0.173 0.863 0.784 1 0 0 0
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
 
 COM Fog: <FOG max min col.x col.y col.z col.a>
-FOG 293.125 147.619 1 0.737 0.526 1
+FOG 293.125 147.619 0.4 0.4 0.071 1
 
 COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
 TER ../resources/heightmaps/street_3.png 16 20 0 0 0 0 0 0.686275 0.362745 0.355835 0.245386 
