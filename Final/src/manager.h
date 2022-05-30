@@ -55,6 +55,7 @@ struct Shader_Container
     Shader waterShader;
     Shader boundaryShader;
     Shader cursorShader;
+    Shader sunShader;
 };
 
 struct Model_Container
@@ -137,6 +138,7 @@ struct Manager
         this->shaders.waterShader.init("../shaders/water_vert.glsl", "../shaders/water_frag.glsl");
         this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
         this->shaders.cursorShader.init("../shaders/curs_vert.glsl", "../shaders/curs_frag.glsl");
+        this->shaders.sunShader.init("../shaders/sun_vert.glsl", "../shaders/sun_frag.glsl");
 
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");

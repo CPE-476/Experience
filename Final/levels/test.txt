@@ -1,0 +1,34 @@
+COM Level saved by the Experience Level Loader
+COM By Brett Hickman, Lucas Li, and Alex Hartford
+COM Spring 2022
+
+
+COM Next Level: <NXT path>
+NXT ../levels/desert.txt
+
+COM Camera Setup: <POV pos.x pos.y pos.z>
+POV 40.229 0 103.111 
+
+COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN sound>
+OBJ 0 -65.6728 6.29263 -3.34227 -1.6 0 0 1 1 1 5.24768 1.67748 3.71123 0 0 0 1 
+
+COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>
+LGT 0 0 -6.919 0 0.05 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 
+
+COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
+SUN 11.735 0 24.528 -132.741 1 0.83737 0.0784314 0.20098 0.20098 0.20098 0.4 0.2 0.2 0.8 0.6 0.6 
+
+COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
+PAR ../resources/models/particle/part.png 20000 0 13.5211 0 0.2 3 7 9 0 9 1.85719 -0.81 1 1 1 1 0.7 0.7 0.7 1 14 8 0 1 
+
+COM Fog: <FOG max min col.x col.y col.z col.a>
+FOG 293.125 147.619 0.4 0.4 0.071 1
+
+COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
+TER ../resources/heightmaps/lake.jpeg 16 7.937 0.209 0.535 0.295 0.674 0.86 0.756 0.837 0.581 0.2 
+
+COM Skybox: <SKY dir>
+SKY ../resources/skyboxes/sunsky/
+
+COM Boundary: <BND col.r, col.g, col.b>
+BND 0.5 0.5 0.2 14.602 123.894 16.814 

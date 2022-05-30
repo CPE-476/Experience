@@ -113,6 +113,7 @@ struct FogSystem
 #include "water.h"
 #include "spline.h"
 #include "sound.h"
+#include "sun.h"
 
 using namespace std;
 using namespace glm;
@@ -282,11 +283,7 @@ int main(void)
                  vec3(0.459, 0.525, 0.275),
                  vec3(0.25, 0.129, 0.000));
 
-    // Default value.
-    DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),  // Direction
-                                 vec3(0.4f, 0.2f, 0.2f),  // Ambient
-                                 vec3(0.8f, 0.6f, 0.6f),  // Diffuse
-                                 vec3(0.5f, 0.3f, 0.3f)); // Specular
+    Sun sun = Sun(&m.models.sphere); 
 
     // Default value
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
@@ -295,12 +292,12 @@ int main(void)
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
     lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
-                  &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
+                  &sun, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
     Water water;
     water.gpuSetup();
-    
+
     Spline sunspline;
     Spline ambspline;
 
@@ -308,13 +305,13 @@ int main(void)
     bool showObjectEditor = true;
     bool showParticleEditor = false;
     bool showLightEditor = false;
-    bool showDirLightEditor = false;
     bool showFogEditor = false;
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showBoundaryEditor = false;
     bool showNoteEditor = false;
     bool showSoundEditor = false;
+    bool showSunEditor = false;
 
     bool snapToTerrain = true;
 
@@ -400,7 +397,7 @@ int main(void)
             if(dist > bound.width - 2)
             {
                 cout << "Boundary Collision. Loading Next Level.\n";
-                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
                 if (strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
@@ -423,31 +420,36 @@ int main(void)
         }
         if(sunspline.active)
         {
-            dirLight.direction = sunspline.getPosition();
-            cout << to_string(dirLight.direction) << "\n";
+            sun.dirLight.direction = sunspline.getPosition();
+            cout << to_string(sun.dirLight.direction) << "\n";
         } 
         if(ambspline.active)
         {
-            dirLight.ambient = ambspline.getPosition();
-            cout << to_string(dirLight.ambient) << "\n";
+            sun.dirLight.ambient = ambspline.getPosition();
+            cout << to_string(sun.dirLight.ambient) << "\n";
         }
+        sun.updateLight();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+        mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
 
-        m.DrawAllModels(&objects, &lights, &dirLight, &fog, &frustum);
+        m.DrawAllModels(&objects, &lights, &sun.dirLight, &fog, &frustum);
  
         // Render Skybox
         if (drawSkybox)
         {
             skybox.Draw(m.shaders.skyboxShader);
         }
+
+        // Render Sun
+        sun.Draw(m.shaders.sunShader);
+
         // Render Light Positions (DEBUG)
         m.shaders.lightShader.bind();
         {
@@ -500,7 +502,7 @@ int main(void)
         // Render Terrain
         if (drawTerrain)
         {
-            terrain.Draw(m.shaders.terrainShader, &lights, &dirLight, &fog);
+            terrain.Draw(m.shaders.terrainShader, &lights, &sun.dirLight, &fog);
         }
 
         water.Draw(m.shaders.waterShader, deltaTime);
@@ -621,7 +623,7 @@ int main(void)
                 emitters[selectedParticle].startPosition.y, 
                 emitters[selectedParticle].startPosition.z);
 
-                ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -512.0f, 512.0f);
                 ImGui::SliderFloat3("Velocity", (float *)&emitters[selectedParticle].startVelocity, -50.0f, 50.0f);
                 ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
                 ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
@@ -696,7 +698,7 @@ int main(void)
                 ImGui::NewLine();
                 ImGui::Text("Light = %d. Position = (%.02f %.02f %.02f)", selectedLight, lights[selectedLight].position.x, lights[selectedLight].position.y, lights[selectedLight].position.z);
 
-                ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -512.0f, 512.0f);
 
                 ImGui::ColorEdit3("Ambient", (float *)&lights[selectedLight].ambient);
                 ImGui::ColorEdit3("Diffuse", (float *)&lights[selectedLight].diffuse);
@@ -728,17 +730,6 @@ int main(void)
                                            0.5f, 1.0f, 1.0f));
                     selectedLight = lights.size() - 1;
                 }
-                ImGui::End();
-            }
-
-            if (showDirLightEditor)
-            {
-                ImGui::Begin("DirLight Editor");
-                ImGui::SliderFloat3("Direction", (float *)&dirLight.direction, -1.0f, 1.0f);
-
-                ImGui::ColorEdit3("Ambient", (float *)&dirLight.ambient);
-                ImGui::ColorEdit3("Diffuse", (float *)&dirLight.diffuse);
-                ImGui::ColorEdit3("Specular", (float *)&dirLight.specular);
                 ImGui::End();
             }
 
@@ -843,7 +834,7 @@ int main(void)
                     sounds[selectedSound]->reset();
                 }
 
-                ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -512.0f, 512.0f);
                 ImGui::SliderFloat("Volume", (float *)&sounds[selectedSound]->volume, 0.0f, 1.0f);
                 ImGui::SliderFloat("Rolloff", (float *)&sounds[selectedSound]->rolloff, 0.0f, 100.0f);
                 ImGui::SliderFloat("Min", (float *)&sounds[selectedSound]->minDistance, 0.0f, 100.0f);
@@ -851,6 +842,23 @@ int main(void)
                 ImGui::Checkbox("Looping?", &sounds[selectedSound]->isLooping);
                 ImGui::Checkbox("Music?", &sounds[selectedSound]->isMusic);
                 ImGui::Checkbox("Has Played?", &sounds[selectedSound]->hasPlayed);
+
+                ImGui::End();
+            }
+
+            if (showSunEditor)
+            {
+                ImGui::Begin("Sun Editor");
+
+                ImGui::SliderFloat("Scale", (float *)&sun.scale_factor, 0.0f, 100.0f);
+                ImGui::SliderFloat3("Position", (float *)&sun.position, -512.0f, 512.0f);
+                ImGui::ColorEdit3("Color", (float *)&sun.color);
+
+                ImGui::SliderFloat3("Direction", (float *)&sun.dirLight.direction, -1.0f, 1.0f);
+
+                ImGui::ColorEdit3("Ambient", (float *)&sun.dirLight.ambient);
+                ImGui::ColorEdit3("Diffuse", (float *)&sun.dirLight.diffuse);
+                ImGui::ColorEdit3("Specular", (float *)&sun.dirLight.specular);
 
                 ImGui::End();
             }
@@ -864,7 +872,7 @@ int main(void)
 
                 ImGui::Checkbox("Terrain Snap", &snapToTerrain);
 
-                if (ImGui::SliderFloat("Pos.x", (float *)&objects[selectedObject].position.x, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.x", (float *)&objects[selectedObject].position.x, -512.0f, 512.0f))
                 {
                     if (snapToTerrain)
                     {
@@ -873,11 +881,11 @@ int main(void)
                     }
                     objects[selectedObject].UpdateModel();
                 }
-                if (ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -512.0f, 512.0f))
                 {
                     objects[selectedObject].UpdateModel();
                 }
-                if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -512.0f, 512.0f))
                 {
                     if (snapToTerrain)
                     {
@@ -1557,7 +1565,7 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.SaveLevel(str, &objects, &lights, &dirLight,
+                lvl.SaveLevel(str, &objects, &lights, &sun,
                     &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level saved: " << str << "\n";
             }
@@ -1566,7 +1574,7 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.LoadLevel(str, &objects, &lights, &dirLight,
+                lvl.LoadLevel(str, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
                 cout << "Level loaded: " << str << "\n";
@@ -1581,7 +1589,7 @@ int main(void)
             ImGui::SameLine();
             if (ImGui::Button("Next"))
             {
-                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
             }
@@ -1594,7 +1602,7 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Light", &showLightEditor);
             ImGui::SameLine();
-            ImGui::Checkbox("DirLight", &showDirLightEditor);
+            ImGui::Checkbox("Sun", &showSunEditor);
 
             ImGui::Checkbox("Skybox", &showSkyboxEditor);
             ImGui::SameLine();
@@ -1635,16 +1643,16 @@ int main(void)
 
             if(ImGui::Button("Sunset!"))
             {
-                sunspline.init(dirLight.direction, vec3(0.0f, 0.0f, -1.0f), 10.0f);
+                sunspline.init(sun.dirLight.direction, vec3(0.0f, 0.0f, -1.0f), 10.0f);
                 sunspline.active = true;
-                ambspline.init(dirLight.ambient, vec3(0.01f, 0.0f, 0.0f), 10.0f);
+                ambspline.init(sun.dirLight.ambient, vec3(0.01f, 0.0f, 0.0f), 10.0f);
                 ambspline.active = true;
             }
             if(ImGui::Button("Sunrise!"))
             {
-                sunspline.init(dirLight.direction, vec3(-0.5f, -0.2f, -0.7f), 10.0f);
+                sunspline.init(sun.dirLight.direction, vec3(-0.5f, -0.2f, -0.7f), 10.0f);
                 sunspline.active = true;
-                ambspline.init(dirLight.ambient, vec3(0.4f, 0.2f, 0.2f), 10.0f);
+                ambspline.init(sun.dirLight.ambient, vec3(0.4f, 0.2f, 0.2f), 10.0f);
                 ambspline.active = true;
             }
 

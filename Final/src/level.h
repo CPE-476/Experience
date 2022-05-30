@@ -27,6 +27,7 @@
 #include "terrain.h"
 #include "boundary.h"
 #include "sound.h"
+#include "sun.h"
 
 using namespace std;
 using namespace glm;
@@ -44,7 +45,7 @@ struct Level
     }
 
     void LoadLevel(string Filename, vector<Object> *objects, 
-            vector<Light> *lights, DirLight *dirLight, 
+            vector<Light> *lights, Sun *sun,
             vector<Emitter> *emitters, FogSystem *fog, 
             Skybox *skybox, Terrain *terrain,
             Boundary *bound)
@@ -144,19 +145,25 @@ struct Level
                         quadratic = (float)atof(conPrt[14]);
                         lights->push_back(Light(pos, ambient, diffuse, specular, constant, linear, quadratic));
                     }
-                    else if (Type == "DIR")
+                    else if (Type == "SUN")
                     {
-                        cout << "DirLight loaded from file\n";
-                        vec3 dir;
+                        cout << "Sun loaded from file\n";
+                        float scl;
+                        vec3 pos;
+                        vec3 col;
 
                         vec3 ambient;
                         vec3 diffuse;
                         vec3 specular;
 
-                        dirLight->direction = vec3((float)atof(conPrt[0]), (float)atof(conPrt[1]), (float)atof(conPrt[2]));
-                        dirLight->ambient = vec3((float)atof(conPrt[3]), (float)atof(conPrt[4]), (float)atof(conPrt[5]));
-                        dirLight->diffuse = vec3((float)atof(conPrt[6]), (float)atof(conPrt[7]), (float)atof(conPrt[8]));
-                        dirLight->specular = vec3((float)atof(conPrt[9]), (float)atof(conPrt[10]), (float)atof(conPrt[11]));
+                        scl = (float)atof(conPrt[0]);
+                        pos = vec3((float)atof(conPrt[1]), (float)atof(conPrt[2]), (float)atof(conPrt[3]));
+                        col = vec3((float)atof(conPrt[4]), (float)atof(conPrt[5]), (float)atof(conPrt[6]));
+                        ambient = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
+                        diffuse = vec3((float)atof(conPrt[10]), (float)atof(conPrt[11]), (float)atof(conPrt[12]));
+                        specular = vec3((float)atof(conPrt[13]), (float)atof(conPrt[14]), (float)atof(conPrt[15]));
+
+                        sun->init(scl, pos, col, ambient, diffuse, specular);
                     }
                     else if (Type == "PAR")
                     {
@@ -279,7 +286,7 @@ struct Level
     }
 
     void SaveLevel(string Filename, vector<Object> *objects, 
-            vector<Light> *lights, DirLight *dirLight, 
+            vector<Light> *lights, Sun *sun, 
             vector<Emitter> *emitters, FogSystem *fog,
             Skybox *skybox, Terrain *terrain,
             Boundary *bound)
@@ -354,20 +361,24 @@ struct Level
 	}
 
 	// Save Directional Light Data
-	fp << "\nCOM DirLight: <DIR dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
-	fp << "DIR ";
-	fp << dirLight->direction.x << " ";
-	fp << dirLight->direction.y << " ";
-	fp << dirLight->direction.z << " ";
-	fp << dirLight->ambient.x << " ";
-	fp << dirLight->ambient.y << " ";
-	fp << dirLight->ambient.z << " ";
-	fp << dirLight->diffuse.x << " ";
-	fp << dirLight->diffuse.y << " ";
-	fp << dirLight->diffuse.z << " ";
-	fp << dirLight->specular.x << " ";
-	fp << dirLight->specular.y << " ";
-	fp << dirLight->specular.z << " ";
+	fp << "\nCOM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>\n";
+	fp << "SUN ";
+	fp << sun->scale_factor << " ";
+	fp << sun->position.x << " ";
+	fp << sun->position.y << " ";
+	fp << sun->position.z << " ";
+	fp << sun->color.r << " ";
+	fp << sun->color.g << " ";
+	fp << sun->color.b << " ";
+	fp << sun->dirLight.ambient.x << " ";
+	fp << sun->dirLight.ambient.y << " ";
+	fp << sun->dirLight.ambient.z << " ";
+	fp << sun->dirLight.diffuse.x << " ";
+	fp << sun->dirLight.diffuse.y << " ";
+	fp << sun->dirLight.diffuse.z << " ";
+	fp << sun->dirLight.specular.x << " ";
+	fp << sun->dirLight.specular.y << " ";
+	fp << sun->dirLight.specular.z << " ";
 	fp << "\n";
 
 	// Save Particle System Data
