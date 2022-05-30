@@ -4,7 +4,7 @@ COM Spring 2022
 
 
 COM Next Level: <NXT path>
-NXT ../levels/forest.txt
+NXT ../levels/credit.txt
 
 COM Camera Setup: <POV pos.x pos.y pos.z>
 POV -0.2 -6.7 110 

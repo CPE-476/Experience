@@ -403,9 +403,6 @@ int main(void)
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
-                if (strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                    water.height = -25.0f;
-                }
                 bound.counter = 157; 
                 bound.active = true;
             }
@@ -492,18 +489,21 @@ int main(void)
                     m.models.sphere.Draw(m.shaders.lightShader);
                 }
             }
-
-            m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
-            objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+            if (EditorMode == GUI){
+                m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
+                objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+            }
         }
         m.shaders.lightShader.unbind();
         // Render Terrain
-        if (drawTerrain)
+        if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
         {
             terrain.Draw(m.shaders.terrainShader, &lights, &dirLight, &fog);
         }
 
-        water.Draw(m.shaders.waterShader, deltaTime);
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0){
+            water.Draw(m.shaders.waterShader, deltaTime);
+        }
 
         if(drawParticles)
         {
@@ -1699,7 +1699,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(!drawNote)
     {
-        if(strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") == 0) {
+        if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -1770,7 +1770,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
         }
         
-        if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
+        if (camera.Mode == WALK && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0 && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
