@@ -63,6 +63,7 @@ bool  drawNote = false;
 bool  drawCollection = false;
 float collectionScroll = 0.0f;
 bool  pauseNote = false;
+float fog_offset = 7.5f;
 
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
@@ -292,7 +293,7 @@ int main(void)
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
     Boundary bound;
-    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
+    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
     lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
@@ -507,9 +508,13 @@ int main(void)
 
         if(drawParticles)
         {
+            if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+                bound.height = -35.0f;
+                fog_offset = 40.0f;
+            }
             for (int i = 0; i < emitters.size(); ++i)
             {
-                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height);
+                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
             }
         }
 

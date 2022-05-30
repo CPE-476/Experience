@@ -103,7 +103,7 @@ public:
         gpuSetup();
     }
 
-    void Draw(Shader &shader, float delta, int terrainWidth, float height)
+    void Draw(Shader &shader, float delta, int terrainWidth, float height, float offset)
     {
         mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
@@ -127,7 +127,7 @@ public:
             shader.setMat4("Model", model);
 
 	    // Where the actual draw calls are, involves instancing.
-            update(delta, terrainWidth, height);
+            update(delta, terrainWidth, height, offset);
 	}
         shader.unbind();
     } 
@@ -172,7 +172,7 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void update(float delta, int width, float height)
+    void update(float delta, int width, float height, float offset)
     {
         ++counter;
         width = width + 10;
@@ -180,7 +180,7 @@ private:
         for(int i=0;i<particleAmount;i++)
         {
             if(bugMode || fogMode)
-                startPosition.y = randFloat(-7.5, height+7.5);
+                startPosition.y = randFloat(-offset, height+offset);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {
