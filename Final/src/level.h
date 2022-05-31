@@ -219,6 +219,9 @@ struct Level
                     }
                     else if (Type == "TER")
                     {
+                        if (Filename != "../levels/credit.txt") {
+                            
+                        }
                         cout << "Terrain loaded from file\n";
                         string path;
                         float y_scale;

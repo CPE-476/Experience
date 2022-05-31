@@ -34,8 +34,8 @@ using namespace glm;
 // NOTE(Alex): Global State!
 const unsigned int RETINA_SCREEN_WIDTH = 1280;
 const unsigned int RETINA_SCREEN_HEIGHT = 800;
-const unsigned int SCREEN_WIDTH = 1280;
-const unsigned int SCREEN_HEIGHT = 800;
+const unsigned int SCREEN_WIDTH = 2560;
+const unsigned int SCREEN_HEIGHT = 1600;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
@@ -65,6 +65,7 @@ bool  drawNote = false;
 bool  drawCollection = false;
 float collectionScroll = 0.0f;
 bool  pauseNote = false;
+float fog_offset = 7.5f;
 
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
@@ -294,7 +295,7 @@ int main(void)
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
     Boundary bound;
-    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
+    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
     lvl.LoadLevel("../levels/street.txt", &objects, &lights,
                   &sun, &emitters, &fog, &skybox, &terrain, &bound);
@@ -484,9 +485,6 @@ int main(void)
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
-                if (strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                    water.height = -25.0f;
-                }
                 bound.counter = 157; 
                 bound.active = true;
             }
@@ -505,12 +503,12 @@ int main(void)
         if(sunspline.active)
         {
             sun.dirLight.direction = sunspline.getPosition();
-            cout << to_string(sun.dirLight.direction) << "\n";
+            // cout << to_string(sun.dirLight.direction) << "\n";
         } 
         if(ambspline.active)
         {
             sun.dirLight.ambient = ambspline.getPosition();
-            cout << to_string(sun.dirLight.ambient) << "\n";
+            // cout << to_string(sun.dirLight.ambient) << "\n";
         }
         sun.updateLight();
 
@@ -538,21 +536,12 @@ int main(void)
             skybox.Draw(m.shaders.skyboxShader);
         }
 
-        // Render Terrain
-        if (drawTerrain)
-        {
-            terrain.Draw(m.shaders.terrainShader, &lights, &sun.dirLight, &fog);
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
+            sun.position.y = -camera.Position.z + 10;
         }
 
-        water.Draw(m.shaders.waterShader, deltaTime);
-
-        if(drawParticles)
-        {
-            for (int i = 0; i < emitters.size(); ++i)
-            {
-                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height);
-            }
-        }
+        // Render Sun
+        sun.Draw(m.shaders.sunShader);
 
         if(bound.active)
         {
@@ -617,10 +606,49 @@ int main(void)
                     m.models.sphere.Draw(m.shaders.lightShader);
                 }
             }
-
-            objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+            if (EditorMode == GUI){
+                objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+            }
         }
         m.shaders.lightShader.unbind();
+        // Render Terrain
+        if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
+        {
+            terrain.Draw(m.shaders.terrainShader, &lights, &sun.dirLight, &fog);
+        }
+
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0){
+            water.Draw(m.shaders.waterShader, deltaTime);
+        }
+
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
+            water.height = -18.5f;
+            water.color = vec4(0.92f, 0.875, 0.74f, 0.4f);
+            water.Draw(m.shaders.waterShader, deltaTime);
+        }
+
+        if(drawParticles)
+        {
+            if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+                bound.height = -35.0f;
+                fog_offset = 40.0f;
+            }
+            for (int i = 0; i < emitters.size(); ++i)
+            {
+                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
+            }
+        }
+
+        if(bound.active)
+        {
+            bound.Draw(m.shaders.transShader);
+            if(bound.counter == 314)
+            {
+                bound.active = false;
+            }
+            bound.counter++;
+        }
+        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
 
         // Render Note
         if(checkInteraction)
@@ -1854,7 +1882,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(!drawNote)
     {
-        if(strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") == 0) {
+        if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -1925,7 +1953,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
         }
         
-        if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
+        if (camera.Mode == WALK && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0 && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
