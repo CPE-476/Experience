@@ -7,6 +7,8 @@ layout(location = 3) in mat4 instanceMatrix;
 
 out vec2 TexCoords;
 out float Height;
+out vec3 Position;
+out vec3 Normal;
 
 out VS_OUT {
     vec3 FragPos;
@@ -25,6 +27,8 @@ uniform bool isT;
 void main()
 {
     Height = aPos.y;
+    Normal = aNormal;
+    Position = aPos;
     if(!isT)
     {
         vs_out.isTerrain = 0;

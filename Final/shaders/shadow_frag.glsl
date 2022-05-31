@@ -1,4 +1,32 @@
 #version 330 core
+struct DirLight {
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+uniform DirLight dirLight;
+
+struct PointLight {
+    vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+#define MAX_LIGHTS 128
+uniform PointLight pointLights[MAX_LIGHTS];
+uniform int size;
+
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 amount);
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 amount);
+
 out vec4 FragColor;
 
 in VS_OUT {
@@ -10,12 +38,18 @@ in VS_OUT {
 } fs_in;
 
 in float Height;
+in vec3 Position;
+in vec3 Normal;
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMap;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
+
+uniform float maxFogDistance;
+uniform float minFogDistance;
+uniform vec4 fogColor;
 
 uniform vec3 bottom;
 uniform vec3 top;
@@ -52,9 +86,14 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 
 void main()
 { 
+    float distanceToCamera = length(Position - viewPos);
+    float fogFactor = (maxFogDistance - distanceToCamera) / (maxFogDistance - minFogDistance);
+    fogFactor = clamp(fogFactor, 0.0f, 1.0f);
+
     vec3 amount;
     float h;          
     vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     if(fs_in.isTerrain == 1)
     {
         h = (Height+7.8) / 10;
@@ -66,7 +105,16 @@ void main()
         {
             amount = top * (h - 0.5) * 2.0 + bottom * (1.0 - h) * 2.0;
         }
-        color = amount;
+
+        vec3 DirLightColor = CalcDirLight(dirLight, Normal, viewDir, amount);
+
+        vec3 PointLightColor = vec3(0.0);
+        for(int i = 0; i < size; ++i)
+        {
+            PointLightColor += CalcPointLight(pointLights[i], Normal, Position, viewDir, amount);
+        }
+
+        color = mix(fogColor, vec4(DirLightColor + PointLightColor, 1.0), fogFactor).rgb;
     }
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(0.3);
@@ -77,7 +125,7 @@ void main()
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
     // specular
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+    viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
@@ -88,4 +136,29 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);
+}
+
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 amount)
+{
+    vec3 lightDir = normalize(-light.direction);
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    vec3 ambient = light.ambient * amount;
+    vec3 diffuse = light.diffuse * diff * amount;
+
+    return (ambient + diffuse);
+}
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 amount)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
+    vec3 diffuse = light.diffuse * diff * amount;
+    diffuse *= attenuation;
+
+    return diffuse;
 }

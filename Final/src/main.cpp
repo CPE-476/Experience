@@ -311,7 +311,7 @@ int main(void)
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // shader configuration
+    // shadow shader configuration
     // --------------------
     m.shaders.shadowShader.bind();
     m.shaders.shadowShader.setInt("diffuseTexture", 0);
