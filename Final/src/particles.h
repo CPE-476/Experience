@@ -126,6 +126,8 @@ public:
             model = mat4(1.0f);
             shader.setMat4("Model", model);
 
+            shader.setFloat("threshold", gBloomThreshold);
+
 	    // Where the actual draw calls are, involves instancing.
             update(delta, terrainWidth, height);
 	}

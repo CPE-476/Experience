@@ -56,6 +56,9 @@ struct Shader_Container
     Shader boundaryShader;
     Shader cursorShader;
     Shader sunShader;
+
+    Shader blurShader;
+    Shader bloomShader;
 };
 
 struct Model_Container
@@ -139,6 +142,8 @@ struct Manager
         this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
         this->shaders.cursorShader.init("../shaders/curs_vert.glsl", "../shaders/curs_frag.glsl");
         this->shaders.sunShader.init("../shaders/sun_vert.glsl", "../shaders/sun_frag.glsl");
+        this->shaders.blurShader.init("../shaders/blur_vert.glsl", "../shaders/blur_frag.glsl");
+        this->shaders.bloomShader.init("../shaders/bloom_vert.glsl", "../shaders/bloom_frag.glsl");
 
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");
@@ -321,6 +326,8 @@ struct Manager
                 {
                     lights->at(i).Render(shaders.textureShader, i);
                 }
+
+                shaders.textureShader.setFloat("threshold", gBloomThreshold);
 
                 for(int i = 0; i < entry.model->meshes.size(); i++)
                 {

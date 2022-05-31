@@ -198,6 +198,8 @@ struct Terrain
             shader.setFloat("minFogDistance", fog->minDistance);
             shader.setVec4("fogColor", fog->color);
 
+            shader.setFloat("threshold", gBloomThreshold);
+
             dirLight->Render(shader);
 
             shader.setInt("size", lights->size());

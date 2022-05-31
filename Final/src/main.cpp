@@ -1,7 +1,7 @@
 // Author: Alex Hartford, Brett Hickman, Lucas Li
 // Program: Experience
 // File: Main
-// Date: May 2022
+// Date: June 2022
 
 #include <iostream>
 #include <time.h>
@@ -32,6 +32,8 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
+const unsigned int RETINA_SCREEN_WIDTH = 1280;
+const unsigned int RETINA_SCREEN_HEIGHT = 800;
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 800;
 const unsigned int TEXT_SIZE = 16;
@@ -41,8 +43,8 @@ const float default_view = 1.414f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
-float lastX = SCREEN_WIDTH / 2.0f;
-float lastY = SCREEN_WIDTH / 2.0f;
+float lastX = RETINA_SCREEN_WIDTH / 2.0f;
+float lastY = RETINA_SCREEN_HEIGHT / 2.0f;
 bool  firstMouse = true;
 char  levelName[128] = "";
 
@@ -52,8 +54,8 @@ unsigned int frameCount = 0;
 const float  y_offset = 1.0f;
 
 int   bobbingCounter = 0;
-int   bobbingSpeed = 3;
-float bobbingAmount = 0.015;
+int   bobbingSpeed = 7;
+float bobbingAmount = 0.03;
 float road_width = 3.0f;
 
 // For Selector.
@@ -67,6 +69,10 @@ bool  pauseNote = false;
 // NOTE(Lucas) For collsion detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
 
+// For FBO Stuff
+bool bloom = true;
+float exposure = 1.0f;
+float gBloomThreshold = 0.5f;
 
 enum EditorModes
 {
@@ -164,7 +170,7 @@ int main(void)
     // Full Screen Mode
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
 #endif
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT, "Experience", NULL, NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
@@ -261,7 +267,6 @@ int main(void)
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
 
-    // DEBUG
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
     sounds.push_back(&pickup);
@@ -291,7 +296,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/street.txt", &objects, &lights,
                   &sun, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
@@ -301,10 +306,88 @@ int main(void)
     Spline sunspline;
     Spline ambspline;
 
+    // FBO Setup
+    float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+        // positions         // texCoords
+        -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+         1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+         1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+    };
+
+    unsigned int quadVAO, quadVBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    m.shaders.blurShader.bind();
+    m.shaders.blurShader.setInt("image", 0);
+    m.shaders.bloomShader.bind();
+    m.shaders.bloomShader.setInt("scene", 0);
+    m.shaders.bloomShader.setInt("bloomBlur", 1);
+
+    unsigned int hdrFBO;
+    glGenFramebuffers(1, &hdrFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+
+    unsigned int colorBuffers[2];
+    glGenTextures(2, colorBuffers);
+    for(int i = 0; i < 2; ++i)
+    {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // Attach texture to FBO.
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+    }
+
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);   // Depth Buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        cout << "Framebuffer Error!\n";
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // ping-pong-framebuffer for blurring
+    unsigned int pingpongFBO[2];
+    unsigned int pingpongColorbuffers[2];
+    glGenFramebuffers(2, pingpongFBO);
+    glGenTextures(2, pingpongColorbuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+
+        // also check if framebuffers are complete (no need for depth buffer)
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            cout << "Framebuffer not complete!\n";
+    }
+
     // Editor Settings
-    bool showObjectEditor = true;
+    bool showObjectEditor = false;
     bool showParticleEditor = false;
-    bool showLightEditor = false;
+    bool showLightEditor = true;
     bool showFogEditor = false;
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
@@ -319,7 +402,7 @@ int main(void)
     bool drawSkybox = true;
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
-    bool drawPointLights = false;
+    bool drawPointLights = true;
     bool drawParticles = true;
 
     char skyboxPath[128] = "";
@@ -332,6 +415,7 @@ int main(void)
     int selectedParticle = 0;
     int selectedNote = 0;
     int selectedSound = 0;
+
     while (!glfwWindowShouldClose(window))
     {
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
@@ -430,6 +514,9 @@ int main(void)
         }
         sun.updateLight();
 
+        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+        glEnable(GL_DEPTH_TEST);
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -440,6 +527,10 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.DrawAllModels(&objects, &lights, &sun.dirLight, &fog, &frustum);
+
+        // Render Sun
+        sun.Draw(m.shaders.sunShader);
+
  
         // Render Skybox
         if (drawSkybox)
@@ -447,58 +538,6 @@ int main(void)
             skybox.Draw(m.shaders.skyboxShader);
         }
 
-        // Render Sun
-        sun.Draw(m.shaders.sunShader);
-
-        // Render Light Positions (DEBUG)
-        m.shaders.lightShader.bind();
-        {
-            m.shaders.lightShader.setMat4("projection", projection);
-            m.shaders.lightShader.setMat4("view", view);
-
-            model = mat4(1.0f);
-            m.shaders.lightShader.setMat4("model", model);
-
-            if (drawPointLights)
-            {
-                for (int i = 0; i < lights.size(); ++i)
-                {
-                    model = mat4(1.0f);
-                    model = scale(model, vec3(0.5f, 0.5f, 0.5f));
-                    model = translate(model, lights[i].position);
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.cube.Draw(m.shaders.lightShader);
-                }
-            }
-
-            if (drawBoundingSpheres)
-            {
-                for (int i = 0; i < objects.size(); ++i)
-                {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].view_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
-                }
-            }
-
-            if (drawCollisionSpheres)
-            {
-                for (int i = 0; i < objects.size(); ++i)
-                {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].collision_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
-                }
-            }
-
-            m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
-            objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
-        }
-        m.shaders.lightShader.unbind();
         // Render Terrain
         if (drawTerrain)
         {
@@ -526,6 +565,63 @@ int main(void)
         }
         bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
 
+        // Render Point Lights
+        m.shaders.lightShader.bind();
+        {
+            m.shaders.lightShader.setMat4("projection", projection);
+            m.shaders.lightShader.setMat4("view", view);
+            vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
+
+            if (drawPointLights)
+            {
+                for (int i = 0; i < lights.size(); ++i)
+                {
+                    if(selectedLight == i)
+                    {
+                        m.shaders.lightShader.setVec3("lightColor", selectedColor);
+                    }
+                    else
+                    {
+                        m.shaders.lightShader.setVec3("lightColor", lights[i].color);
+                    }
+                    model = mat4(1.0f);
+                    model = translate(model, lights[i].position);
+                    model = scale(model, vec3(0.2f, 0.1f, 0.1f));
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.cube.Draw(m.shaders.lightShader);
+                }
+            }
+
+            // Render Selected Objects, Bounding Spheres, etc.
+            m.shaders.lightShader.setVec3("lightColor", selectedColor);
+            if (drawBoundingSpheres)
+            {
+                for (int i = 0; i < objects.size(); ++i)
+                {
+                    model = mat4(1.0f);
+                    model = translate(model, objects[i].position);
+                    model = scale(model, vec3(objects[i].view_radius));
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.sphere.Draw(m.shaders.lightShader);
+                }
+            }
+
+            if (drawCollisionSpheres)
+            {
+                for (int i = 0; i < objects.size(); ++i)
+                {
+                    model = mat4(1.0f);
+                    model = translate(model, objects[i].position);
+                    model = scale(model, vec3(objects[i].collision_radius));
+                    m.shaders.lightShader.setMat4("model", model);
+                    m.models.sphere.Draw(m.shaders.lightShader);
+                }
+            }
+
+            objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+        }
+        m.shaders.lightShader.unbind();
+
         // Render Note
         if(checkInteraction)
         {
@@ -551,12 +647,12 @@ int main(void)
                 {
                     interactingObject = i;
                 }
-		/*
+                /*
                 else
                 {
                     selectedObject = i;
                 }
-		*/
+                */
             }
             if(objects[interactingObject].interactible)
             {
@@ -598,6 +694,50 @@ int main(void)
                 }
             }
         }
+
+        // FBO Time!
+        // blur bright fragments with two-pass Gaussian Blur 
+        bool horizontal = true, first_iteration = true;
+        unsigned int amount = 10;
+        m.shaders.blurShader.bind();
+        {
+            for (unsigned int i = 0; i < amount; i++)
+            {
+                glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+                m.shaders.blurShader.setInt("horizontal", horizontal);
+
+                glActiveTexture(GL_TEXTURE0);
+                // bind texture of other framebuffer (or scene if first iteration)
+                glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]
+                                                             : pingpongColorbuffers[!horizontal]);
+                glBindVertexArray(quadVAO);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+                glBindVertexArray(0);
+                horizontal = !horizontal;
+                if (first_iteration)
+                    first_iteration = false;
+            }
+        }
+        m.shaders.blurShader.unbind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);   
+
+        // Render floating point color buffer to 2D quad and 
+        // tonemap HDR colors to default framebuffer's (clamped) color range
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m.shaders.bloomShader.bind();
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+            m.shaders.bloomShader.setInt("bloom", bloom);
+            m.shaders.bloomShader.setFloat("exposure", exposure);
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glBindVertexArray(0);
+        }
+        m.shaders.bloomShader.unbind();
+
 
         if (EditorMode == GUI)
         {
@@ -704,6 +844,8 @@ int main(void)
                 ImGui::ColorEdit3("Diffuse", (float *)&lights[selectedLight].diffuse);
                 ImGui::ColorEdit3("Specular", (float *)&lights[selectedLight].specular);
 
+                ImGui::SliderFloat3("Color", (float *)&lights[selectedLight].color, 0.0f, 20.0f);
+
                 ImGui::SliderFloat("Constant", (float *)&lights[selectedLight].constant, 0.0f, 1.0f);
                 ImGui::SliderFloat("Linear", (float *)&lights[selectedLight].linear, 0.0f, 1.0f);
                 ImGui::SliderFloat("Quadratic", (float *)&lights[selectedLight].quadratic, 0.0f, 1.0f);
@@ -780,9 +922,9 @@ int main(void)
             {
                 ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
-		ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
-		ImGui::SliderFloat("Width", (float *)&bound.width, 0.0f, 500.0f);
-		ImGui::SliderFloat("Height", (float *)&bound.height, 0.0f, 50.0f);
+                ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
+                ImGui::SliderFloat("Width", (float *)&bound.width, 0.0f, 500.0f);
+                ImGui::SliderFloat("Height", (float *)&bound.height, 0.0f, 50.0f);
                 ImGui::End();
             }
 
@@ -852,7 +994,7 @@ int main(void)
 
                 ImGui::SliderFloat("Scale", (float *)&sun.scale_factor, 0.0f, 100.0f);
                 ImGui::SliderFloat3("Position", (float *)&sun.position, -512.0f, 512.0f);
-                ImGui::ColorEdit3("Color", (float *)&sun.color);
+                ImGui::SliderFloat3("Color", (float *)&sun.color, 0.0f, 20.0f);
 
                 ImGui::SliderFloat3("Direction", (float *)&sun.dirLight.direction, -1.0f, 1.0f);
 
@@ -1498,13 +1640,13 @@ int main(void)
                                                 lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
 
-                        lights.push_back(Light(vec3(2.2f,-2.0f,-128 + 31.6f * i),
-                                                vec3(0.49f,0.46f,0.38f),
+                        lights.push_back(Light(vec3(2.1f, -0.9f, -128 + 31.6f * i),
+                                                vec3(0.0f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
                                                 0.4f, 1.0f,0.09f));
-                        lights.push_back(Light(vec3(-3.2f,-2.0f,-128 + 31.6f * i),
-                                                vec3(0.49f,0.46f,0.38f),
+                        lights.push_back(Light(vec3(-3.1f, -0.9f, -128 + 31.6f * i),
+                                                vec3(0.0f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
                                                 0.4f, 1.0f,0.09f));
@@ -1648,6 +1790,7 @@ int main(void)
                 ambspline.init(sun.dirLight.ambient, vec3(0.01f, 0.0f, 0.0f), 10.0f);
                 ambspline.active = true;
             }
+            ImGui::SameLine();
             if(ImGui::Button("Sunrise!"))
             {
                 sunspline.init(sun.dirLight.direction, vec3(-0.5f, -0.2f, -0.7f), 10.0f);
@@ -1656,10 +1799,14 @@ int main(void)
                 ambspline.active = true;
             }
 
+            ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
+            ImGui::Checkbox("Bloom", &bloom);
+            ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
+
             ImGui::End();
 
             ImGui::Render();
-            glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+            glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
