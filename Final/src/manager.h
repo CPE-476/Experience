@@ -345,7 +345,7 @@ struct Manager
 
                 for(int i = 0; i < entry.model->meshes.size(); i++)
                 {
-                    entry.model->meshes[i].SetTextureParams(shader);
+                    //entry.model->meshes[i].SetTextureParams(shader);
                     glBindVertexArray(entry.model->meshes[i].VAO);
                     glDrawElementsInstanced(GL_TRIANGLES, 
                             static_cast<unsigned int>(entry.model->meshes[i].indices.size()),
