@@ -1,5 +1,8 @@
 #version 330 core
 
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
+
 struct DirLight {
     vec3 direction;
 
@@ -28,8 +31,6 @@ uniform int size;
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 amount);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 amount);
 
-out vec4 outColor;
-
 in float Height;
 in vec3 Position;
 in vec3 Normal;
@@ -44,6 +45,8 @@ uniform vec3 bottom;
 uniform vec3 top;
 uniform vec3 dirt;
 
+uniform float threshold;
+
 void main()
 {
     float distanceToCamera = length(Position - viewPos);
@@ -52,10 +55,8 @@ void main()
 
     vec3 viewDir = normalize(viewPos - Position);
 
-    //bottom = vec3(1, 0, 0);
-    //top = vec3(0, 1, 0);  //uncomment for RGB debugger
-    //dirt = vec3(0, 0, 1); 
-    float h = (Height+7.8) / 10;  // shift and scale the height in to a grayscale value
+    // shift and scale the height in to a grayscale value
+    float h = (Height+7.8) / 10;
     vec3 amount;
 
     if (h < 0.5)
@@ -75,9 +76,17 @@ void main()
         PointLightColor += CalcPointLight(pointLights[i], Normal, Position, viewDir, amount);
     }
 
-    //vec3 amount = mix(bottom, top, h);
-    
-    outColor = mix(fogColor, vec4(DirLightColor + PointLightColor, 1.0), fogFactor);
+    FragColor = mix(fogColor, vec4(DirLightColor + PointLightColor, 1.0), fogFactor);
+
+    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > threshold)
+    {
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    }
+    else
+    {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 amount)

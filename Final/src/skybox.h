@@ -98,6 +98,8 @@ struct Skybox
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
+        shader.setFloat("threshold", gBloomThreshold);
+
         glBindVertexArray(VAO);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
         glDrawArrays(GL_TRIANGLES, 0, 36);

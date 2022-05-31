@@ -1,5 +1,8 @@
 #version 330 core 
 
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
+
 struct DirLight {
     vec3 direction;
 
@@ -22,8 +25,6 @@ struct PointLight {
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-
-out vec4 outColor;
 
 in vec3 normal;
 in vec3 fragmentPos;
@@ -53,6 +54,8 @@ uniform float maxFogDistance;
 uniform float minFogDistance;
 uniform vec4 fogColor;
 
+uniform float threshold;
+
 void main()
 {
     float distanceToCamera = length(fragmentPos - viewPos);
@@ -77,8 +80,17 @@ void main()
         }
     }
 
-    outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
-    //outColor = texture(texture_diffuse1, texCoords);
+    FragColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
+
+    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > threshold)
+    {
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    }
+    else
+    {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

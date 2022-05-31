@@ -52,6 +52,7 @@ struct Light
     vec3  ambient;
     vec3  diffuse;
     vec3  specular;
+    vec3  color;
 
     float constant;
     float linear;
@@ -67,6 +68,7 @@ struct Light
         this->constant = con;
         this->linear = lin;
         this->quadratic = quad;
+        this->color = vec3(100.0f);
     }
 
     void Render(Shader &shader, int i)
