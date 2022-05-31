@@ -419,12 +419,12 @@ int main(void)
         if(sunspline.active)
         {
             sun.dirLight.direction = sunspline.getPosition();
-            cout << to_string(sun.dirLight.direction) << "\n";
+            // cout << to_string(sun.dirLight.direction) << "\n";
         } 
         if(ambspline.active)
         {
             sun.dirLight.ambient = ambspline.getPosition();
-            cout << to_string(sun.dirLight.ambient) << "\n";
+            // cout << to_string(sun.dirLight.ambient) << "\n";
         }
         sun.updateLight();
 
@@ -443,6 +443,10 @@ int main(void)
         if (drawSkybox)
         {
             skybox.Draw(m.shaders.skyboxShader);
+        }
+
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
+            sun.position.y = -camera.Position.z + 10;
         }
 
         // Render Sun
@@ -507,6 +511,14 @@ int main(void)
         if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0){
             water.Draw(m.shaders.waterShader, deltaTime);
         }
+
+        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
+            water.height = -18.5f;
+            water.color = vec4(0.92f, 0.875, 0.74f, 0.4f);
+            water.Draw(m.shaders.waterShader, deltaTime);
+        }
+
+        
 
         if(drawParticles)
         {
