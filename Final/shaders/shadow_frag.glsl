@@ -6,13 +6,20 @@ in VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
     vec4 FragPosLightSpace;
+    float isTerrain;
 } fs_in;
+
+in float Height;
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMap;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
+
+uniform vec3 bottom;
+uniform vec3 top;
+uniform vec3 dirt;
 
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
@@ -26,14 +33,41 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
     float bias = 0.005f;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; 
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    if(projCoords.z > 1.0)
+        shadow = 0.0; 
 
     return shadow;
 }
 
 void main()
-{           
+{ 
+    vec3 amount;
+    float h;          
     vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    if(fs_in.isTerrain == 1)
+    {
+        h = (Height+7.8) / 10;
+        if (h < 0.5)
+        {
+            amount = (bottom * h * 2.0) +  dirt * (0.5 - h) * 2.0;
+        }
+        else
+        {
+            amount = top * (h - 0.5) * 2.0 + bottom * (1.0 - h) * 2.0;
+        }
+        color = amount;
+    }
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(0.3);
     // ambient
