@@ -141,6 +141,37 @@ float randFloat()
     return r;
 }
 
+void renderQuad();
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 float randCoord()
 {
     return (randFloat() * 220.0f) - 100.0f;
@@ -202,7 +233,7 @@ int main(void)
 
     /* Manage OpenGL State */
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -390,6 +421,7 @@ int main(void)
     bool showParticleEditor = false;
     bool showLightEditor = true;
     bool showFogEditor = false;
+    bool showShadowEditor = false;
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showBoundaryEditor = false;
@@ -416,6 +448,41 @@ int main(void)
     int selectedParticle = 0;
     int selectedNote = 0;
     int selectedSound = 0;
+
+    // configure depth map FBO
+    // -----------------------
+    const unsigned int SHADOW_WIDTH = 4024, SHADOW_HEIGHT = 4024;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    unsigned int depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // shadow shader configuration
+    // --------------------
+    m.shaders.shadowShader.bind();
+    m.shaders.shadowShader.setInt("diffuseTexture", 0);
+    m.shaders.shadowShader.setInt("shadowMap", 1);
+    m.shaders.debugShader.bind();
+    m.shaders.debugShader.setInt("depthMap", 0);
+
+    // lighting info
+    // -------------
+    glm::vec3 lightPos(126.0f, 76.0f, -1.0F);
+    float near_plane = 0.0f, far_plane = 282.5f;
+    float shadow_frustum = 111.0f;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -515,20 +582,88 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glEnable(GL_DEPTH_TEST);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
         mat4 model;
 
         frustum.ExtractVFPlanes(projection, view);
 
-        m.DrawAllModels(&objects, &lights, &sun.dirLight, &fog, &frustum);
-
-        // Render Sun
+         // Render Sun
         sun.Draw(m.shaders.sunShader);
 
+        // Shadows
+
+        glm::mat4 lightProjection, lightView;
+        glm::mat4 lightSpaceMatrix;
+        lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
+        lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        lightSpaceMatrix = lightProjection * lightView;
+        // render scene from light's point of view
+        m.shaders.depthShader.bind();
+        m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        m.shaders.depthShader.setBool("isT", false);
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            
+        m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &dirLight, &fog, &frustum);
+        m.shaders.depthShader.bind();
+        m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        m.shaders.depthShader.setBool("isT", true);
+        // Render Terrain
+        if (drawTerrain)
+        {
+            terrain.Draw(m.shaders.depthShader, &lights, &dirLight, &fog);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // reset viewport
+        glViewport(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // reset viewport
+        glViewport(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m.shaders.shadowShader.bind();
+        projection = camera.GetProjectionMatrix();
+        view = camera.GetViewMatrix();
+        m.shaders.shadowShader.setMat4("projection", projection);
+        m.shaders.shadowShader.setMat4("view", view);
+        m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+        m.shaders.shadowShader.setVec3("lightPos", lightPos);
+        m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        m.shaders.shadowShader.setBool("isT", false);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, &dirLight, &fog, &frustum);
+        m.shaders.shadowShader.bind();
+        m.shaders.shadowShader.setMat4("projection", projection);
+        m.shaders.shadowShader.setMat4("view", view);
+        m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+        m.shaders.shadowShader.setVec3("lightPos", lightPos);
+        m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        m.shaders.shadowShader.setBool("isT", true);
+
+        // Render Terrain
+        if (drawTerrain)
+        {
+            terrain.Draw(m.shaders.shadowShader, &lights, &dirLight, &fog);
+        }
+
+        // render Depth map to quad for visual debugging
+        // ---------------------------------------------
+        m.shaders.debugShader.bind();
+        m.shaders.debugShader.setFloat("near_plane", near_plane);
+        m.shaders.debugShader.setFloat("far_plane", far_plane);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+            renderQuad();
+
+        // End of Shadows
  
         // Render Skybox
         if (drawSkybox)
@@ -907,9 +1042,27 @@ int main(void)
             {
                 ImGui::Begin("Fog Editor");
 
-                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 1.0f, 1000.0f);
-                ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 1000.0f);
+                ImGui::SliderFloat("x", (float *)&lightPos.x, -10.0f, 200.0f);
+                ImGui::SliderFloat("y", (float *)&lightPos.y, -10.0f, 200.0f);
+                ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
+                ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
+                ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::ColorEdit3("Color", (float *)&fog.color);
+                ImGui::End();
+            }
+
+            if (showShadowEditor)
+            {
+                ImGui::Begin("Shadow Editor");
+
+                ImGui::SliderFloat("x", (float *)&lightPos.x, -10.0f, 200.0f);
+                ImGui::SliderFloat("y", (float *)&lightPos.y, -10.0f, 200.0f);
+                ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
+                ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
+                ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
+                ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
+
+
                 ImGui::End();
             }
 
@@ -1780,9 +1933,14 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
+
             ImGui::Checkbox("Fog", &showFogEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Sound", &showSoundEditor);
+
+            ImGui::Checkbox("Shadow", &showShadowEditor);
+            ImGui::SameLine();
+
 
             ImGui::NewLine();
 
