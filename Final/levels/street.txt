@@ -168,7 +168,7 @@ LGT 2.1 -0.9 314.4 0 0 0 0.45 0.31 0.2 0.35 0.2 0.13 0.4 1 0.09
 LGT -3.1 -0.9 314.4 0 0 0 0.45 0.31 0.2 0.35 0.2 0.13 0.4 1 0.09 
 
 COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
-SUN 100 -2 -20 -512 0.93 0.44 0.18 0.95 0.66 0.23 0.93 0.44 0.18 0.91 0.20 0.14 
+SUN 50 -2 -20 -512 0.93 0.44 0.18 0.95 0.66 0.23 0.93 0.44 0.18 0.91 0.20 0.14 
 
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
 PAR ../resources/models/particle/part.png 20000 0 -29.9037 0 0.2 3.883 7 9 0 9 1.63572 -2.128 0.132353 0.129758 0.129758 0.4 0.416667 0.416667 0.416667 1 14 8 0 1 
