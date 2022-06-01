@@ -297,7 +297,7 @@ int main(void)
     Boundary bound;
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
-    lvl.LoadLevel("../levels/street.txt", &objects, &lights,
+    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
                   &sun, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
@@ -629,9 +629,13 @@ int main(void)
 
         if(drawParticles)
         {
+            bound.height = -7.0f;
             if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
                 bound.height = -35.0f;
                 fog_offset = 40.0f;
+            }
+            if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+                bound.height = 15.0f;
             }
             for (int i = 0; i < emitters.size(); ++i)
             {
@@ -1371,7 +1375,7 @@ int main(void)
                         selectedObject = objects.size() - 1;
                     }
 
-                                        for (int i = 0; i < 10; i++) // deer_1
+                    for (int i = 0; i < 10; i++) // deer_1
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
@@ -1423,6 +1427,75 @@ int main(void)
                                                      grass_scale, false, false, 0, 1));
                             selectedObject = objects.size() - 1;
                         }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Rocks"))
+                {
+                    float pos_y = 0.0f;
+                    for (int i = 0; i < 30; i++) // Rock 1
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.2f, 0.3f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(5).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(5,
+                                                 pos,
+                                                 -1.6f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(5).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for (int i = 0; i < 20; i++) // Rock 2
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.2f, 0.4f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(6).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(6,
+                                                 pos,
+                                                 -1.6f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(6).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for (int i = 0; i < 30; i++) // Rock 2
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.1f, 0.3f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(7).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(7,
+                                                 pos,
+                                                 -1.6f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(7).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+                    for (int i = 0; i < 40; i++) // Square Rock
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.4f, 0.5f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(8).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(8,
+                                                 pos,
+                                                 -1.6f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(8).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
                     }
                 }
 
