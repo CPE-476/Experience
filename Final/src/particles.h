@@ -93,7 +93,7 @@ public:
             vec3 G = cross(vel, cross(V, vel));
             vel = (magnitude(vel)/magnitude(V)) * V;
 
-            Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
+            Particles.push_back(Particle(startPos, vel, 0, 0));
             posOffsets[i] = startPos;
             colorOffsets[i] = startColor;
             scaleOffsets[i] = startScale;
