@@ -75,19 +75,17 @@ public:
 
     void Setup()
     {
-        vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
             float r = radius * sqrt(randFloat(0, 1));
             float theta = randFloat(0, 1) * 2.0f * M_PI;
             vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
             if(particleAmount == 20000)
-                    {
-                        int width = 256;
-                        lifeSpan = randFloat(1.5f, 2.5f);
-                        startPos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
-                        //startPos = fogArray[(int)randFloat(0, 4)];
-                    }
+            {
+                int width = 256;
+                lifeSpan = randFloat(1.5f, 2.5f);
+                startPos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
+            }
             vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
             float rTop = radiusTop * sqrt(randFloat(0, 1));
             float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
@@ -174,7 +172,7 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void update(float delta, int width, float height, float offset)
+    void update(float delta, int width, float tHeight, float offset)
     {
         ++counter;
         width = width + 10;
@@ -182,7 +180,7 @@ private:
         for(int i=0;i<particleAmount;i++)
         {
             if(bugMode || fogMode)
-                startPosition.y = randFloat(-offset, height+offset);
+                startPosition.y = randFloat(-offset, tHeight+offset);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {

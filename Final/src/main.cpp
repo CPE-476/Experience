@@ -796,12 +796,14 @@ int main(void)
                 ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
                 ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
                 ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
+                ImGui::SliderFloat("Height Between Rads", (float *)&emitters[selectedParticle].height, -10.0f, 10.0f);
+                ImGui::SliderFloat("Life Span", (float *)&emitters[selectedParticle].lifeSpan, 0.0f, 10.0f);
                 ImGui::ColorEdit4("Start Color", (float *)&emitters[selectedParticle].startColor);
                 ImGui::ColorEdit4("End Color", (float *)&emitters[selectedParticle].endColor);
                 ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 20.0f);
                 ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 20.0f);
                 // NOTE(Alex): Broken, for some reason.
-                // ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
+                ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
                 ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
                 ImGui::SliderInt("Fog Mode", (int *)&emitters[selectedParticle].fogMode, 0, 1);
 
