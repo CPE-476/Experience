@@ -574,8 +574,11 @@ int main(void)
                         m.shaders.lightShader.setVec3("lightColor", lights[i].color);
                     }
                     model = mat4(1.0f);
-                    model = translate(model, lights[i].position);
-                    model = scale(model, vec3(0.2f, 0.1f, 0.1f));
+                    float z_adj = lights[i].position.z;
+                    if (lights[i].position.x < 0) z_adj -= 0.05f;
+                    else z_adj += 0.1f;
+                    model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
+                    model = scale(model, vec3(0.15f, 0.075f, 0.075f));
                     m.shaders.lightShader.setMat4("model", model);
                     m.models.cube.Draw(m.shaders.lightShader);
                 }
