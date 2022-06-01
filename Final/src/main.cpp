@@ -1430,70 +1430,22 @@ int main(void)
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("Rocks"))
+                if (ImGui::Button("tree3"))
                 {
                     float pos_y = 0.0f;
-                    for (int i = 0; i < 30; i++) // Rock 1
+                    for (int i = 0; i < 20; i++) // Birch Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
-                        float scale = randRange(0.2f, 0.3f);
+                        float scale = randRange(3.5f, 4.5f);
                         if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(5).y_offset;
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(2).y_offset;
                         vec3 pos = vec3(pos_x, pos_y, pos_z);
 
-                        objects.push_back(Object(5,
+                        objects.push_back(Object(2,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(5).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 20; i++) // Rock 2
-                    {
-                        float pos_x = randCoord();
-                        float pos_z = randCoord();
-                        float scale = randRange(0.2f, 0.4f);
-                        if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(6).y_offset;
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
-
-                        objects.push_back(Object(6,
-                                                 pos,
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(6).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 30; i++) // Rock 2
-                    {
-                        float pos_x = randCoord();
-                        float pos_z = randCoord();
-                        float scale = randRange(0.1f, 0.3f);
-                        if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(7).y_offset;
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
-
-                        objects.push_back(Object(7,
-                                                 pos,
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(7).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 40; i++) // Square Rock
-                    {
-                        float pos_x = randCoord();
-                        float pos_z = randCoord();
-                        float scale = randRange(0.4f, 0.5f);
-                        if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(8).y_offset;
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
-
-                        objects.push_back(Object(8,
-                                                 pos,
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(8).collision_radius * scale, 
+                                                 vec3(1), scale * default_view, m.findbyId(2).collision_radius * scale, 
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
