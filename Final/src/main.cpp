@@ -379,7 +379,8 @@ int main(void)
 
     // Shadow info
     // -------------
-    float near_plane = -10.0f, far_plane = 1000.0f;
+    glm::vec3 lightPos(126.0f, 76.0f, -1.0F);
+    float near_plane = 0.0f, far_plane = 345.0f;
     float shadow_frustum = 111.0f;
 
     // Color buffers to identify high brightness locations
