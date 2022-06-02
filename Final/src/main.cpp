@@ -377,10 +377,9 @@ int main(void)
     m.shaders.bloomShader.setInt("scene", 0);
     m.shaders.bloomShader.setInt("bloomBlur", 1);
 
-    // lighting info
+    // Shadow info
     // -------------
-    glm::vec3 lightPos(126.0f, 76.0f, -1.0F);
-    float near_plane = 0.0f, far_plane = 1000.0f;
+    float near_plane = -10.0f, far_plane = 1000.0f;
     float shadow_frustum = 111.0f;
 
     // Color buffers to identify high brightness locations
@@ -567,38 +566,37 @@ int main(void)
 
 
         // Render Depth Map to its own FBO
-	// -------------------------------------------------------------------
+        // -------------------------------------------------------------------
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
         lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
         lightView = glm::lookAt(vec3(sun.position.x, sun.position.y + sun.scale_factor, sun.position.z), 
-		glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+                glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
         // render scene from light's point of view
         m.shaders.depthShader.bind();
-	{
-	    m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-	    m.shaders.depthShader.setBool("isT", false);
+        {
+            m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+            m.shaders.depthShader.setBool("isT", false);
 
-	    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	    glClear(GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
 
-	    m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
+            m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
 
-	    m.shaders.depthShader.setBool("isT", true);
-	    // Render Terrain
-	    if (drawTerrain)
-	    {
-		terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
-	    }
-	}
-	m.shaders.depthShader.unbind();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            m.shaders.depthShader.setBool("isT", true);
+            // Render Terrain
+            if (drawTerrain)
+            {
+                terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
+            }
+        }
+        m.shaders.depthShader.unbind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-	// Let's start drawing actual geometry.
-	// =====================================
+        // Let's start drawing actual geometry.
+        // =====================================
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glEnable(GL_DEPTH_TEST);
 
@@ -614,38 +612,36 @@ int main(void)
         frustum.ExtractVFPlanes(projection, view);
 
         m.shaders.shadowShader.bind();
-	{
-	    m.shaders.shadowShader.setMat4("projection", projection);
-	    m.shaders.shadowShader.setMat4("view", view);
-	    m.shaders.shadowShader.setVec3("viewPos", camera.Position);
-	    m.shaders.shadowShader.setVec3("lightPos", lightPos);
-	    m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-	    m.shaders.shadowShader.setBool("isT", false);
-	    glActiveTexture(GL_TEXTURE1);
-	    glBindTexture(GL_TEXTURE_2D, depthMap);
-	    m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
-		&sun.dirLight, &fog, &frustum);
-	}
+        {
+            m.shaders.shadowShader.setMat4("projection", projection);
+            m.shaders.shadowShader.setMat4("view", view);
+            m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+            m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+            m.shaders.shadowShader.setBool("isT", false);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+            m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
+                &sun.dirLight, &fog, &frustum);
+        }
         m.shaders.shadowShader.unbind();
 
-	// NOTE(alex): Some reason this needs to be rebound to work? Who fucking knows.
+        // NOTE(alex): Some reason this needs to be rebound to work? Who fucking knows.
         m.shaders.shadowShader.bind();
-	{
-	    m.shaders.shadowShader.setMat4("projection", projection);
-	    m.shaders.shadowShader.setMat4("view", view);
-	    m.shaders.shadowShader.setVec3("viewPos", camera.Position);
-	    m.shaders.shadowShader.setVec3("lightPos", lightPos);
-	    m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-	    m.shaders.shadowShader.setBool("isT", false);
+        {
+            m.shaders.shadowShader.setMat4("projection", projection);
+            m.shaders.shadowShader.setMat4("view", view);
+            m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+            m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+            m.shaders.shadowShader.setBool("isT", false);
 
-	    // Render Terrain
-	    if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/credits.txt") != 0)
-	    {
-		m.shaders.shadowShader.setBool("isT", true);
-		terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
-	    }
-	}
-	m.shaders.shadowShader.unbind();
+            // Render Terrain
+            if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/credits.txt") != 0)
+            {
+                m.shaders.shadowShader.setBool("isT", true);
+                terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
+            }
+        }
+        m.shaders.shadowShader.unbind();
 
         // render Depth map to quad for visual debugging
         // ---------------------------------------------
@@ -655,9 +651,9 @@ int main(void)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap);
         if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-	{
+        {
             renderQuad();
-	}
+        }
 
         // Render Sun
         sun.Draw(m.shaders.sunShader);
@@ -669,7 +665,7 @@ int main(void)
         }
 
         if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
-	{
+        {
             sun.position.y = -camera.Position.z + 10;
             float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /3.0, 2);
             sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
@@ -733,7 +729,7 @@ int main(void)
                 }
             }
             if (EditorMode == GUI)
-	    {
+            {
                 objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
             }
         }
@@ -837,8 +833,8 @@ int main(void)
         }
 
 
-	// FRAMEBUFFER Render Normal scene plus bright portions
-	// ----------------------------------------------------------------
+        // FRAMEBUFFER Render Normal scene plus bright portions
+        // ----------------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glEnable(GL_DEPTH_TEST);
       
@@ -868,7 +864,7 @@ int main(void)
                 // bind texture of other framebuffer (or scene if first iteration)
                 glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]
                                                              : pingpongColorbuffers[!horizontal]);
-		renderQuad();
+                renderQuad();
                 horizontal = !horizontal;
                 if (first_iteration)
                     first_iteration = false;
@@ -888,7 +884,7 @@ int main(void)
             glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
             m.shaders.bloomShader.setInt("bloom", bloom);
             m.shaders.bloomShader.setFloat("exposure", exposure);
-	    renderQuad();
+            renderQuad();
         }
         m.shaders.bloomShader.unbind();
 
@@ -1031,11 +1027,8 @@ int main(void)
             {
                 ImGui::Begin("Fog Editor");
 
-                ImGui::SliderFloat("x", (float *)&lightPos.x, -10.0f, 200.0f);
-                ImGui::SliderFloat("y", (float *)&lightPos.y, -10.0f, 200.0f);
-                ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
-                ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
-                ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
+                ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 1000.0f);
+                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 0.0f, 1000.0f);
                 ImGui::ColorEdit3("Color", (float *)&fog.color);
                 ImGui::End();
             }
@@ -1044,9 +1037,6 @@ int main(void)
             {
                 ImGui::Begin("Shadow Editor");
 
-                ImGui::SliderFloat("x", (float *)&lightPos.x, -10.0f, 200.0f);
-                ImGui::SliderFloat("y", (float *)&lightPos.y, -10.0f, 200.0f);
-                ImGui::SliderFloat("z", (float *)&lightPos.z, -10.0f, 200.0f);
                 ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
                 ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
@@ -1452,7 +1442,7 @@ int main(void)
             ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
             ImGui::Checkbox("Bloom", &bloom);
             ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
-	    ImGui::Checkbox("Don't Cull?", &gDONTCULL);
+            ImGui::Checkbox("Don't Cull?", &gDONTCULL);
 
             ImGui::End();
 
