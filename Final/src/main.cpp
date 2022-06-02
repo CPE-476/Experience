@@ -538,6 +538,8 @@ int main(void)
 
         if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
             sun.position.y = -camera.Position.z + 10;
+            float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /3.0, 2);
+            sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
         }
 
         // Render Sun
@@ -626,7 +628,7 @@ int main(void)
 
         if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0){
             water.height = -18.5f;
-            water.color = vec4(0.92f, 0.875, 0.74f, 0.4f);
+            water.color = vec4(0.15f, 0.15, 0.05f, 0.3f);
             water.Draw(m.shaders.waterShader, deltaTime);
         }
 
@@ -638,7 +640,7 @@ int main(void)
                 fog_offset = 40.0f;
             }
             if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                bound.height = 15.0f;
+                bound.height = 25.0f;
             }
             for (int i = 0; i < emitters.size(); ++i)
             {
