@@ -156,11 +156,6 @@ struct Manager
         this->shaders.shadowShader.init("../shaders/shadow_vert.glsl", "../shaders/shadow_frag.glsl");
         this->shaders.debugShader.init("../shaders/debug_vert.glsl", "../shaders/debug_frag.glsl");
 
-
-
-        this->notes.aurelius1.init("../resources/notes/aurelius1.png");
-
-
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");
         this->models.cube.init("../resources/testing/cube.obj");
@@ -288,9 +283,10 @@ struct Manager
             vector<mat4> modelMatrices;
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
-                if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
+                if(objects->at(objInd).id == entry.ID && 
+                        (!frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius) || gDONTCULL))
                 {
-		            drawnObjects++;
+                    drawnObjects++;
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }

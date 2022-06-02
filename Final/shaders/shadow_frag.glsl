@@ -68,7 +68,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     // check whether current frag pos is in shadow
     float bias = 0.005f;
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -90,50 +90,36 @@ void main()
     float fogFactor = (maxFogDistance - distanceToCamera) / (maxFogDistance - minFogDistance);
     fogFactor = clamp(fogFactor, 0.0f, 1.0f);
 
-    vec3 amount;
-    float h;          
-    vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    float h;
+    vec3 baseColor = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    vec3 litColor;
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     if(fs_in.isTerrain == 1)
     {
-        h = (Height+7.8) / 10;
+        h = (Height + 7.8) / 10;
         if (h < 0.5)
         {
-            amount = (bottom * h * 2.0) +  dirt * (0.5 - h) * 2.0;
+            baseColor = (bottom * h * 2.0) +  dirt * (0.5 - h) * 2.0;
         }
         else
         {
-            amount = top * (h - 0.5) * 2.0 + bottom * (1.0 - h) * 2.0;
+            baseColor = top * (h - 0.5) * 2.0 + bottom * (1.0 - h) * 2.0;
         }
-
-        vec3 DirLightColor = CalcDirLight(dirLight, Normal, viewDir, amount);
-
-        vec3 PointLightColor = vec3(0.0);
-        for(int i = 0; i < size; ++i)
-        {
-            PointLightColor += CalcPointLight(pointLights[i], Normal, Position, viewDir, amount);
-        }
-
-        color = mix(fogColor, vec4(DirLightColor + PointLightColor, 1.0), fogFactor).rgb;
     }
-    vec3 normal = normalize(fs_in.Normal);
-    vec3 lightColor = vec3(0.3);
-    // ambient
-    vec3 ambient = 0.3 * lightColor;
-    // diffuse
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * lightColor;
-    // specular
-    viewDir = normalize(viewPos - fs_in.FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-    vec3 specular = spec * lightColor;    
+
+    vec3 DirLightColor = CalcDirLight(dirLight, fs_in.Normal, viewDir, baseColor);
+
+    vec3 PointLightColor = vec3(0.0);
+    for(int i = 0; i < size; ++i)
+    {
+        PointLightColor += 3 * CalcPointLight(pointLights[i], fs_in.Normal, fs_in.FragPos, viewDir, baseColor);
+    }
+
+    litColor = mix(fogColor, vec4(DirLightColor + PointLightColor, 1.0), fogFactor).rgb;
+
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
+    vec3 lighting = (1.0 - shadow) * litColor;
     
     FragColor = vec4(lighting, 1.0);
 }
