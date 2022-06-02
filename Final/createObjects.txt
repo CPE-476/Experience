@@ -247,7 +247,7 @@ if (ImGui::Button("Forest"))
 
                         objects.push_back(Object(39,
                                                  pos,
-                                                 0.0f, rot, 0.0f,
+                                                 0.0f, rot, 0.0fS
                                                  vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;

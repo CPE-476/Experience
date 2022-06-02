@@ -7,13 +7,45 @@ COM Next Level: <NXT path>
 NXT ../levels/forest.txt
 
 COM Camera Setup: <POV pos.x pos.y pos.z>
-POV -0.2 -6.7 110 
+POV 0 0 0 
+
+COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN sound>
+OBJ 37 0 -5 10 0 3.14 0 1 1 1 1.84929 1.30784 1.30784 0 0 0 1 
+OBJ 39 3.08866 -6.5 9.51106 0 3.454 0 1 1 1 1.33503 0.944151 0.944151 0 0 0 1 
+OBJ 38 5.87528 -5 8.09204 0 3.768 0 1 1 1 1.92078 1.3584 1.3584 0 0 0 1 
+OBJ 39 8.08736 -6.5 5.88172 0 4.082 0 1 1 1 1.21352 0.858216 0.858216 0 0 0 1 
+OBJ 37 9.50859 -5 3.09623 0 4.396 0 1 1 1 1.54094 1.08977 1.08977 0 0 0 1 
+OBJ 39 10 -6.5 0.00796274 0 4.71 0 1 1 1 1.32289 0.935564 0.935564 0 0 0 1 
+OBJ 38 9.51351 -5 -3.08108 0 5.024 0 1 1 1 1.47189 1.04094 1.04094 0 0 0 1 
+OBJ 39 8.09672 -6.5 -5.86883 0 5.338 0 1 1 1 1.16284 0.822377 0.822377 0 0 0 1 
+OBJ 37 5.88815 -5 -8.08267 0 5.652 0 1 1 1 1.72498 1.21993 1.21993 0 0 0 1 
+OBJ 39 3.1038 -6.5 -9.50613 0 5.966 0 1 1 1 1.35407 0.957618 0.957618 0 0 0 1 
+OBJ 38 0.0159231 -5 -9.99999 0 6.28 0 1 1 1 1.7099 1.20926 1.20926 0 0 0 1 
+OBJ 39 -3.07351 -6.5 -9.51596 0 6.594 0 1 1 1 1.16548 0.824243 0.824243 0 0 0 1 
+OBJ 37 -5.86238 -5 -8.10139 0 6.908 0 1 1 1 1.6041 1.13444 1.13444 0 0 0 1 
+OBJ 39 -8.07799 -6.5 -5.89458 0 7.222 0 1 1 1 1.17329 0.829769 0.829769 0 0 0 1 
+OBJ 38 -9.50365 -5 -3.11136 0 7.536 0 1 1 1 1.87153 1.32357 1.32357 0 0 0 1 
+OBJ 39 -9.99997 -6.5 -0.0238799 0 7.85 0 1 1 1 1.2993 0.918884 0.918884 0 0 0 1 
+OBJ 37 -9.5184 -5 3.06594 0 8.164 0 1 1 1 1.69625 1.19961 1.19961 0 0 0 1 
+OBJ 39 -8.10605 -6.5 5.85594 0 8.478 0 1 1 1 1.35218 0.956282 0.956282 0 0 0 1 
+OBJ 38 -5.90101 -5 8.07329 0 8.792 0 1 1 1 1.49742 1.059 1.059 0 0 0 1 
+OBJ 39 -3.11892 -6.5 9.50117 0 9.106 0 1 1 1 1.14727 0.811368 0.811368 0 0 0 1 
+
+COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>
+
+COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
+SUN 100 0 -180 -165 0.7 0.7 0.7 0.95 0.66 0.23 0.93 0.44 0.18 0.91 0.2 0.14 
+
+COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
+
+COM Fog: <FOG max min col.x col.y col.z col.a>
+FOG 203.125 57.619 0.2 0.2 0.1 0.7
+
+COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
+TER ../resources/heightmaps/street_3.png 16 20 0 0 0 0 0 0.686275 0.362745 0.355835 0.245386 
 
 COM Skybox: <SKY dir>
 SKY ../resources/skyboxes/nightsky/
 
-COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
-TER ../resources/heightmaps/black.png 16 -20 0 0 0 0 0 0.686275 0.362745 0.355835 0.245386 
-
 COM Boundary: <BND col.r, col.g, col.b>
-BND 0.5 0.5 0.2 14.602 123.894 16.814 
+BND 0.5 0.5 0.2 14.602 123.894 -7 

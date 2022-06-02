@@ -266,7 +266,8 @@ int main(void)
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
-    Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
+    Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
+    Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
 
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
@@ -276,6 +277,7 @@ int main(void)
     sounds.push_back(&welcome);
     sounds.push_back(&music);
     sounds.push_back(&alert);
+    sounds.push_back(&EVA);
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
@@ -1142,6 +1144,69 @@ int main(void)
                                              objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
+                if (ImGui::Button("Credit")){
+                    float pos_y = -5.0f;
+                    float pos_x, pos_z, theta = 0.0;
+                    for (int i = 0; i < 5; i++) // deer_1
+                    {
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = 3.14f + theta;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(37,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(37).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(0.8f, 1.0f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y-1.5, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(1.0f, 1.5f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(38,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(38).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(0.8f, 1.0f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y-1.5, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                    }
+                }
                 ImGui::End();
             }
 
@@ -1390,6 +1455,11 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         {
             ma_sound_stop(&sounds->at(0)->sound);
         }
+
+        if (camera.Mode == WALK && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") == 0) {
+            camera.Position = vec3(0.0f, 0.0f, 0.0f);
+            ma_sound_start(&sounds->at(8)->sound);
+        }
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
@@ -1428,6 +1498,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
