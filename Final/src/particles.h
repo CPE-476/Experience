@@ -228,6 +228,10 @@ private:
                 if(!fogMode)
                     break;
             }
+            else if(p.alive == 0)
+            {
+                scaleOffsets[i] = 0;
+            }
             // if(fogMode)
             //     {
             //         for(int i = 0; i < 201; i ++)
