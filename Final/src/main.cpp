@@ -547,17 +547,6 @@ int main(void)
         // Render Sun
         sun.Draw(m.shaders.sunShader);
 
-        if(bound.active)
-        {
-            bound.Draw(m.shaders.transShader);
-            if(bound.counter == 314)
-            {
-                bound.active = false;
-            }
-            bound.counter++;
-        }
-        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
-
         // Render Point Lights
         m.shaders.lightShader.bind();
         {
@@ -650,17 +639,6 @@ int main(void)
             }
         }
 
-        if(bound.active)
-        {
-            bound.Draw(m.shaders.transShader);
-            if(bound.counter == 314)
-            {
-                bound.active = false;
-            }
-            bound.counter++;
-        }
-        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
-
         // Render Note
         if(checkInteraction)
         {
@@ -733,6 +711,17 @@ int main(void)
                 }
             }
         }
+
+        if(bound.active)
+        {
+            bound.Draw(m.shaders.transShader);
+            if(bound.counter == 314)
+            {
+                bound.active = false;
+            }
+            bound.counter++;
+        }
+        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
 
         // FBO Time!
         // blur bright fragments with two-pass Gaussian Blur 
