@@ -159,7 +159,7 @@ struct Manager
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");
         this->models.cube.init("../resources/testing/cube.obj");
-        this->models.sphere.init("../resources/testing/sphere.obj");
+        this->models.sphere.init("../resources/testing/sphere_highres.fbx");
         this->models.skull.init("../resources/testing/skull.obj");
         this->models.tree_1.init("../resources/models/trees/tree_1.fbx");
         this->models.tree_2.init("../resources/models/trees/tree_2.fbx");
@@ -214,13 +214,13 @@ struct Manager
     {
         Lookup[0] = {0, &this->models.tree_1, &this->shaders.textureShader, TEXTURE, 0.452f, 0.55f};
         Lookup[1] = {1, &this->models.tree_2, &this->shaders.textureShader, TEXTURE, 0.412f, 1.0f};
-        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 1.3f};
+        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 0.85f};
         Lookup[3] = {3, &this->models.tree_4, &this->shaders.textureShader, TEXTURE, 0.43f, 0.85f};
         Lookup[4] = {4, &this->models.tree_5, &this->shaders.textureShader, TEXTURE, 0.2f, 0.1f};
-        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.55f};
-        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f, 0.55f};
-        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f, 0.55f};
-        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.0f, 0.55f};
+        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.35f};
+        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f, 0.35f};
+        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f, 0.35f};
+        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.0f, 0.35f};
         Lookup[9] = {9, &this->models.rock_5, &this->shaders.textureShader, TEXTURE, 2.1f, 0.85f};
         Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE, 1.3f, 0.5f};
         Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE, 3.43f, 0.85f};

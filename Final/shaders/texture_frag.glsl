@@ -36,11 +36,11 @@ uniform sampler2D texture_normal1;
 uniform sampler2D texture_height1;
 uniform sampler2D texture_opacity1;
 
-uniform int sample_diffuse1 = 0;
-uniform int sample_specular1 = 0;
-uniform int sample_normal1 = 0;
-uniform int sample_height1 = 0;
-uniform int sample_opacity1 = 0;
+uniform int sample_diffuse1;
+uniform int sample_specular1;
+uniform int sample_normal1;
+uniform int sample_height1;
+uniform int sample_opacity1;
 
 uniform DirLight dirLight;
 #define MAX_LIGHTS 128

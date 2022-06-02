@@ -1,0 +1,160 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="index.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Experience</title>
+</head>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+    <section id="intro" class="intro-section">
+        <div class="intro">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Experience</h1>
+                    <h4>Lucas Li | Alex Hartford | Brett Hickman</h4>
+                    <h4>Contact Information</h4>
+                        <p>E-mail: <a href="mailto: yli76@calpoly.edu">yli76@calpoly.edu</a> | 
+                            <a href="mailto: ahartfor@calpoly.edu">ahartfor@calpoly.edu</a> | 
+                            <a href="mailto: bahickma@calpoly.edu">bahickma@calpoly.edu</a> </p>
+                    <p>CPE 476 Quarter Project - Spring 2022</p>
+                    <img class="title_image" src="src/Spectrum.png" width="696" height="547"></img>
+                    <br/><br/>
+                    <a href="">Demo Video</a><br/>
+                    <a href="">Download ZIP</a>
+                    <br/>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="desc" class="desc-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="Topic">Introduction</h1>
+                    <p>
+                        Experience is a small expressive game about the process of trying to improve at something.
+                        The game involves walking through various environments which evoke feelings like those 
+                        experienced when learning something new.
+                    </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="overview" class="overview-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h1 class="Topic">Player</h1>
+                    <p>
+                        The game takes place from a first-person perspective, and in service of the goal of 
+                        making the game as relatable to all people, we will not define the character further 
+                        than is necessary.
+                    </p>
+                    <h1 class="Topic">Gameplay</h1>
+                    <p>
+                        The Gameplay involves walking and looking around. There is another potential mechanic, 
+                        which is picking up a piece of paper and reading it. These pages would be hidden 
+                        around the world.
+                    </p>
+                        
+                    <h1 class="Topic">Environment</h1>
+                    <p>
+                        The environments of the game are threefold. To travel from one area to the next,
+                        go through the fog at the edge of each environment.
+                    </p>
+                    <h3>Forest - Morning Theme</h3>
+                    <p>
+                        At first, the player will be in a quiet wood, which has small secrets, 
+                        like a snail on a leaf or a stream leading to a small lake. There will be a Mist effect,
+                        as well as Ambient Occlusion. We used Instanced Rendering alongside Height maps to achieve our environment.
+                    </p>
+
+                    <blockquote class="code">
+                        <code>
+                        // Setup Audio Source <br>
+                        audioTransportSource.prepareToPlay (samplesPerBlockExpected, sampleRate);<br>
+                        // Setup Ring Buffer of GLfloat's for the visualizer to use<br>
+                        // Uses two channels<br>
+                        ringBuffer = new RingBuffer (2, samplesPerBlockExpected * 10);<br>
+                        </code>
+                    </blockquote>
+                    <p>
+                        Rendering the Forest:
+                    </p>
+                    <div class="images">
+                        <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
+                    </div>
+                    <h3>Desert - Midday Theme</h3>
+                    <p>
+                        Next, the player will find themselves in a desert wasteland, with long 
+                        stretches of empty land and steep sand dunes. There will be a Bloom and
+                        Blur effect and heavy Lens Flare, to make the journey feel arduous. Deep 
+                        in the desert you may find some small secrets, like an amulet in the sand
+                        or a dinosaur fossil. We’ll also use Fog effects to create a sandstorm.
+                    </p>
+                    <p>
+                        Rendering the Desert:
+                    </p>
+                    <div class="images">
+                        <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
+                    </div>
+                    <h3>Street - Night Theme</h3>
+                    <p>
+                        Finally, the player will find themselves on a dark street in the middle 
+                        of the night. No stars in the sky, just loneliness. We’ll use Bloom to 
+                        achieve the look of a lone streetlamp lighting the path.
+                    </p>
+                    <blockquote class="code">
+                        <code>
+                        <bl>
+                        // Get the data from the ring buffer<br>
+                        FloatVectorOperations::add (fftData, readBuffer.getReadPointer(0, 0), RING_BUFFER_READ_SIZE);<br>
+                        FloatVectorOperations::add (fftData2, readBuffer.getReadPointer(1, 0), RING_BUFFER_READ_SIZE);<br>
+                        <br>
+                        // Calculate FFTs<br>
+                        forwardFFT.performFrequencyOnlyForwardTransform (fftData);<br>
+                        forwardFFT.performFrequencyOnlyForwardTransform (fftData2);<br>
+                        <br>
+                        // Find the range of values produced for excluding samples<br>
+                        Range maxFFTLevel = FloatVectorOperations::findMinAndMax (fftData, fftSize / 2);<br>
+                        Range maxFFTLevel2 = FloatVectorOperations::findMinAndMax (fftData2, fftSize / 2);<br>
+                    </code>
+                    </blockquote>
+                    <p>
+                        Rendering the Street:
+                    </p>
+                    <div class="images">
+                        <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
+                    </div>
+                    <h3></h3>
+                    <bar />
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="reference" class="reference-section">
+        <div class="container">
+            <div class="row">
+                <div class="Topic">
+                    <h1>References</h1>
+                    <a href="https://github.com/TimArt/3DAudioVisualizers">Templete Code by TimArt</a><br/>
+                    <a href="https://docs.juce.com/master/tutorial_open_gl_application.html">OpenGL - JUCE</a><br/>
+                    <a href="https://docs.juce.com/master/tutorial_playing_sound_files.html">Audio player - JUCE</a><br/>
+                    <a href="https://newt.phys.unsw.edu.au/jw/sound.spectrum.html">What is a sound spectrum</a><br/>
+                    <a href="https://www.musicradar.com/tuition/tech/what-is-an-oscilloscope-601111#:~:text=An%20oscilloscope%20uses%20a%20two,dynamics%20processing%20and%20sound%20synthesis.">What is an oscilloscope</a><br/>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
