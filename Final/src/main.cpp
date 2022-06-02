@@ -75,7 +75,7 @@ bool bloom = true;
 float exposure = 1.0f;
 float gBloomThreshold = 0.5f;
 
-bool gDONTCULL = true;
+bool gDONTCULL = false;
 
 enum EditorModes
 {
@@ -1276,70 +1276,6 @@ int main(void)
                                              objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
-                if (ImGui::Button("Credit")){
-                    float pos_y = -5.0f;
-                    float pos_x, pos_z, theta = 0.0;
-                    for (int i = 0; i < 5; i++) // deer_1
-                    {
-                        pos_x = (10.0f) * sin(theta);
-                        pos_z = (10.0f) * cos(theta);
-                        float scale = randRange(1.0f, 1.5f);
-                        float rot = 3.14f + theta;
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
-
-                        objects.push_back(Object(37,
-                                                 pos,
-                                                 0.0f, rot, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(37).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                        theta += 6.28f / 20.f;
-
-                        pos_x = (10.0f) * sin(theta);
-                        pos_z = (10.0f) * cos(theta);
-                        scale = randRange(0.8f, 1.0f);
-                        rot = 3.14f + theta;
-                        pos = vec3(pos_x, pos_y-1.5, pos_z);
-
-                        objects.push_back(Object(39,
-                                                 pos,
-                                                 0.0f, rot, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                        theta += 6.28f / 20.f;
-
-                        pos_x = (10.0f) * sin(theta);
-                        pos_z = (10.0f) * cos(theta);
-                        scale = randRange(1.0f, 1.5f);
-                        rot = 3.14f + theta;
-                        pos = vec3(pos_x, pos_y, pos_z);
-
-                        objects.push_back(Object(38,
-                                                 pos,
-                                                 0.0f, rot, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(38).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                        theta += 6.28f / 20.f;
-
-                        pos_x = (10.0f) * sin(theta);
-                        pos_z = (10.0f) * cos(theta);
-                        scale = randRange(0.8f, 1.0f);
-                        rot = 3.14f + theta;
-                        pos = vec3(pos_x, pos_y-1.5, pos_z);
-
-                        objects.push_back(Object(39,
-                                                 pos,
-                                                 0.0f, rot, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                        theta += 6.28f / 20.f;
-
-                    }
-                }
-                ImGui::End();
             }
 
             ImGui::Begin("Level Editor");
