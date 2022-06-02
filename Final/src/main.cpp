@@ -71,11 +71,11 @@ float fog_offset = 7.5f;
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
 
 // For FBO Stuff
-bool bloom = true;
+bool  bloom = true;
 float exposure = 1.0f;
 float gBloomThreshold = 0.5f;
 
-bool gDONTCULL = false;
+bool  gDONTCULL = false;
 
 enum EditorModes
 {
@@ -1041,7 +1041,6 @@ int main(void)
                 ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
 
-
                 ImGui::End();
             }
 
@@ -1561,8 +1560,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);    
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
