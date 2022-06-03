@@ -587,11 +587,11 @@ int main(void)
             m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
 
             m.shaders.depthShader.setBool("isT", true);
-            // Render Terrain
-            if (drawTerrain)
-            {
-                terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
-            }
+            // // Render Terrain
+            // if (drawTerrain)
+            // {
+            //     terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
+            // }
         }
         m.shaders.depthShader.unbind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -636,7 +636,7 @@ int main(void)
             m.shaders.shadowShader.setBool("isT", false);
 
             // Render Terrain
-            if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/credits.txt") != 0)
+            if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
             {
                 m.shaders.shadowShader.setBool("isT", true);
                 terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
@@ -668,7 +668,7 @@ int main(void)
         if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
         {
             sun.position.y = -camera.Position.z + 10;
-            float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /3.0, 2);
+            float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /2.0, 2);
             sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
         }
         // Render Sun
@@ -742,7 +742,7 @@ int main(void)
 
         if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
             water.height = -18.5f;
-            water.color = vec4(0.15f, 0.15, 0.05f, 0.3f);
+            water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
             water.Draw(m.shaders.waterShader, deltaTime);
         }
 

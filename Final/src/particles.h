@@ -175,6 +175,7 @@ private:
     void update(float delta, int width, float tHeight, float offset)
     {
         ++counter;
+        bool spawned = false;
         width = width + 10;
         vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
@@ -222,11 +223,17 @@ private:
                     colorOffsets[i] = startColor;
                 }
             }
-            else if(counter % 2 == 1)
+            else if(!spawned)
             {
                 p.alive = 1;
                 if(!fogMode)
-                    break;
+                {
+                    spawned = true;
+                }
+            }
+            else if(p.alive == 0)
+            {
+                scaleOffsets[i] = 0;
             }
             // if(fogMode)
             //     {
