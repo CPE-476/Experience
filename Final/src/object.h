@@ -28,6 +28,7 @@ public:
     vec3     velocity;
     float    view_radius;
     float    collision_radius;
+    float    selection_radius;
     mat4     matrix;
 
     bool     interactible;
@@ -49,6 +50,7 @@ public:
         this->scaleFactor = scl;
         this->velocity = vel;
         this->view_radius = rad_v;
+        this->selection_radius = 0.3 * scl;
         this->collision_radius = rad_c;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
         UpdateModel();

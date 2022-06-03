@@ -77,6 +77,8 @@ float gBloomThreshold = 0.5f;
 
 bool  gDONTCULL = false;
 
+bool  gSelecting = false;
+
 enum EditorModes
 {
     MOVEMENT,
@@ -438,9 +440,9 @@ int main(void)
     }
 
     // Editor Settings
-    bool showObjectEditor = false;
+    bool showObjectEditor = true;
     bool showParticleEditor = false;
-    bool showLightEditor = true;
+    bool showLightEditor = false;
     bool showFogEditor = false;
     bool showShadowEditor = false;
     bool showTerrainEditor = false;
@@ -456,8 +458,11 @@ int main(void)
     bool drawSkybox = true;
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
+    bool drawSelectionSpheres = false;
     bool drawPointLights = true;
     bool drawParticles = true;
+
+    bool toggleRenderEffects = false;
 
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
@@ -566,328 +571,499 @@ int main(void)
         sun.updateLight();
 
 
-        // Render Depth Map to its own FBO
-        // -------------------------------------------------------------------
-        glm::mat4 lightProjection, lightView;
-        glm::mat4 lightSpaceMatrix;
-        lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
-        lightView = glm::lookAt(vec3(sun.position.x, sun.position.y + sun.scale_factor, sun.position.z), 
-                glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjection * lightView;
-        // render scene from light's point of view
-        m.shaders.depthShader.bind();
-        {
-            m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-            m.shaders.depthShader.setBool("isT", false);
 
-            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-            glClear(GL_DEPTH_BUFFER_BIT);
+	if(toggleRenderEffects || EditorMode == MOVEMENT)
+	{
+	    // Render Depth Map to its own FBO
+	    // -------------------------------------------------------------------
+	    glm::mat4 lightProjection, lightView;
+	    glm::mat4 lightSpaceMatrix;
+	    lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
+	    lightView = glm::lookAt(vec3(sun.position.x, sun.position.y + sun.scale_factor, sun.position.z), 
+		    glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+	    lightSpaceMatrix = lightProjection * lightView;
+	    // render scene from light's point of view
+	    m.shaders.depthShader.bind();
+	    {
+		m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		m.shaders.depthShader.setBool("isT", false);
 
-            m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-            m.shaders.depthShader.setBool("isT", true);
-            // // Render Terrain
-            // if (drawTerrain)
-            // {
-            //     terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
-            // }
-        }
-        m.shaders.depthShader.unbind();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
 
-        // Let's start drawing actual geometry.
-        // =====================================
-        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-        glEnable(GL_DEPTH_TEST);
+		m.shaders.depthShader.setBool("isT", true);
+		// // Render Terrain
+		// if (drawTerrain)
+		// {
+		//     terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
+		// }
+	    }
+	    m.shaders.depthShader.unbind();
+	    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // reset viewport for actual Drawing.
-        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	    // Let's start drawing actual geometry.
+	    // =====================================
+	    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+	    glEnable(GL_DEPTH_TEST);
 
-        mat4 projection = camera.GetProjectionMatrix();
-        mat4 view = camera.GetViewMatrix();
-        mat4 model;
+	    // reset viewport for actual Drawing.
+	    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-        frustum.ExtractVFPlanes(projection, view);
+	    mat4 projection = camera.GetProjectionMatrix();
+	    mat4 view = camera.GetViewMatrix();
+	    mat4 model;
 
-        m.shaders.shadowShader.bind();
-        {
-            m.shaders.shadowShader.setMat4("projection", projection);
-            m.shaders.shadowShader.setMat4("view", view);
-            m.shaders.shadowShader.setVec3("viewPos", camera.Position);
-            m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-            m.shaders.shadowShader.setBool("isT", false);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, depthMap);
-            m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
-                &sun.dirLight, &fog, &frustum);
-        }
-        m.shaders.shadowShader.unbind();
+	    frustum.ExtractVFPlanes(projection, view);
 
-        // NOTE(alex): Some reason this needs to be rebound to work? Who fucking knows.
-        m.shaders.shadowShader.bind();
-        {
-            m.shaders.shadowShader.setMat4("projection", projection);
-            m.shaders.shadowShader.setMat4("view", view);
-            m.shaders.shadowShader.setVec3("viewPos", camera.Position);
-            m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-            m.shaders.shadowShader.setBool("isT", false);
+	    m.shaders.shadowShader.bind();
+	    {
+		m.shaders.shadowShader.setMat4("projection", projection);
+		m.shaders.shadowShader.setMat4("view", view);
+		m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+		m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		m.shaders.shadowShader.setBool("isT", false);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
+		    &sun.dirLight, &fog, &frustum);
+	    }
+	    m.shaders.shadowShader.unbind();
 
-            // Render Terrain
-            if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
-            {
-                m.shaders.shadowShader.setBool("isT", true);
-                terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
-            }
-        }
-        m.shaders.shadowShader.unbind();
+	    // NOTE(alex): Some reason this needs to be rebound to work? Who fucking knows.
+	    m.shaders.shadowShader.bind();
+	    {
+		m.shaders.shadowShader.setMat4("projection", projection);
+		m.shaders.shadowShader.setMat4("view", view);
+		m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+		m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		m.shaders.shadowShader.setBool("isT", false);
 
-        // render Depth map to quad for visual debugging
-        // ---------------------------------------------
-        m.shaders.debugShader.bind();
-        m.shaders.debugShader.setFloat("near_plane", near_plane);
-        m.shaders.debugShader.setFloat("far_plane", far_plane);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        {
-            renderQuad();
-        }
+		// Render Terrain
+		if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
+		{
+		    m.shaders.shadowShader.setBool("isT", true);
+		    terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
+		}
+	    }
+	    m.shaders.shadowShader.unbind();
 
-        // Render Sun
-        sun.Draw(m.shaders.sunShader);
+	    // render Depth map to quad for visual debugging
+	    // ---------------------------------------------
+	    m.shaders.debugShader.bind();
+	    m.shaders.debugShader.setFloat("near_plane", near_plane);
+	    m.shaders.debugShader.setFloat("far_plane", far_plane);
+	    glActiveTexture(GL_TEXTURE0);
+	    glBindTexture(GL_TEXTURE_2D, depthMap);
+	    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+	    {
+		renderQuad();
+	    }
 
-        // Render Skybox
-        if (drawSkybox)
-        {
-            skybox.Draw(m.shaders.skyboxShader);
-        }
+	    // Render Skybox
+	    if (drawSkybox)
+	    {
+		skybox.Draw(m.shaders.skyboxShader);
+	    }
 
-        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
-        {
-            sun.position.y = -camera.Position.z + 10;
-            float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /2.0, 2);
-            sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
-        }
-        // Render Sun
-        sun.Draw(m.shaders.sunShader);
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
+	    {
+		sun.position.y = -camera.Position.z + 10;
+		float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /2.0, 2);
+		sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
+	    }
+	    // Render Sun
+	    sun.Draw(m.shaders.sunShader);
 
-        // Render Point Lights
-        m.shaders.lightShader.bind();
-        {
-            m.shaders.lightShader.setMat4("projection", projection);
-            m.shaders.lightShader.setMat4("view", view);
-            vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
+	    // Render Point Lights
+	    if (drawPointLights)
+	    {
+		m.shaders.lightShader.bind();
+		{
+		    m.shaders.lightShader.setMat4("projection", projection);
+		    m.shaders.lightShader.setMat4("view", view);
+		    vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
 
-            if (drawPointLights)
-            {
-                for (int i = 0; i < lights.size(); ++i)
-                {
-                    if(selectedLight == i)
-                    {
-                        m.shaders.lightShader.setVec3("lightColor", selectedColor);
-                    }
-                    else
-                    {
-                        m.shaders.lightShader.setVec3("lightColor", lights[i].color);
-                    }
-                    model = mat4(1.0f);
-                    float z_adj = lights[i].position.z;
-                    if (lights[i].position.x < 0) z_adj -= 0.05f;
-                    else z_adj += 0.1f;
-                    model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
-                    model = scale(model, vec3(0.15f, 0.075f, 0.075f));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.cube.Draw(m.shaders.lightShader);
-                }
-            }
+		    for (int i = 0; i < lights.size(); ++i)
+		    {
+			if(selectedLight == i)
+			{
+			    m.shaders.lightShader.setVec3("lightColor", selectedColor);
+			}
+			else
+			{
+			    m.shaders.lightShader.setVec3("lightColor", lights[i].color);
+			}
+			model = mat4(1.0f);
+			float z_adj = lights[i].position.z;
+			if (lights[i].position.x < 0) z_adj -= 0.05f;
+			else z_adj += 0.1f;
+			model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
+			model = scale(model, vec3(0.15f, 0.075f, 0.075f));
+			m.shaders.lightShader.setMat4("model", model);
+			m.models.cube.Draw(m.shaders.lightShader);
+		    }
+		}
+	    }
+	    m.shaders.lightShader.unbind();
 
-            // Render Selected Objects, Bounding Spheres, etc.
-            m.shaders.lightShader.setVec3("lightColor", selectedColor);
-            if (drawBoundingSpheres)
-            {
-                for (int i = 0; i < objects.size(); ++i)
-                {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].view_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
-                }
-            }
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0) {
+		water.Draw(m.shaders.waterShader, deltaTime);
+	    }
 
-            if (drawCollisionSpheres)
-            {
-                for (int i = 0; i < objects.size(); ++i)
-                {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].collision_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
-                }
-            }
-            if (EditorMode == GUI)
-            {
-                objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
-            }
-        }
-        m.shaders.lightShader.unbind();
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+		water.height = -18.5f;
+		water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
+		water.Draw(m.shaders.waterShader, deltaTime);
+	    }
 
-        if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0) {
-            water.Draw(m.shaders.waterShader, deltaTime);
-        }
+	    if(drawParticles)
+	    {
+		bound.height = -7.0f;
+		if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+		    bound.height = -35.0f;
+		    fog_offset = 40.0f;
+		}
+		if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+		    bound.height = 25.0f;
+		}
+		for (int i = 0; i < emitters.size(); ++i)
+		{
+		    emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
+		}
+	    }
 
-        if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
-            water.height = -18.5f;
-            water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
-            water.Draw(m.shaders.waterShader, deltaTime);
-        }
+	    // Render Note
+	    if(checkInteraction)
+	    {
+		interactingObject = 0;
+		for (int i = 0; i < objects.size(); ++i)
+		{
+		    // Ray collision detection.
+		    vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
+		    float rSquared = objects[i].selection_radius * objects[i].selection_radius;
+		    float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
 
-        if(drawParticles)
-        {
-            bound.height = -7.0f;
-            if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
-                bound.height = -35.0f;
-                fog_offset = 40.0f;
-            }
-            if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                bound.height = 25.0f;
-            }
-            for (int i = 0; i < emitters.size(); ++i)
-            {
-                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
-            }
-        }
+		    if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
+			continue;                        // No collision.
 
-        // Render Note
-        if(checkInteraction)
-        {
-            interactingObject = 0;
-            for (int i = 0; i < objects.size(); ++i)
-            {
-                // Ray collision detection.
-                vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
-                float rSquared = objects[i].view_radius * objects[i].view_radius;
-                float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
+		    vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
 
-                if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
-                    continue;                        // No collision.
+		    float aSquared = dot(a, a);
 
-                vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
+		    if (aSquared > rSquared) // If our closest approach is outside the sphere:
+			continue;            // No collision.
 
-                float aSquared = dot(a, a);
+		    if(EditorMode == MOVEMENT && length(objects[i].position - camera.Position) < 10.0f)
+		    {
+			interactingObject = i;
+		    }
+		    else
+		    {
+			selectedObject = i;
+		    }
+		}
+		if(objects[interactingObject].interactible)
+		{
+		    cout << "HERE\n";
+		    drawNote = true;
+		    selectedNote = objects[interactingObject].noteNum;
+		    discoveredNotes[selectedNote] = true;
+		    if(objects[interactingObject].disappearing)
+		    {
+			objects.erase(objects.begin() + interactingObject);
+			sounds[2]->startSound();
+		    }
+		    else
+		    {
+			fspline.init(camera.Zoom, 20.0f, 0.5f);
+			fspline.active = true;
+			sounds[objects[interactingObject].sound]->startSound();
+		    }
+		}
+		checkInteraction = false;
+	    }
 
-                if (aSquared > rSquared) // If our closest approach is outside the sphere:
-                    continue;            // No collision.
+	    if(drawNote)
+	    {
+		notes[selectedNote].Update(&fspline);
+		notes[selectedNote].Draw(m.shaders.noteShader);
+	    }
 
-                if(EditorMode == MOVEMENT && length(objects[i].position - camera.Position) < 10.0f)
-                {
-                    interactingObject = i;
-                }
-                else
-                {
-                    selectedObject = i;
-                }
-            }
-            if(objects[interactingObject].interactible)
-            {
-                drawNote = true;
-                selectedNote = objects[interactingObject].noteNum;
-                discoveredNotes[selectedNote] = true;
-                if(objects[interactingObject].disappearing)
-                {
-                    objects.erase(objects.begin() + interactingObject);
-                    sounds[2]->startSound();
-                }
-                else
-                {
-                    fspline.init(camera.Zoom, 20.0f, 0.5f);
-                    fspline.active = true;
-                    sounds[objects[interactingObject].sound]->startSound();
-                }
-            }
-            checkInteraction = false;
-        }
-
-        if(drawNote)
-        {
-            notes[selectedNote].Update(&fspline);
-            notes[selectedNote].Draw(m.shaders.noteShader);
-        }
-
-        if(drawCollection)
-        {
-            int xInd = 0;
-            int yInd = 0;
-            for(int i = 0; i < notes.size(); ++i)
-            {
-                xInd = i / 4;
-                yInd = i % 4;
-                if(discoveredNotes[i]) // Draw only discovered notes.
-                {
-                    notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
-                }
-            }
-        }
+	    if(drawCollection)
+	    {
+		int xInd = 0;
+		int yInd = 0;
+		for(int i = 0; i < notes.size(); ++i)
+		{
+		    xInd = i / 4;
+		    yInd = i % 4;
+		    if(discoveredNotes[i]) // Draw only discovered notes.
+		    {
+			notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
+		    }
+		}
+	    }
 
 
-        // FRAMEBUFFER Render Normal scene plus bright portions
-        // ----------------------------------------------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-        glEnable(GL_DEPTH_TEST);
-      
-        if(bound.active)
-        {
-            bound.Draw(m.shaders.transShader);
-            if(bound.counter == 314)
-            {
-                bound.active = false;
-            }
-            bound.counter++;
-        }
-        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
+	    // FRAMEBUFFER Render Normal scene plus bright portions
+	    // ----------------------------------------------------------------
+	    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+	    glEnable(GL_DEPTH_TEST);
+	  
+	    if(bound.active)
+	    {
+		bound.Draw(m.shaders.transShader);
+		if(bound.counter == 314)
+		{
+		    bound.active = false;
+		}
+		bound.counter++;
+	    }
+	    bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
 
-        // FBO Time!
-        // blur bright fragments with two-pass Gaussian Blur 
-        bool horizontal = true, first_iteration = true;
-        unsigned int amount = 10;
-        m.shaders.blurShader.bind();
-        {
-            for (unsigned int i = 0; i < amount; i++)
-            {
-                glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-                m.shaders.blurShader.setInt("horizontal", horizontal);
+	    // FBO Time!
+	    // blur bright fragments with two-pass Gaussian Blur 
+	    bool horizontal = true, first_iteration = true;
+	    unsigned int amount = 10;
+	    m.shaders.blurShader.bind();
+	    {
+		for (unsigned int i = 0; i < amount; i++)
+		{
+		    glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+		    m.shaders.blurShader.setInt("horizontal", horizontal);
 
-                glActiveTexture(GL_TEXTURE0);
-                // bind texture of other framebuffer (or scene if first iteration)
-                glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]
-                                                             : pingpongColorbuffers[!horizontal]);
-                renderQuad();
-                horizontal = !horizontal;
-                if (first_iteration)
-                    first_iteration = false;
-            }
-        }
-        m.shaders.blurShader.unbind();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);   
+		    glActiveTexture(GL_TEXTURE0);
+		    // bind texture of other framebuffer (or scene if first iteration)
+		    glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]
+								 : pingpongColorbuffers[!horizontal]);
+		    renderQuad();
+		    horizontal = !horizontal;
+		    if (first_iteration)
+			first_iteration = false;
+		}
+	    }
+	    m.shaders.blurShader.unbind();
+	    glBindFramebuffer(GL_FRAMEBUFFER, 0);   
 
-        // Render floating point color buffer to 2D quad and 
-        // tonemap HDR colors to default framebuffer's (clamped) color range
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        m.shaders.bloomShader.bind();
-        {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
-            m.shaders.bloomShader.setInt("bloom", bloom);
-            m.shaders.bloomShader.setFloat("exposure", exposure);
-            renderQuad();
-        }
-        m.shaders.bloomShader.unbind();
+	    // Render floating point color buffer to 2D quad and 
+	    // tonemap HDR colors to default framebuffer's (clamped) color range
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    m.shaders.bloomShader.bind();
+	    {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+		m.shaders.bloomShader.setInt("bloom", bloom);
+		m.shaders.bloomShader.setFloat("exposure", exposure);
+		renderQuad();
+	    }
+	    m.shaders.bloomShader.unbind();
+	} // End of Rendering Effects code.
+
+	else
+	{
+	    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	    glEnable(GL_DEPTH_TEST);
+
+	    // reset viewport for actual Drawing.
+	    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+	    mat4 projection = camera.GetProjectionMatrix();
+	    mat4 view = camera.GetViewMatrix();
+	    mat4 model;
+
+	    frustum.ExtractVFPlanes(projection, view);
+
+	    m.DrawAllModels(m.shaders.textureShader, &objects, &lights, &sun.dirLight,
+		&fog, &frustum);
+
+	    if(drawTerrain)
+	    {
+		terrain.Draw(m.shaders.terrainShader, &lights, &sun.dirLight, &fog);
+	    }
+
+	    // Render Skybox
+	    if (drawSkybox)
+	    {
+		skybox.Draw(m.shaders.skyboxShader);
+	    }
+
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
+	    {
+		sun.position.y = -camera.Position.z + 10;
+		float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /2.0, 2);
+		sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
+	    }
+	    // Render Sun
+	    sun.Draw(m.shaders.sunShader);
+
+	    // Render Point Lights
+	    m.shaders.lightShader.bind();
+	    {
+		m.shaders.lightShader.setMat4("projection", projection);
+		m.shaders.lightShader.setMat4("view", view);
+		vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
+
+		if (drawPointLights)
+		{
+		    for (int i = 0; i < lights.size(); ++i)
+		    {
+			if(selectedLight == i)
+			{
+			    m.shaders.lightShader.setVec3("lightColor", selectedColor);
+			}
+			else
+			{
+			    m.shaders.lightShader.setVec3("lightColor", lights[i].color);
+			}
+			model = mat4(1.0f);
+			float z_adj = lights[i].position.z;
+			if (lights[i].position.x < 0) z_adj -= 0.05f;
+			else z_adj += 0.1f;
+			model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
+			model = scale(model, vec3(0.15f, 0.075f, 0.075f));
+			m.shaders.lightShader.setMat4("model", model);
+			m.models.cube.Draw(m.shaders.lightShader);
+		    }
+		}
+
+		// Render Selected Objects, Bounding Spheres, etc.
+		m.shaders.lightShader.setVec3("lightColor", selectedColor);
+		if (drawBoundingSpheres)
+		{
+		    for (int i = 0; i < objects.size(); ++i)
+		    {
+			model = mat4(1.0f);
+			model = translate(model, objects[i].position);
+			model = scale(model, vec3(objects[i].view_radius));
+			m.shaders.lightShader.setMat4("model", model);
+			m.models.sphere.Draw(m.shaders.lightShader);
+		    }
+		}
+
+		if (drawCollisionSpheres)
+		{
+		    for (int i = 0; i < objects.size(); ++i)
+		    {
+			model = mat4(1.0f);
+			model = translate(model, objects[i].position);
+			model = scale(model, vec3(objects[i].collision_radius));
+			m.shaders.lightShader.setMat4("model", model);
+			m.models.sphere.Draw(m.shaders.lightShader);
+		    }
+		}
+
+		if (drawSelectionSpheres)
+		{
+		    for (int i = 0; i < objects.size(); ++i)
+		    {
+			model = mat4(1.0f);
+			model = translate(model, objects[i].position);
+			model = scale(model, vec3(objects[i].selection_radius));
+			m.shaders.lightShader.setMat4("model", model);
+			m.models.sphere.Draw(m.shaders.lightShader);
+		    }
+		}
+
+		if (EditorMode == GUI)
+		{
+		    objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
+		}
+	    }
+	    m.shaders.lightShader.unbind();
+
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0) {
+		water.Draw(m.shaders.waterShader, deltaTime);
+	    }
+
+	    if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+		water.height = -18.5f;
+		water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
+		water.Draw(m.shaders.waterShader, deltaTime);
+	    }
+
+	    if(drawParticles)
+	    {
+		bound.height = -7.0f;
+		if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+		    bound.height = -35.0f;
+		    fog_offset = 40.0f;
+		}
+		if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+		    bound.height = 25.0f;
+		}
+		for (int i = 0; i < emitters.size(); ++i)
+		{
+		    emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
+		}
+	    }
+
+	    // Render Note
+	    if(checkInteraction)
+	    {
+		interactingObject = 0;
+		for (int i = 0; i < objects.size(); ++i)
+		{
+		    // Ray collision detection.
+		    vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
+		    float rSquared = objects[i].view_radius * objects[i].view_radius;
+		    float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
+
+		    if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
+			continue;                        // No collision.
+
+		    vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
+
+		    float aSquared = dot(a, a);
+
+		    if (aSquared > rSquared) // If our closest approach is outside the sphere:
+			continue;            // No collision.
+
+		    selectedObject = i;
+		}
+		checkInteraction = false;
+	    }
+
+	    if(drawNote)
+	    {
+		notes[selectedNote].Update(&fspline);
+		notes[selectedNote].Draw(m.shaders.noteShader);
+	    }
+
+	    if(drawCollection)
+	    {
+		int xInd = 0;
+		int yInd = 0;
+		for(int i = 0; i < notes.size(); ++i)
+		{
+		    xInd = i / 4;
+		    yInd = i % 4;
+		    if(discoveredNotes[i]) // Draw only discovered notes.
+		    {
+			notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
+		    }
+		}
+	    }
+
+	    if(bound.active)
+	    {
+		bound.Draw(m.shaders.transShader);
+		if(bound.counter == 314)
+		{
+		    bound.active = false;
+		}
+		bound.counter++;
+	    }
+	    bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
+	}
 
         if (EditorMode == GUI)
         {
@@ -1266,6 +1442,7 @@ int main(void)
                                              objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
+		ImGui::End();
             }
 
             ImGui::Begin("Level Editor");
@@ -1342,9 +1519,11 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Draw Point Lights", &drawPointLights);
 
-            ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+            ImGui::Checkbox("View", &drawBoundingSpheres);
             ImGui::SameLine();
-            ImGui::Checkbox("Draw Collision Spheres", &drawCollisionSpheres);
+            ImGui::Checkbox("Collision", &drawCollisionSpheres);
+            ImGui::SameLine();
+            ImGui::Checkbox("Selection", &drawSelectionSpheres);
 
             ImGui::Checkbox("Draw Particles", &drawParticles);
 
@@ -1376,9 +1555,12 @@ int main(void)
             }
 
             ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
-            ImGui::Checkbox("Bloom", &bloom);
             ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
             ImGui::Checkbox("Don't Cull?", &gDONTCULL);
+	    ImGui::SameLine();
+	    ImGui::Checkbox("Effects", &toggleRenderEffects);
+	    ImGui::SameLine();
+	    ImGui::Checkbox("Bloom", &bloom);
 
             ImGui::End();
 
@@ -1558,6 +1740,16 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         drawCollection = false;
     }
 
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        gSelecting = true;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE)
+    {
+        gSelecting = false;
+    }
+
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
@@ -1592,7 +1784,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
-    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (gSelecting || EditorMode == MOVEMENT))
     {
         double xpos;
         double ypos;
@@ -1607,12 +1799,12 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         GLfloat depth;
         GLuint index;
 
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
 
-        vec4 viewport = vec4(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        vec3 wincoord = vec3(xpos, SCREEN_HEIGHT - ypos - 1, depth);
+        vec4 viewport = vec4(0, 0, RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT);
+        vec3 wincoord = vec3(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, depth);
         vec3 objcoord = unProject(wincoord, camera.GetViewMatrix(), camera.GetProjectionMatrix(), viewport);
 
         selectorRay = normalize(objcoord - camera.Position);    
