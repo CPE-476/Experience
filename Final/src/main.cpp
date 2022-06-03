@@ -587,11 +587,11 @@ int main(void)
             m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
 
             m.shaders.depthShader.setBool("isT", true);
-            // Render Terrain
-            if (drawTerrain)
-            {
-                terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
-            }
+            // // Render Terrain
+            // if (drawTerrain)
+            // {
+            //     terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
+            // }
         }
         m.shaders.depthShader.unbind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -636,7 +636,7 @@ int main(void)
             m.shaders.shadowShader.setBool("isT", false);
 
             // Render Terrain
-            if (drawTerrain)
+            if (drawTerrain && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0)
             {
                 m.shaders.shadowShader.setBool("isT", true);
                 terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
