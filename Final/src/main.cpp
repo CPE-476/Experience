@@ -294,7 +294,7 @@ int main(void)
     Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
     Sound hmm = Sound("../resources/audio/hmm.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
-    Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
+    Sound fogAmb = Sound("../resources/audio/wind.wav", vec3(0, 0, 0), 0.3f, 0.0f, 50.0f, 100.0f, true, true);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
     Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
@@ -302,16 +302,22 @@ int main(void)
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
     Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
+    Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
+
+    //Ambient Sounds
+    Sound forestAmb = Sound("../resources/audio/bird.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
 
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
     sounds.push_back(&pickup);
     sounds.push_back(&hmm);
     sounds.push_back(&rock);
-    sounds.push_back(&welcome);
+    sounds.push_back(&fogAmb);
     sounds.push_back(&music);
     sounds.push_back(&alert);
     sounds.push_back(&EVA);
+    sounds.push_back(&forestAmb);
+    sounds.push_back(&fire);
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
@@ -524,6 +530,11 @@ int main(void)
             streetMusic.stopSound();
         }
 
+        forestAmb.updateSound();
+        fire.updateSound();
+        fogAmb.updateSound();
+        
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -546,6 +557,10 @@ int main(void)
                 bound.counter = 157; 
                 bound.active = true;
             }
+            if(dist > bound.width - 50)
+                fogAmb.volume = (dist-(bound.width-50))/(bound.width-50);
+            else
+                fogAmb.volume = 0.0f;
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
         }
 
