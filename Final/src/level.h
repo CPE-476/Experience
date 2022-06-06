@@ -48,7 +48,7 @@ struct Level
             vector<Light> *lights, Sun *sun,
             vector<Emitter> *emitters, FogSystem *fog, 
             Skybox *skybox, Terrain *terrain,
-            Boundary *bound)
+            Boundary *bound, vector<vec3> *notePositions)
     {
         currentLevel = Filename;
 
@@ -56,6 +56,7 @@ struct Level
         objects->clear();
         lights->clear();
         emitters->clear();
+        notePositions->clear();
 
         string Line;
         string Type;
@@ -124,6 +125,8 @@ struct Level
                         snd = atoi(conPrt[17]);
 
                         objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, rad_s, scaleFactor, inter, disap, noteN, snd));
+                        if(id == 33)
+                            notePositions->push_back(pos);
                     }
                     else if (Type == "LGT")
                     {

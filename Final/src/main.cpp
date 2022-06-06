@@ -34,8 +34,8 @@ using namespace glm;
 // NOTE(Alex): Global State!
 const unsigned int SCREEN_WIDTH = 2880;
 const unsigned int SCREEN_HEIGHT = 1800;
-const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
-const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
+// const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
+// const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
@@ -44,8 +44,8 @@ const float default_selection = 1.414f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
-float lastX = RETINA_SCREEN_WIDTH / 2.0f;
-float lastY = RETINA_SCREEN_HEIGHT / 2.0f;
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
 bool  firstMouse = true;
 char  levelName[128] = "";
 
@@ -208,8 +208,11 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT, "Experience", NULL, NULL);
+    // WINDOWED
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
+    // FULLSCREEN
     // GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
@@ -257,6 +260,7 @@ int main(void)
     vector<Sound *> sounds;
     vector<Note>    notes;
     vector<bool>    discoveredNotes;
+    vector<vec3>    notePositions;
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
@@ -377,7 +381,7 @@ int main(void)
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
     lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
-                  &sun, &emitters, &fog, &skybox, &terrain, &bound);
+                  &sun, &emitters, &fog, &skybox, &terrain, &bound, &notePositions);
     Frustum frustum;
 
     Water water;
@@ -527,8 +531,21 @@ int main(void)
     exposurespline.init(exposure, 1.5f, 15.0f);
     exposurespline.active = true;
 
+    vector<Sound> noteSounds;
+
+    for(int i = 0; i < notePositions.size(); i++)
+        {
+            noteSounds.push_back(Sound("../resources/audio/alert.wav", notePositions[i], 1.0f, 7.0f, 1.0f, 10.0f, true, false));
+        }
+
     while (!glfwWindowShouldClose(window))
     {
+
+        for(int i = 0; i<noteSounds.size(); i++)
+        {
+            cout << noteSounds[i].pos.x << " " << noteSounds[i].pos.z <<  endl;
+            noteSounds[i].updateSound();
+        }
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         {
             whistle.setPitch(randFloat()*0.5 + 0.75);
@@ -633,7 +650,7 @@ int main(void)
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
 
 		// Transitions!
 		if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
@@ -2348,7 +2365,7 @@ if (ImGui::Button("Forest"))
                 str.append(levelName);
                 lvl.LoadLevel(str, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
                 cout << "Level loaded: " << str << "\n";
             }
             ImGui::SameLine();
@@ -2363,7 +2380,7 @@ if (ImGui::Button("Forest"))
             {
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
             }
 
             // Editors
@@ -2732,20 +2749,20 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         glfwGetCursorPos(window, &xpos, &ypos);
         if(EditorMode == MOVEMENT)
         {
-            xpos = RETINA_SCREEN_WIDTH / 2.0f;
-            ypos = RETINA_SCREEN_HEIGHT / 2.0f;
+            xpos = SCREEN_WIDTH / 2.0f;
+            ypos = SCREEN_HEIGHT / 2.0f;
         }
 
         GLbyte color[4];
         GLfloat depth;
         GLuint index;
 
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
 
-        vec4 viewport = vec4(0, 0, RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT);
-        vec3 wincoord = vec3(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, depth);
+        vec4 viewport = vec4(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        vec3 wincoord = vec3(xpos, SCREEN_HEIGHT - ypos - 1, depth);
         vec3 objcoord = unProject(wincoord, camera.GetViewMatrix(), camera.GetProjectionMatrix(), viewport);
 
         selectorRay = normalize(objcoord - camera.Position);    
