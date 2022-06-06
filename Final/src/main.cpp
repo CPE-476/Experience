@@ -259,6 +259,7 @@ int main(void)
     vector<Sound *> sounds;
     vector<Note>    notes;
     vector<bool>    discoveredNotes;
+    vector<vec3>    notePositions;
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
@@ -378,7 +379,7 @@ int main(void)
     bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
     lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
-                  &sun, &emitters, &fog, &skybox, &terrain, &bound);
+                  &sun, &emitters, &fog, &skybox, &terrain, &bound, &notePositions);
     Frustum frustum;
 
     Water water;
@@ -527,8 +528,21 @@ int main(void)
     exposurespline.init(exposure, 1.5f, 15.0f);
     exposurespline.active = true;
 
+    vector<Sound> noteSounds;
+
+    for(int i = 0; i < notePositions.size(); i++)
+        {
+            noteSounds.push_back(Sound("../resources/audio/alert.wav", notePositions[i], 1.0f, 7.0f, 1.0f, 10.0f, true, false));
+        }
+
     while (!glfwWindowShouldClose(window))
     {
+
+        for(int i = 0; i<noteSounds.size(); i++)
+        {
+            cout << noteSounds[i].pos.x << " " << noteSounds[i].pos.z <<  endl;
+            noteSounds[i].updateSound();
+        }
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         {
             whistle.setPitch(randFloat()*0.5 + 0.75);
@@ -577,6 +591,8 @@ int main(void)
         }
 
         fogAmb.updateSound();
+
+        
 
         if(camera.Position.y < (water.height + PLAYER_HEIGHT))
         {
@@ -630,7 +646,7 @@ int main(void)
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
 
 		// Transitions!
 		if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
@@ -2329,7 +2345,7 @@ if (ImGui::Button("Forest"))
                 str.append(levelName);
                 lvl.LoadLevel(str, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
                 cout << "Level loaded: " << str << "\n";
             }
             ImGui::SameLine();
@@ -2344,7 +2360,7 @@ if (ImGui::Button("Forest"))
             {
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
-                              &bound);
+                              &bound, &notePositions);
             }
 
             // Editors
