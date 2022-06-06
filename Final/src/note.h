@@ -88,6 +88,7 @@ struct Note
             mat4 transform = mat4(1.0f);
             transform = scale(transform, vec3(scl));
             transform = translate(transform, pos);
+            transform = translate(transform, vec3(-0.065f,0.0f,0.0f));
             shader.setMat4("transform", transform);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, noteTexture);

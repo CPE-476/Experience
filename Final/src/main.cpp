@@ -34,8 +34,8 @@ using namespace glm;
 // NOTE(Alex): Global State!
 const unsigned int SCREEN_WIDTH = 2880;
 const unsigned int SCREEN_HEIGHT = 1800;
-const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
-const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT /2;
+// const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
+// const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT /2;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
@@ -44,8 +44,8 @@ const float default_selection = 1.414f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
-float lastX = RETINA_SCREEN_WIDTH / 2.0f;
-float lastY = RETINA_SCREEN_HEIGHT / 2.0f;
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
 bool  firstMouse = true;
 char  levelName[128] = "";
 
@@ -2752,20 +2752,20 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         glfwGetCursorPos(window, &xpos, &ypos);
         if(EditorMode == MOVEMENT)
         {
-            xpos = RETINA_SCREEN_WIDTH / 2.0f;
-            ypos = RETINA_SCREEN_HEIGHT / 2.0f;
+            xpos = SCREEN_WIDTH / 2.0f;
+            ypos = SCREEN_HEIGHT / 2.0f;
         }
 
         GLbyte color[4];
         GLfloat depth;
         GLuint index;
 
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
 
-        vec4 viewport = vec4(0, 0, RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT);
-        vec3 wincoord = vec3(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, depth);
+        vec4 viewport = vec4(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        vec3 wincoord = vec3(xpos, SCREEN_HEIGHT - ypos - 1, depth);
         vec3 objcoord = unProject(wincoord, camera.GetViewMatrix(), camera.GetProjectionMatrix(), viewport);
 
         selectorRay = normalize(objcoord - camera.Position);    
