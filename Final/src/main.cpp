@@ -578,13 +578,11 @@ int main(void)
         {
             sounds[0]->stopSound();
             sounds[0] = &waterWalk;
-            //alert.updateSound();
         }
         else
         {
             sounds[0]->stopSound();
             sounds[0] = &walk;
-            //alert.stopSound();
         }
 
         bool underwater = true;
@@ -592,16 +590,16 @@ int main(void)
         static vec3 oldDif = sun.dirLight.diffuse;
         if(camera.Position.y < (water.height) && underwater)
         {
-            alert.updateSound();
             sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
             sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+            camera.Slow = true;
             underwater = true;
         }
         else if(underwater && camera.Position.y > (water.height))
         {
             sun.dirLight.ambient = oldAmb;
             sun.dirLight.diffuse = oldDif;
-            alert.stopSound();
+            camera.Slow = false;
             underwater = false;
         }
             

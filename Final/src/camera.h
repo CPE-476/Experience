@@ -30,6 +30,7 @@ enum Modes {
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
+const float SLOW = 1.5f;
 const float FASTSPEED = 100.0f;
 const float SENSITIVITY = 0.03f;
 const float ZOOM = 45.0f;
@@ -52,6 +53,7 @@ public:
     int Mode;
 
     bool Fast;
+    bool Slow;
 
     Camera(vec3 position = vec3(0.0f, 0.0f, 0.0f), 
            vec3 up = vec3(0.0f, 1.0f, 0.0f),
@@ -64,6 +66,7 @@ public:
         Pitch = pitch;
         updateCameraVectors();
         Fast = false;
+        Slow = false;
     }
 
     mat4 GetProjectionMatrix()
@@ -83,6 +86,8 @@ public:
         {
             velocity = FASTSPEED * deltaTime;
         }
+        if(Slow)
+            velocity = SLOW * deltaTime;
         if(Mode == FREE)
         {
             if(direction == FORWARD)
