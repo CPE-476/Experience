@@ -303,24 +303,49 @@ int main(void)
     Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
     Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
     Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
+    Sound waterWalk = Sound("../resources/audio/waterWalk.wav", 0.3f, false);
 
     //Ambient Sounds
     Sound fogAmb = Sound("../resources/audio/wind.wav", 0.3f, true);
     Sound forestAmb = Sound("../resources/audio/bird.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
     Sound desertAmb = Sound("../resources/audio/fog.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
 
-    sounds.push_back(&walk);
-    sounds.push_back(&whistle);
-    sounds.push_back(&pickup);
-    sounds.push_back(&hmm);
-    sounds.push_back(&rock);
-    sounds.push_back(&fogAmb);
-    sounds.push_back(&music);
-    sounds.push_back(&alert);
-    sounds.push_back(&EVA);
-    sounds.push_back(&forestAmb);
-    sounds.push_back(&fire);
-    sounds.push_back(&whisper);
+    //Talking Sounds
+    Sound deep1 = Sound("../resources/audio/Talking/deep1.wav", 1.0f, false);
+    Sound deep2 = Sound("../resources/audio/Talking/deep2.wav", 1.0f, false);
+    Sound deep3 = Sound("../resources/audio/Talking/deep3.wav", 1.0f, false);
+    Sound mid1 = Sound("../resources/audio/Talking/mid1.wav", 1.0f, false);
+    Sound mid2 = Sound("../resources/audio/Talking/mid2.wav", 1.0f, false);
+    Sound mid3 = Sound("../resources/audio/Talking/mid3.wav", 1.0f, false);
+    Sound high1 = Sound("../resources/audio/Talking/high1.wav", 1.0f, false);
+    Sound high2 = Sound("../resources/audio/Talking/high2.wav", 1.0f, false);
+    Sound high3 = Sound("../resources/audio/Talking/high3.wav", 1.0f, false);
+    Sound high4 = Sound("../resources/audio/Talking/high4.wav", 1.0f, false);
+
+    sounds.push_back(&walk); // 0
+    sounds.push_back(&whistle); // 1
+    sounds.push_back(&pickup); // 2
+    sounds.push_back(&hmm); // 3
+    sounds.push_back(&rock); // 4
+    sounds.push_back(&fogAmb); // 5
+    sounds.push_back(&music); // 6
+    sounds.push_back(&alert); // 7
+    sounds.push_back(&EVA); // 8
+    sounds.push_back(&forestAmb); // 9
+    sounds.push_back(&fire); // 10
+    sounds.push_back(&whisper); // 11
+    sounds.push_back(&deep1); // 12
+    sounds.push_back(&deep2); // 13
+    sounds.push_back(&deep3); // 14
+    sounds.push_back(&mid1); // 15
+    sounds.push_back(&mid2); // 16
+    sounds.push_back(&mid3); // 17
+    sounds.push_back(&high1);// 18 
+    sounds.push_back(&high2);// 19
+    sounds.push_back(&high3); // 20
+    sounds.push_back(&high4); // 21
+    
+
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
@@ -534,7 +559,38 @@ int main(void)
         }
 
         fogAmb.updateSound();
-        
+
+        if(camera.Position.y < (water.height + PLAYER_HEIGHT))
+        {
+            sounds[0]->stopSound();
+            sounds[0] = &waterWalk;
+            //alert.updateSound();
+        }
+        else
+        {
+            sounds[0]->stopSound();
+            sounds[0] = &walk;
+            //alert.stopSound();
+        }
+
+        bool underwater = true;
+        static vec3 oldAmb = sun.dirLight.ambient;
+        static vec3 oldDif = sun.dirLight.diffuse;
+        if(camera.Position.y < (water.height) && underwater)
+        {
+            alert.updateSound();
+            sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
+            sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+            underwater = true;
+        }
+        else if(underwater && camera.Position.y > (water.height))
+        {
+            sun.dirLight.ambient = oldAmb;
+            sun.dirLight.diffuse = oldDif;
+            alert.stopSound();
+            underwater = false;
+        }
+            
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -732,11 +788,11 @@ int main(void)
             }
 
             if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                    bound.height = 25.0f;
-                    forestAmb.stopSound();
-                    fire.stopSound();
-                    desertAmb.updateSound();
-                }
+                bound.height = 25.0f;
+                forestAmb.stopSound();
+                fire.stopSound();
+                desertAmb.updateSound();
+            }
 
             if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
                 water.height = -18.5f;
@@ -813,8 +869,10 @@ int main(void)
                     }
                     else
                     {
+
                         fspline.init(camera.Zoom, 20.0f, 0.5f);
                         fspline.active = true;
+
                         sounds[objects[interactingObject].sound]->startSound();
                     }
                 }
