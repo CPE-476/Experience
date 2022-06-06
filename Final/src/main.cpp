@@ -327,6 +327,8 @@ int main(void)
     Sound high2 = Sound("../resources/audio/Talking/high2.wav", 1.0f, false);
     Sound high3 = Sound("../resources/audio/Talking/high3.wav", 1.0f, false);
     Sound high4 = Sound("../resources/audio/Talking/high4.wav", 1.0f, false);
+    Sound underwater1 = Sound("../resources/audio/Talking/underwater.wav", 1.0f, false);
+    Sound underwater2 = Sound("../resources/audio/Talking/underwater2.wav", 1.0f, false);
 
     sounds.push_back(&walk); // 0
     sounds.push_back(&whistle); // 1
@@ -350,6 +352,8 @@ int main(void)
     sounds.push_back(&high2);// 19
     sounds.push_back(&high3); // 20
     sounds.push_back(&high4); // 21
+    sounds.push_back(&underwater1); // 22
+    sounds.push_back(&underwater2); // 23
     
 
 
@@ -594,12 +598,16 @@ int main(void)
         {
             sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
             sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+            forestAmb.stopSound();
+            fire.stopSound();
             underwater = true;
         }
         else if(underwater && camera.Position.y > (water.height))
         {
             sun.dirLight.ambient = oldAmb;
             sun.dirLight.diffuse = oldDif;
+            //forestAmb.startSound();
+            //fire.startSound();
             underwater = false;
         }
             
@@ -836,8 +844,10 @@ int main(void)
 
             if (strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0) {
                 water.Draw(m.shaders.waterShader, deltaTime);
-                forestAmb.updateSound();
-                fire.updateSound();
+                if(underwater && camera.Position.y > (water.height)) {
+                    forestAmb.updateSound();
+                    fire.updateSound();
+                }
             }
 
             if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
