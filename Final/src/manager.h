@@ -64,7 +64,6 @@ struct Shader_Container
     Shader depthShader;
     Shader shadowShader;
     Shader debugShader;
-
 };
 
 struct Model_Container
@@ -123,6 +122,7 @@ struct Model_Container
     Model stop;
     Model powerline;
     Model pillar;
+    Model barrier;
 };
 
 struct Manager
@@ -202,7 +202,7 @@ struct Manager
         this->models.fox.init("../resources/models/animals/fox.fbx");
         this->models.spider.init("../resources/models/animals/spider.fbx");
         this->models.pillar.init("../resources/models/environment/pillar/pillar.fbx");
-
+        this->models.barrier.init("../resources/models/environment/blockade/RoadBlockade_01.fbx");
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
 
@@ -254,6 +254,7 @@ struct Manager
         Lookup[39] = {39, &this->models.fox, &this->shaders.textureShader, TEXTURE, 1.0f, 0.05f};
         Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
         Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[42] = {42, &this->models.barrier, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()

@@ -128,6 +128,7 @@ struct FogSystem
 #include "spline.h"
 #include "sound.h"
 #include "sun.h"
+#include "cursor.h"
 
 using namespace std;
 using namespace glm;
@@ -354,11 +355,13 @@ int main(void)
     Water water;
     water.gpuSetup();
 
+    Cursor cursor;
+    cursor.init(vec3(1.0f, 1.0f, 1.0f));
+
     Spline sunspline;
     Spline suncolorspline;
     Spline ambspline;
     Spline diffspline;
-
 
     // configure depth map FBO
     // -----------------------
@@ -777,20 +780,20 @@ int main(void)
             }
             m.shaders.lightShader.unbind();
 
-            if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0) {
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0) {
                 water.Draw(m.shaders.waterShader, deltaTime);
                 forestAmb.updateSound();
                 fire.updateSound();
             }
 
-            if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
-                    bound.height = 25.0f;
-                    forestAmb.stopSound();
-                    fire.stopSound();
-                    desertAmb.updateSound();
-                }
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
+                bound.height = 25.0f;
+                forestAmb.stopSound();
+                fire.stopSound();
+                desertAmb.updateSound();
+            }
 
-            if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
                 water.height = -18.5f;
                 water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
                 water.Draw(m.shaders.waterShader, deltaTime);
@@ -801,11 +804,11 @@ int main(void)
             if(drawParticles)
             {
                 bound.height = -7.0f;
-                if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
                     bound.height = -35.0f;
                     fog_offset = 40.0f;
                 }
-                if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
                     bound.height = 25.0f;
                 }
                 for (int i = 0; i < emitters.size(); ++i)
@@ -894,6 +897,8 @@ int main(void)
                 }
             }
 
+            cursor.Draw(m.shaders.cursorShader);
+
 
             // FRAMEBUFFER Render Normal scene plus bright portions
             // ----------------------------------------------------------------
@@ -972,12 +977,6 @@ int main(void)
                 skybox.Draw(m.shaders.skyboxShader);
             }
 
-            if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0)
-            {
-                sun.position.y = -camera.Position.z + 10;
-                float rate = pow((-(camera.Position.z - 110.0f) / 200.0f) /2.0, 2);
-                sun.dirLight.ambient = vec3(rate * 3.0f,rate * 2.0f,rate);
-            }
             // Render Sun
             sun.Draw(m.shaders.sunShader);
 
@@ -1140,15 +1139,6 @@ int main(void)
                 }
             }
 
-            if(bound.active)
-            {
-                bound.Draw(m.shaders.transShader);
-                if(bound.counter == 314)
-                {
-                    bound.active = false;
-                }
-                bound.counter++;
-            }
             bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
         }
 
@@ -2453,42 +2443,52 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
     if(!drawNote)
     {
-        if(strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+        {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(FORWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
-            {
-                camera.ProcessKeyboard(BACKWARD, deltaTime);
-            }
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(BACKWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
             {
                 camera.ProcessKeyboard(FORWARD, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(BACKWARD, deltaTime);
+                }
             }
-        }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(LEFT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
             {
-                camera.ProcessKeyboard(RIGHT, deltaTime);
+                camera.ProcessKeyboard(BACKWARD, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(FORWARD, deltaTime);
+                }
             }
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(RIGHT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f))
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
             {
                 camera.ProcessKeyboard(LEFT, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(RIGHT, deltaTime);
+                }
             }
-        }
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            {
+                camera.ProcessKeyboard(RIGHT, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(LEFT, deltaTime);
+                }
+            }
 
         }
-        else{
+        else
+        {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -2590,13 +2590,13 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         gSelecting = false;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && deleteCheck == false)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && deleteCheck == false)
     {
         deleteObject = true;
 	deleteCheck = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE && deleteCheck == true)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE && deleteCheck == true)
     {
 	deleteCheck = false;
     }
