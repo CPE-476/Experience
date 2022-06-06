@@ -35,7 +35,7 @@ using namespace glm;
 const unsigned int SCREEN_WIDTH = 2880;
 const unsigned int SCREEN_HEIGHT = 1800;
 // const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
-// const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT /2;
+// const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
@@ -68,7 +68,7 @@ float collectionScroll = 0.0f;
 bool  pauseNote = false;
 float fog_offset = 7.5f;
 
-// NOTE(Lucas) For collsion detection
+// NOTE(Lucas) For collision detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
 
 // For FBO Stuff
@@ -208,12 +208,11 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 //#endif
 
-//#if 0
-    // Full Screen Mode
-    //GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
-#endif
+    // WINDOWED
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
-    //GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+    // FULLSCREEN
+    // GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
@@ -2440,7 +2439,7 @@ if (ImGui::Button("Forest"))
 
             if(ImGui::Button("Sunset!"))
             {
-		float sunsetTimer = 10.0f;
+		float sunsetTimer = 100.0f;
 
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
                 sunspline.active = true;
@@ -2456,8 +2455,6 @@ if (ImGui::Button("Forest"))
 		skyboxspline.active = true;
 		particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
 		particlespline.active = true;
-
-		// Spline skybox to black
             }
             ImGui::SameLine();
             if(ImGui::Button("Sunrise!"))

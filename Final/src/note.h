@@ -18,7 +18,7 @@ struct Note
     unsigned int VBO, VAO, EBO;
     unsigned int noteTexture;
 
-    float vertices[32] = {
+    float vertices[20] = {
          // positions        // texture coords
          0.9f,  0.225f, 0.0f,  1.0f, 1.0f, // top right
          0.9f, -0.45f, 0.0f,   1.0f, 0.0f, // bottom right
