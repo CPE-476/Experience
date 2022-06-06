@@ -99,6 +99,7 @@ struct Level
                         vec3 vel;
                         float rad_v;
                         float rad_c;
+                        float rad_s;
                         float scaleFactor;
 
                         bool inter;
@@ -115,13 +116,14 @@ struct Level
                         vel = vec3((float)atof(conPrt[7]), (float)atof(conPrt[8]), (float)atof(conPrt[9]));
                         rad_v = (float)atof(conPrt[10]);
                         rad_c = (float)atof(conPrt[11]);
-                        scaleFactor = (float)atof(conPrt[12]);
-                        inter = (bool)atoi(conPrt[13]);
-                        disap = (bool)atoi(conPrt[14]);
-                        noteN = atoi(conPrt[15]);
-                        snd = atoi(conPrt[16]);
+                        rad_s = (float)atof(conPrt[12]);
+                        scaleFactor = (float)atof(conPrt[13]);
+                        inter = (bool)atoi(conPrt[14]);
+                        disap = (bool)atoi(conPrt[15]);
+                        noteN = atoi(conPrt[16]);
+                        snd = atoi(conPrt[17]);
 
-                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, scaleFactor, inter, disap, noteN, snd));
+                        objects->push_back(Object(id, pos, angleX, angleY, angleZ, vel, rad_v, rad_c, rad_s, scaleFactor, inter, disap, noteN, snd));
                     }
                     else if (Type == "LGT")
                     {
@@ -316,7 +318,7 @@ struct Level
         fp << "\n";
 
 	// Save Object Data
-	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_h rad_w scale inter? disap? noteN sound>\n";
+	fp << "\nCOM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_v rad_c rad_s scale inter? disap? noteN sound>\n";
 	for(int i = 0; i < objects->size(); ++i)
 	{
 	    fp << "OBJ ";
@@ -332,6 +334,7 @@ struct Level
 	    fp << objects->at(i).velocity.z << " ";
 	    fp << objects->at(i).view_radius << " ";
 	    fp << objects->at(i).collision_radius << " ";
+	    fp << objects->at(i).selection_radius << " ";
 	    fp << objects->at(i).scaleFactor << " ";
 	    fp << objects->at(i).interactible << " ";
 	    fp << objects->at(i).disappearing << " ";
