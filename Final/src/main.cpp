@@ -294,7 +294,6 @@ int main(void)
     Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
     Sound hmm = Sound("../resources/audio/hmm.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
-    Sound fogAmb = Sound("../resources/audio/wind.wav", vec3(0, 0, 0), 0.3f, 0.0f, 50.0f, 100.0f, true, true);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
     Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
@@ -303,9 +302,12 @@ int main(void)
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
     Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
     Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
+    Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
 
     //Ambient Sounds
+    Sound fogAmb = Sound("../resources/audio/wind.wav", 0.3f, true);
     Sound forestAmb = Sound("../resources/audio/bird.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
+    Sound desertAmb = Sound("../resources/audio/fog.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
 
     sounds.push_back(&walk);
     sounds.push_back(&whistle);
@@ -318,6 +320,7 @@ int main(void)
     sounds.push_back(&EVA);
     sounds.push_back(&forestAmb);
     sounds.push_back(&fire);
+    sounds.push_back(&whisper);
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
@@ -530,8 +533,6 @@ int main(void)
             streetMusic.stopSound();
         }
 
-        forestAmb.updateSound();
-        fire.updateSound();
         fogAmb.updateSound();
         
 
@@ -726,12 +727,23 @@ int main(void)
 
             if (strcmp(lvl.nextLevel.c_str(), "../levels/desert.txt") == 0) {
                 water.Draw(m.shaders.waterShader, deltaTime);
+                forestAmb.updateSound();
+                fire.updateSound();
             }
+
+            if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0) {
+                    bound.height = 25.0f;
+                    forestAmb.stopSound();
+                    fire.stopSound();
+                    desertAmb.updateSound();
+                }
 
             if (strcmp(lvl.nextLevel.c_str(), "../levels/credit.txt") == 0) {
                 water.height = -18.5f;
                 water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
                 water.Draw(m.shaders.waterShader, deltaTime);
+                desertAmb.stopSound();
+                streetMusic.startSound();
             }
 
             if(drawParticles)
