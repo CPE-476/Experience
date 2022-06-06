@@ -581,6 +581,7 @@ int main(void)
 
         fogAmb.updateSound();
 
+	bool underwater = true;
 	if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
 	{
 	    if(camera.Position.y < (water.height + PLAYER_HEIGHT))
@@ -596,7 +597,6 @@ int main(void)
 		sounds[0] = &walk;
 	    }
 
-	    bool underwater = true;
 	    static vec3 oldAmb = sun.dirLight.ambient;
 	    static vec3 oldDif = sun.dirLight.diffuse;
 	    if(camera.Position.y < (water.height) && underwater)
