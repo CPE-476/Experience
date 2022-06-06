@@ -85,7 +85,7 @@ struct Skybox
         setup();
     }
 
-    void Draw(Shader &shader)
+    void Draw(Shader &shader, float maskAmount)
     {
         timer += 0.0002;
         glDepthFunc(GL_LEQUAL);
@@ -99,6 +99,8 @@ struct Skybox
         shader.setMat4("view", view);
 
         shader.setFloat("threshold", gBloomThreshold);
+
+        shader.setFloat("maskAmount", maskAmount);
 
         glBindVertexArray(VAO);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
