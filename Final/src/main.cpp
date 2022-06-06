@@ -137,6 +137,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
 FloatSpline fspline;
 FloatSpline exposurespline;
+FloatSpline skyboxspline;
 
 Level lvl;
 
@@ -357,6 +358,7 @@ int main(void)
     stbi_set_flip_vertically_on_load(false);
     // Default value.
     skybox.init("../resources/skyboxes/sunsky/", false);
+    float skyboxMaskAmount = 0.0f;
 
     Terrain terrain;
     // Default value.
@@ -384,6 +386,7 @@ int main(void)
     cursor.init(vec3(1.0f, 1.0f, 1.0f));
 
     Spline sunspline;
+    Spline particlespline;
     Spline suncolorspline;
     Spline ambspline;
     Spline diffspline;
@@ -574,36 +577,39 @@ int main(void)
 
         fogAmb.updateSound();
 
-        if(camera.Position.y < (water.height + PLAYER_HEIGHT))
-        {
-            sounds[0]->stopSound();
-            sounds[0] = &waterWalk;
-            //alert.updateSound();
-        }
-        else
-        {
-            sounds[0]->stopSound();
-            sounds[0] = &walk;
-            //alert.stopSound();
-        }
+	if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+	{
+	    if(camera.Position.y < (water.height + PLAYER_HEIGHT))
+	    {
+		sounds[0]->stopSound();
+		sounds[0] = &waterWalk;
+		//alert.updateSound();
+	    }
+	    else
+	    {
+		sounds[0]->stopSound();
+		sounds[0] = &walk;
+		//alert.stopSound();
+	    }
 
-        bool underwater = true;
-        static vec3 oldAmb = sun.dirLight.ambient;
-        static vec3 oldDif = sun.dirLight.diffuse;
-        if(camera.Position.y < (water.height) && underwater)
-        {
-            alert.updateSound();
-            sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
-            sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
-            underwater = true;
-        }
-        else if(underwater && camera.Position.y > (water.height))
-        {
-            sun.dirLight.ambient = oldAmb;
-            sun.dirLight.diffuse = oldDif;
-            alert.stopSound();
-            underwater = false;
-        }
+	    bool underwater = true;
+	    static vec3 oldAmb = sun.dirLight.ambient;
+	    static vec3 oldDif = sun.dirLight.diffuse;
+	    if(camera.Position.y < (water.height) && underwater)
+	    {
+		alert.updateSound();
+		sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
+		sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+		underwater = true;
+	    }
+	    else if(underwater && camera.Position.y > (water.height))
+	    {
+		sun.dirLight.ambient = oldAmb;
+		sun.dirLight.diffuse = oldDif;
+		alert.stopSound();
+		underwater = false;
+	    }
+	}
             
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -668,16 +674,28 @@ int main(void)
 
         // Spline
         fspline.update(deltaTime);
+	exposurespline.update(deltaTime);
+	skyboxspline.update(deltaTime);
+
+	particlespline.update(deltaTime);
         sunspline.update(deltaTime);
         suncolorspline.update(deltaTime);
         ambspline.update(deltaTime);
         diffspline.update(deltaTime);
-	exposurespline.update(deltaTime);
 
         if(fspline.active)
         {
             camera.Zoom = fspline.getPosition();
         }
+	if(exposurespline.active)
+	{
+	    exposure = exposurespline.getPosition();
+	}
+	if(skyboxspline.active)
+	{
+	    skyboxMaskAmount = skyboxspline.getPosition();
+	}
+
         if(sunspline.active)
         {
             sun.position = sunspline.getPosition();
@@ -694,12 +712,16 @@ int main(void)
         {
             sun.dirLight.diffuse = diffspline.getPosition();
         }
-	if(exposurespline.active)
-	{
-	    exposure = exposurespline.getPosition();
-	}
-        sun.updateLight();
+        if(particlespline.active)
+        {
+	    if(emitters.size() > 0)
+	    {
+		emitters[0].startColor = vec4(particlespline.getPosition(), 1.0f);
+		emitters[0].endColor = vec4(particlespline.getPosition(), 1.0f);
+	    }
+        }
 
+        sun.updateLight();
 
 
         if(toggleRenderEffects || EditorMode == MOVEMENT)
@@ -798,7 +820,7 @@ int main(void)
             // Render Skybox
             if (drawSkybox)
             {
-                skybox.Draw(m.shaders.skyboxShader);
+                skybox.Draw(m.shaders.skyboxShader, skyboxMaskAmount);
             }
 
             // Render Sun
@@ -1032,7 +1054,7 @@ int main(void)
             // Render Skybox
             if (drawSkybox)
             {
-                skybox.Draw(m.shaders.skyboxShader);
+                skybox.Draw(m.shaders.skyboxShader, skyboxMaskAmount);
             }
 
             // Render Sun
@@ -2396,6 +2418,7 @@ if (ImGui::Button("Forest"))
             if(ImGui::Button("Sunset!"))
             {
 		float sunsetTimer = 10.0f;
+
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
                 sunspline.active = true;
                 suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer);
@@ -2406,7 +2429,11 @@ if (ImGui::Button("Forest"))
                 diffspline.active = true;
 		exposurespline.init(exposure, 0.2f, sunsetTimer);
 		exposurespline.active = true;
-		// Spline particles color
+		skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
+		skyboxspline.active = true;
+		particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
+		particlespline.active = true;
+
 		// Spline skybox to black
             }
             ImGui::SameLine();
