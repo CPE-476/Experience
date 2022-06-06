@@ -578,10 +578,12 @@ int main(void)
         {
             sounds[0]->stopSound();
             sounds[0] = &waterWalk;
+            camera.Slow = true;
         }
         else
         {
             sounds[0]->stopSound();
+            camera.Slow = false;
             sounds[0] = &walk;
         }
 
@@ -592,14 +594,12 @@ int main(void)
         {
             sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
             sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
-            camera.Slow = true;
             underwater = true;
         }
         else if(underwater && camera.Position.y > (water.height))
         {
             sun.dirLight.ambient = oldAmb;
             sun.dirLight.diffuse = oldDif;
-            camera.Slow = false;
             underwater = false;
         }
             
