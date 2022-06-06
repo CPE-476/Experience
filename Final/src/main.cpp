@@ -2684,13 +2684,13 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         gSelecting = false;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && deleteCheck == false)
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && deleteCheck == false)
     {
         deleteObject = true;
 	deleteCheck = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE && deleteCheck == true)
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && deleteCheck == true)
     {
 	deleteCheck = false;
     }
