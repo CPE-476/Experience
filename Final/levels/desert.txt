@@ -10,6 +10,9 @@ COM Camera Setup: <POV pos.x pos.y pos.z>
 POV -10.7816 23.6316 35.3751 
 
 COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_v rad_c rad_s scale inter? disap? noteN sound>
+OBJ 9 9.17114 24.8791 179.385 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
+OBJ 9 82.5159 14.0752 4.76395 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
+OBJ 9 27.8022 19.0193 31.4335 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
 OBJ 9 -97.1143 12.4466 239.965 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
 OBJ 9 92.8348 14.9122 74.2438 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
 OBJ 9 16.5319 18.6987 -189.151 -1.6 0 0 1 1 1 16 2.1 1.414 1 0 0 0 1 
@@ -201,12 +204,11 @@ COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spe
 LGT 0 0 -6.919 0 0 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 
 
 COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
-SUN 75 299.472 -79.8177 417.185 19.9805 0.999912 0.1 0.100833 0.100087 0.100087 0.00113645 0.000852335 0.000852335 0.5 0.3 0.3 
+SUN 75 299.472 48.302 417.185 6.25 0.938 0.1 0.686275 0.161476 0.161476 0.8 0.6 0.6 0.5 0.3 0.3 
 
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
-PAR ../resources/models/particle/part.png 20000 0 10.4593 0 0.2 3 7 9 0 9 2.35941 -0.61 0.00142056 0.00121098 0.000772783 1 0.00142056 0.00121098 0.000772783 1 14 8 0 1 
-PAR ../resources/models/particle/part.png 5000 0 19.5323 0 150 0.5 0 0 1 17.717 10 -0.24 1 0.876874 0.401961 0.7 1 0.4 0 0.9 0.192 0 1 0 
-PAR ../resources/models/particle/part.png 10000 0 50 0 500 3 7 0 0 0 8.424 0 1 1 1 1 1 1 1 1 0.424 0 0 0 
+PAR ../resources/models/particle/part.png 20000 0 13.1963 0 0.2 3 7 9 0 9 1.74552 -0.61 1 0.852471 0.544 1 0.730392 0.467173 0.315071 1 14 8 0 1 
+PAR ../resources/models/particle/part.png 5000 0 1.2836 0 150 0.5 0 0 1 17.717 10 -0.24 1 0.876874 0.401961 0.7 1 0.4 0 0.9 0.192 0 1 0 
 
 COM Fog: <FOG max min col.x col.y col.z col.a>
 FOG 667 75.905 0.7 0.411 0.244 0.8
