@@ -32,10 +32,10 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int RETINA_SCREEN_WIDTH = 1280;
-const unsigned int RETINA_SCREEN_HEIGHT = 800;
-const unsigned int SCREEN_WIDTH = 2560;
-const unsigned int SCREEN_HEIGHT = 1600;
+const unsigned int SCREEN_WIDTH = 2880;
+const unsigned int SCREEN_HEIGHT = 1800;
+const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
+const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT /2;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
@@ -211,7 +211,8 @@ int main(void)
     // Full Screen Mode
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
 #endif
-    GLFWwindow *window = glfwCreateWindow(RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT, "Experience", NULL, NULL);
+    // GLFWwindow *window = glfwCreateWindow(RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT, "Experience", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
