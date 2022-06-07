@@ -145,6 +145,7 @@ FloatSpline fspline;
 FloatSpline exposurespline;
 FloatSpline skyboxspline;
 FloatSpline shadowspline;
+FloatSpline rotspline;
 
 Level lvl;
 
@@ -691,6 +692,7 @@ int main(void)
         exposurespline.update(deltaTime);
         skyboxspline.update(deltaTime);
         shadowspline.update(deltaTime);
+        rotspline.update(deltaTime);
 
         particlespline.update(deltaTime);
         sunspline.update(deltaTime);
@@ -701,6 +703,11 @@ int main(void)
         if(fspline.active)
         {
             camera.Zoom = fspline.getPosition();
+        }
+        if(rotspline.active)
+        {
+            objects[interactingObject].angleY = rotspline.getPosition();
+            objects[interactingObject].UpdateModel();
         }
         if(exposurespline.active)
         {
@@ -1053,10 +1060,18 @@ int main(void)
                     }
                     else
                     {
-
                         fspline.init(camera.Zoom, 20.0f, 0.5f);
                         fspline.active = true;
 
+                        // static float rotObj = objects[interactingObject].angleY;
+                        // static vec2 rotVec = vec2(cos(rotObj)*0 - sin(rotObj)*1, sin(rotObj)*0 + cos(rotObj)*1);
+                        vec3 pointVec = camera.Position - objects[interactingObject].position;
+                        float rot = dot(vec2(pointVec.x, pointVec.z), vec2(0, 1));
+                        rotspline.init(0.0f, rot, 0.5f);
+                        rotspline.active = true;
+
+                        objects[interactingObject].angleY = origRot;
+                        
                         sounds[objects[interactingObject].sound]->startSound();
                     }
                 }
@@ -2867,6 +2882,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             pauseNote = false;
             fspline.init(camera.Zoom, 45.0f, 0.5f);
             fspline.active = true;
+
         }
     }
 }
