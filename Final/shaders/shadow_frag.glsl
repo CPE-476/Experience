@@ -54,6 +54,8 @@ uniform vec3 bottom;
 uniform vec3 top;
 uniform vec3 dirt;
 
+uniform float shadowAmount;
+
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
     // perform perspective divide
@@ -118,7 +120,7 @@ void main()
 
     // calculate shadow
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
-    vec3 lighting = (1.6 - shadow) * litColor;
+    vec3 lighting = (1.6 - shadow * shadowAmount) * litColor;
     
     FragColor = vec4(lighting, 1.0);
 }
