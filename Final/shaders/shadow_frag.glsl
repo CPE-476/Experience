@@ -41,7 +41,18 @@ in float Height;
 in vec3 Position;
 in vec3 Normal;
 
-uniform sampler2D diffuseTexture;
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;
+uniform sampler2D texture_opacity1;
+
+uniform int sample_diffuse1;
+uniform int sample_specular1;
+uniform int sample_normal1;
+uniform int sample_height1;
+uniform int sample_opacity1;
+
 uniform sampler2D shadowMap;
 
 uniform vec3 viewPos;
@@ -92,9 +103,18 @@ void main()
     fogFactor = clamp(fogFactor, 0.0f, 1.0f);
 
     float h;
-    vec3 baseColor = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    vec3 baseColor = texture(texture_diffuse1, fs_in.TexCoords).rgb;
     vec3 litColor;
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+
+    if(sample_opacity1 == 1)
+    {
+        if(vec3(texture(texture_opacity1, fs_in.TexCoords)).x == 0)
+        {
+            discard;
+        }
+    }
+
     if(fs_in.isTerrain == 1)
     {
         h = (Height + 7.8) / 10;

@@ -82,6 +82,13 @@ void main()
 
     FragColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
 
+    if(sample_normal1 == 1)
+    {
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+
+    //FragColor = texture(texture_specular1, texCoords);
+
     float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > threshold)
     {

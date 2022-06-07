@@ -32,8 +32,8 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int SCREEN_WIDTH = 2880;
-const unsigned int SCREEN_HEIGHT = 1800;
+const unsigned int SCREEN_WIDTH = 1440;
+const unsigned int SCREEN_HEIGHT = 900;
 const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
 const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;

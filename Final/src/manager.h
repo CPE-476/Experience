@@ -125,6 +125,8 @@ struct Model_Container
     Model powerline;
     Model pillar;
     Model barrier;
+
+    Model guitar;
 };
 
 struct Manager
@@ -194,7 +196,7 @@ struct Manager
         this->models.grass_7.init("../resources/models/grass/grass_7.fbx");
         this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
-        this->models.road.init("../resources/models/environment/road/road.fbx");
+        this->models.road.init("../resources/models/environment/road/road_2.fbx");
         this->models.street_lamp.init("../resources/models/environment/street_light/single_street_light.obj");
         this->models.powerline.init("../resources/models/environment/powerline/wooden_telephone_pole.obj");
         this->models.stop.init("../resources/models/environment/stop/traffic_sign_stop.obj");
@@ -207,6 +209,8 @@ struct Manager
         //this->models.andre.init("../resources/models/andre.obj");
         this->models.pillar.init("../resources/models/environment/pillar/pillar.fbx");
         this->models.barrier.init("../resources/models/environment/blockade/RoadBlockade_01.fbx");
+
+        this->models.guitar.init("../resources/models/guitar/source/Survival_BackPack_2/Survival_BackPack_2.fbx");
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
 
@@ -259,9 +263,8 @@ struct Manager
         Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
         Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
         Lookup[42] = {42, &this->models.barrier, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
-        //Lookup[43] = {43, &this->models.andre, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
-        //Lookup[44] = {44, &this->models.skull, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
-        //Lookup[45] = {45, &this->models.brain, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
+        //Lookup[44] = {44, &this->models.andre, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
+        //Lookup[45] = {45, &this->models.skull, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()
