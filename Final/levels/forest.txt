@@ -36326,8 +36326,6 @@ OBJ 40 -13.3965 -3.90813 -104.034 0.048 0 0 1 1 1 0.192304 0.136 0.5 0.136 1 0 1
 OBJ 37 -80.7256 -2.946 -26.7015 -1.636 1.517 1.565 1 1 1 1.414 1 0.5 1 1 0 19 20 
 
 COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>
-LGT 0 0 -6.919 0 0.05 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 
-LGT 75.852 -5.505 167.564 0.05 0.05 0.05 1 1 1 0.4 0.4 0.4 1 0.09 0.032 
 
 COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
 SUN 14.721 164.226 125.585 83.782 20 20 0.364 0.269608 0.163879 0.163879 0.8 0.6 0.6 0.5 0.3 0.3 
