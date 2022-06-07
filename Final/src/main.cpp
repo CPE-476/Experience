@@ -328,6 +328,8 @@ int main(void)
     notes.push_back(Note("../resources/notes/box11.png"));
     notes.push_back(Note("../resources/notes/box12.png"));
     notes.push_back(Note("../resources/notes/note10.png"));
+    notes.push_back(Note("../resources/notes/box13.png"));
+
 
     Note credit1 = Note("../resources/notes/credit1.png");
     Note credit2 = Note("../resources/notes/credit2.png");
