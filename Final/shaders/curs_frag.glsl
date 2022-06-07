@@ -2,9 +2,9 @@
 
 out vec4 outColor;
 
-uniform bool inter;
+uniform vec3 color;
 
 void main()
 {
-    outColor = vec4(1.0f);
+    outColor = vec4(color, 1.0f);
 }

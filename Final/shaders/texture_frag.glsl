@@ -1,5 +1,8 @@
 #version 330 core 
 
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
+
 struct DirLight {
     vec3 direction;
 
@@ -23,8 +26,6 @@ struct PointLight {
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
-out vec4 outColor;
-
 in vec3 normal;
 in vec3 fragmentPos;
 in vec2 texCoords;
@@ -35,11 +36,11 @@ uniform sampler2D texture_normal1;
 uniform sampler2D texture_height1;
 uniform sampler2D texture_opacity1;
 
-uniform int sample_diffuse1 = 0;
-uniform int sample_specular1 = 0;
-uniform int sample_normal1 = 0;
-uniform int sample_height1 = 0;
-uniform int sample_opacity1 = 0;
+uniform int sample_diffuse1;
+uniform int sample_specular1;
+uniform int sample_normal1;
+uniform int sample_height1;
+uniform int sample_opacity1;
 
 uniform DirLight dirLight;
 #define MAX_LIGHTS 128
@@ -52,6 +53,8 @@ uniform vec3 viewPos;
 uniform float maxFogDistance;
 uniform float minFogDistance;
 uniform vec4 fogColor;
+
+uniform float threshold;
 
 void main()
 {
@@ -77,8 +80,24 @@ void main()
         }
     }
 
-    outColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
-    //outColor = texture(texture_diffuse1, texCoords);
+    FragColor = mix(fogColor, vec4(PointLightColor + DirLightColor, 1.0), fogFactor);
+
+    if(sample_normal1 == 1)
+    {
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+
+    //FragColor = texture(texture_specular1, texCoords);
+
+    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > threshold)
+    {
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    }
+    else
+    {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

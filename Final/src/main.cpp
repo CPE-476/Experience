@@ -1,7 +1,7 @@
 // Author: Alex Hartford, Brett Hickman, Lucas Li
 // Program: Experience
 // File: Main
-// Date: May 2022
+// Date: June 2022
 
 #include <iostream>
 #include <time.h>
@@ -32,17 +32,20 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int SCREEN_WIDTH = 1280;
-const unsigned int SCREEN_HEIGHT = 800;
+const unsigned int SCREEN_WIDTH = 1440;
+const unsigned int SCREEN_HEIGHT = 900;
+const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
+const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
 const float default_view = 1.414f;
+const float default_selection = 0.5f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
-float lastX = SCREEN_WIDTH / 2.0f;
-float lastY = SCREEN_WIDTH / 2.0f;
+float lastX = RETINA_SCREEN_WIDTH / 2.0f;
+float lastY = RETINA_SCREEN_HEIGHT / 2.0f;
 bool  firstMouse = true;
 char  levelName[128] = "";
 
@@ -52,8 +55,8 @@ unsigned int frameCount = 0;
 const float  y_offset = 1.0f;
 
 int   bobbingCounter = 0;
-int   bobbingSpeed = 3;
-float bobbingAmount = 0.015;
+int   bobbingSpeed = 7;
+float bobbingAmount = 0.03;
 float road_width = 3.0f;
 
 // For Selector.
@@ -63,9 +66,32 @@ bool  drawNote = false;
 bool  drawCollection = false;
 float collectionScroll = 0.0f;
 bool  pauseNote = false;
+float fog_offset = 7.5f;
 
-// NOTE(Lucas) For collsion detection
+// NOTE(Lucas) For collision detection
 vector<int> ignore_objects = {18, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+
+// For FBO Stuff
+bool bloom = true;
+float exposure = 1.0f;
+float gBloomThreshold = 0.5f;
+
+bool gDONTCULL = false;
+
+bool  gSelecting = false;
+bool  deleteObject = false;
+bool  deleteCheck = false;
+
+float shadowAmount = 1.0f;
+
+bool forestBeginning = false;
+bool forestContinuing = false;
+bool sunsetting = false;
+bool sunrising = false;
+bool exposingOut = false;
+
+bool intro = true;
+bool loadForest = false;
 
 enum EditorModes
 {
@@ -112,6 +138,8 @@ struct FogSystem
 #include "water.h"
 #include "spline.h"
 #include "sound.h"
+#include "sun.h"
+#include "cursor.h"
 
 using namespace std;
 using namespace glm;
@@ -119,15 +147,55 @@ using namespace glm;
 void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *sounds);
 
 FloatSpline fspline;
+FloatSpline exposurespline;
+FloatSpline volumespline;
+FloatSpline skyboxspline;
+FloatSpline shadowspline;
+FloatSpline rotspline;
+
+Level lvl;
+
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
+bool completedGame(vector<bool> *checks);
+
 float randFloat()
 {
     float r = rand() / static_cast<float>(RAND_MAX);
     return r;
+}
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions         // texture Coords
+            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 float randCoord()
@@ -156,11 +224,8 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-#if 0
-    // Full Screen Mode
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
-#endif
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
+    //GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
@@ -191,7 +256,7 @@ int main(void)
 
     /* Manage OpenGL State */
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -208,69 +273,144 @@ int main(void)
     vector<Sound *> sounds;
     vector<Note>    notes;
     vector<bool>    discoveredNotes;
+    int discoveredCount = 0;
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note2.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note3.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note4.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note5.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note6.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note7.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note8.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
 
     notes.push_back(Note("../resources/notes/box1.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box2.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/box3.png"));
+    //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box9.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box4.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box5.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box6.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box7.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/box8.png"));
+    //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box10.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box11.png"));
+    notes.push_back(Note("../resources/notes/box12.png"));
+    notes.push_back(Note("../resources/notes/note10.png"));
+    notes.push_back(Note("../resources/notes/box13.png"));
+
+
+    Note credit1 = Note("../resources/notes/credit1.png");
+    Note credit2 = Note("../resources/notes/credit2.png");
+    Note credit3 = Note("../resources/notes/credit3.png");
+
+    Note opening1 = Note("../resources/notes/opening1.png");
+    Note opening2 = Note("../resources/notes/opening2.png");
+    Note opening3 = Note("../resources/notes/opening3.png");
 
     // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
     Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
     Sound hmm = Sound("../resources/audio/hmm.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
-    Sound welcome = Sound("../resources/audio/welcome.wav", vec3(-50, 0, 0), 1.0f, 50.0f, 2.0f, 10.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
-    Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
+    Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.3f, true);
+    Sound sadMusic = Sound("../resources/audio/BGM/street.mp3", 0.3f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
-    Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
+    Sound forestMusic2 = Sound("../resources/audio/BGM/Forest_1_dynamic.mp3", 0.1f, true);
+    Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.3f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
-    Sound walk = Sound("../resources/audio/step.wav", 0.5f, false);
+    Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
+    Sound EVA = Sound("../resources/audio/congrats.wav", 1.0f, false);
+    EVA.isLooping = false;
+    Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
+    Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
+    Sound waterWalk = Sound("../resources/audio/waterWalk.wav", 0.3f, false);
 
-    // DEBUG
-    sounds.push_back(&walk);
-    sounds.push_back(&whistle);
-    sounds.push_back(&pickup);
-    sounds.push_back(&hmm);
-    sounds.push_back(&rock);
-    sounds.push_back(&welcome);
-    sounds.push_back(&music);
-    sounds.push_back(&alert);
+    //Ambient Sounds
+    Sound fogAmb = Sound("../resources/audio/wind.wav", 0.3f, true);
+    Sound forestAmb = Sound("../resources/audio/bird.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
+    Sound desertAmb = Sound("../resources/audio/fog.wav", vec3(0, 0, 0), 1.0f, 1.0f, 2.0f, 50.0f, true, false);
+
+    //Talking Sounds
+    Sound deep1 = Sound("../resources/audio/Talking/deep1.wav", 1.0f, false);
+    Sound deep2 = Sound("../resources/audio/Talking/deep2.wav", 1.0f, false);
+    Sound deep3 = Sound("../resources/audio/Talking/deep3.wav", 1.0f, false);
+    Sound mid1 = Sound("../resources/audio/Talking/mid1.wav", 1.0f, false);
+    Sound mid2 = Sound("../resources/audio/Talking/mid2.wav", 1.0f, false);
+    Sound mid3 = Sound("../resources/audio/Talking/mid3.wav", 1.0f, false);
+    Sound high1 = Sound("../resources/audio/Talking/high1.wav", 1.0f, false);
+    Sound high2 = Sound("../resources/audio/Talking/high2.wav", 1.0f, false);
+    Sound high3 = Sound("../resources/audio/Talking/high3.wav", 1.0f, false);
+    Sound high4 = Sound("../resources/audio/Talking/high4.wav", 1.0f, false);
+    Sound underwater1 = Sound("../resources/audio/Talking/underwater.wav", 1.0f, false);
+    Sound underwater2 = Sound("../resources/audio/Talking/underwater2.wav", 1.0f, false);
+
+    Sound laugh = Sound("../resources/audio/laugh.wav", 1.0f, false);
+
+    sounds.push_back(&walk); // 0
+    sounds.push_back(&whistle); // 1
+    sounds.push_back(&pickup); // 2
+    sounds.push_back(&hmm); // 3
+    sounds.push_back(&rock); // 4
+    sounds.push_back(&fogAmb); // 5
+    sounds.push_back(&music); // 6
+    sounds.push_back(&alert); // 7
+    sounds.push_back(&EVA); // 8
+    sounds.push_back(&forestAmb); // 9
+    sounds.push_back(&fire); // 10
+    sounds.push_back(&whisper); // 11
+    sounds.push_back(&deep1); // 12
+    sounds.push_back(&deep2); // 13
+    sounds.push_back(&deep3); // 14
+    sounds.push_back(&mid1); // 15
+    sounds.push_back(&mid2); // 16
+    sounds.push_back(&mid3); // 17
+    sounds.push_back(&high1);// 18 
+    sounds.push_back(&high2);// 19
+    sounds.push_back(&high3); // 20
+    sounds.push_back(&high4); // 21
+    sounds.push_back(&underwater1); // 22
+    sounds.push_back(&underwater2); // 23 
+    sounds.push_back(&laugh); // 24
+
 
     Skybox skybox;
     stbi_set_flip_vertically_on_load(false);
     // Default value.
     skybox.init("../resources/skyboxes/sunsky/", false);
+    float skyboxMaskAmount = 0.0f;
 
     Terrain terrain;
     // Default value.
@@ -279,41 +419,138 @@ int main(void)
                  vec3(0.459, 0.525, 0.275),
                  vec3(0.25, 0.129, 0.000));
 
-    // Default value.
-    DirLight dirLight = DirLight(vec3(0.0f, 0.0f, 1.0f),  // Direction
-                                 vec3(0.4f, 0.2f, 0.2f),  // Ambient
-                                 vec3(0.8f, 0.6f, 0.6f),  // Diffuse
-                                 vec3(0.5f, 0.3f, 0.3f)); // Specular
+    Sun sun = Sun(&m.models.sphere); 
 
     // Default value
     FogSystem fog = {200.0f, 15.0f, vec4(0.4f, 0.4f, 0.4f, 1.0f)};
 
-    Level lvl;
-
     Boundary bound;
-    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 8.0f);
+    bound.init(vec3(1.0f, 1.0f, 1.0f), -5.0f, terrain.width / 2.0f, 0.0f);
 
-    lvl.LoadLevel("../levels/forest.txt", &objects, &lights,
-                  &dirLight, &emitters, &fog, &skybox, &terrain, &bound);
+    lvl.LoadLevel("../levels/opening.txt", &objects, &lights,
+                  &sun, &emitters, &fog, &skybox, &terrain, &bound);
     Frustum frustum;
 
     Water water;
     water.gpuSetup();
-    
+
+    Cursor cursor;
+    cursor.init(vec3(1.0f, 1.0f, 1.0f));
+
     Spline sunspline;
+    Spline particlespline;
+    Spline suncolorspline;
     Spline ambspline;
+    Spline diffspline;
+    Spline terrainspline;
+
+    // configure depth map FBO
+    // -----------------------
+    const unsigned int SHADOW_WIDTH = 4024, SHADOW_HEIGHT = 4024;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    unsigned int depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // FBO shader configuration
+    // --------------------
+    m.shaders.shadowShader.bind();
+    m.shaders.shadowShader.setInt("diffuseTexture", 0);
+    m.shaders.shadowShader.setInt("shadowMap", 1);
+    m.shaders.debugShader.bind();
+    m.shaders.debugShader.setInt("depthMap", 0);
+
+    m.shaders.blurShader.bind();
+    m.shaders.blurShader.setInt("image", 0);
+    m.shaders.bloomShader.bind();
+    m.shaders.bloomShader.setInt("scene", 0);
+    m.shaders.bloomShader.setInt("bloomBlur", 1);
+
+    // Shadow info
+    // -------------
+    glm::vec3 lightPos(126.0f, 76.0f, -1.0F);
+    float near_plane = 0.0f, far_plane = 345.0f;
+    float shadow_frustum = 111.0f;
+
+    // Color buffers to identify high brightness locations
+    // -----------------------------------------------------
+    unsigned int hdrFBO;
+    glGenFramebuffers(1, &hdrFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+
+    unsigned int colorBuffers[2];
+    glGenTextures(2, colorBuffers);
+    for(int i = 0; i < 2; ++i)
+    {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // Attach texture to FBO.
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+    }
+
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);   // Depth Buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        cout << "Framebuffer Error!\n";
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // ping-pong-framebuffer for blurring
+    unsigned int pingpongFBO[2];
+    unsigned int pingpongColorbuffers[2];
+    glGenFramebuffers(2, pingpongFBO);
+    glGenTextures(2, pingpongColorbuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+
+        // also check if framebuffers are complete (no need for depth buffer)
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            cout << "Framebuffer not complete!\n";
+    }
 
     // Editor Settings
     bool showObjectEditor = true;
     bool showParticleEditor = false;
     bool showLightEditor = false;
-    bool showDirLightEditor = false;
     bool showFogEditor = false;
+    bool showShadowEditor = false;
     bool showTerrainEditor = false;
     bool showSkyboxEditor = false;
     bool showBoundaryEditor = false;
     bool showNoteEditor = false;
     bool showSoundEditor = false;
+    bool showSunEditor = false;
 
     bool snapToTerrain = true;
 
@@ -321,8 +558,11 @@ int main(void)
     bool drawSkybox = true;
     bool drawBoundingSpheres = false;
     bool drawCollisionSpheres = false;
-    bool drawPointLights = false;
+    bool drawSelectionSpheres = false;
+    bool drawPointLights = true;
     bool drawParticles = true;
+
+    bool toggleRenderEffects = false;
 
     char skyboxPath[128] = "";
     char terrainPath[128] = "";
@@ -334,6 +574,7 @@ int main(void)
     int selectedParticle = 0;
     int selectedNote = 0;
     int selectedSound = 0;
+
     while (!glfwWindowShouldClose(window))
     {
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
@@ -346,41 +587,42 @@ int main(void)
             whistle.reset();
         }
 
-         if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+        fogAmb.updateSound();
+
+        bool underwater = true;
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
         {
-            desertMusic.stopSound();
-            forestMusic1.stopSound();
-            streetMusic.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE)
-        {
-            streetMusic.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-        {
-            streetMusic.stopSound();
-            forestMusic1.stopSound();
-            desertMusic.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE)
-        {
-            desertMusic.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
-        {
-            desertMusic.stopSound();
-            streetMusic.stopSound();
-            forestMusic1.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE)
-        {
-            forestMusic1.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-        {
-            desertMusic.stopSound();
-            forestMusic1.stopSound();
-            streetMusic.stopSound();
+            if(camera.Position.y < (water.height + PLAYER_HEIGHT))
+            {
+                sounds[0]->stopSound();
+                sounds[0] = &waterWalk;
+                camera.Slow = true;
+            }
+            else
+            {
+                sounds[0]->stopSound();
+                camera.Slow = false;
+                sounds[0] = &walk;
+            }
+
+            static vec3 oldAmb = sun.dirLight.ambient;
+            static vec3 oldDif = sun.dirLight.diffuse;
+            if(camera.Position.y < (water.height) && underwater)
+            {
+                sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
+                sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+                forestAmb.stopSound();
+                fire.stopSound();
+                underwater = true;
+            }
+            else if(underwater && camera.Position.y > (water.height))
+            {
+                sun.dirLight.ambient = oldAmb;
+                sun.dirLight.diffuse = oldDif;
+                //forestAmb.startSound();
+                //fire.startSound();
+                underwater = false;
+            }
         }
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -390,6 +632,18 @@ int main(void)
 
         drawnObjects = 0;
 
+        if(loadForest)
+        {
+            loadForest = false;
+            lvl.LoadLevel("../levels/forest.txt", &objects, &lights, &sun,
+                          &emitters, &fog, &skybox, &terrain, 
+                          &bound);
+
+            exposure = 50.0f;
+            exposurespline.init(exposure, 1.5f, 10.0f);
+            exposurespline.active = true;
+        }
+
         // Input Resolution
         glfwPollEvents();
         processInput(window, &objects, &sounds);
@@ -398,204 +652,832 @@ int main(void)
             float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
             if(dist > bound.width - 2)
             {
+                if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0)
+                {
+                    sunspline.deactivate();
+                    suncolorspline.deactivate();
+                    ambspline.deactivate();
+                    diffspline.deactivate();
+
+                    camera.Yaw = -90.0f;
+                    camera.Pitch = 0.0f;
+                    camera.updateCameraVectors();
+                }
+
                 cout << "Boundary Collision. Loading Next Level.\n";
-                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
-                memset(levelName, 0, sizeof(levelName));
-                strcpy(levelName, lvl.nextLevel.c_str());
-                bound.counter = 157;
-                bound.active = true;
+
+                // Transitions!
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
+                {
+                    exposure = 50.0f;
+                    exposurespline.init(exposure, 2.0f, 10.0f);
+                    exposurespline.active = true;
+                }
+                else if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+                {
+                    exposure = 0.0f;
+                    exposurespline.init(exposure, 0.4f, 10.0f);
+                    exposurespline.active = true;
+                }
             }
+            if(dist > bound.width - 50)
+            {
+                fogAmb.volume = (dist-(bound.width-50))/(bound.width-50);
+            }
+            else
+            {
+                fogAmb.volume = 0.0f;
+            }
+
+            if(dist > bound.width - 20.0f)
+            {
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+                {
+                    exposure = 1 + ((dist - (bound.width - 20.0f)) / (bound.width- 20.0f)) * 10.0f;
+                }
+            }
+
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
+        }
+
+        if(deleteObject)
+        { 
+            objects.erase(objects.begin() + selectedObject);
+            deleteObject = false;
         }
 
         // Spline
         fspline.update(deltaTime);
+        exposurespline.update(deltaTime);
+        volumespline.update(deltaTime);
+        skyboxspline.update(deltaTime);
+        shadowspline.update(deltaTime);
+        rotspline.update(deltaTime);
+
+        particlespline.update(deltaTime);
         sunspline.update(deltaTime);
+        suncolorspline.update(deltaTime);
         ambspline.update(deltaTime);
+        diffspline.update(deltaTime);
+        terrainspline.update(deltaTime);
 
         if(fspline.active)
         {
             camera.Zoom = fspline.getPosition();
         }
+
+        if(rotspline.active)
+        {
+            objects[interactingObject].angleY = rotspline.getPosition();
+            objects[interactingObject].UpdateModel();
+        }
+        if(volumespline.active)
+        {
+            walk.volume = volumespline.getPosition();
+                walk.updateSound();
+        }
+        if(exposurespline.active)
+        {
+            exposure = exposurespline.getPosition();
+        }
+        if(skyboxspline.active)
+        {
+            skyboxMaskAmount = skyboxspline.getPosition();
+        }
+        if(shadowspline.active)
+        {
+            shadowAmount = shadowspline.getPosition();
+        }
+
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+        {
+            skyboxMaskAmount = 0.0f;
+        }
+
         if(sunspline.active)
         {
-            dirLight.direction = sunspline.getPosition();
-            cout << to_string(dirLight.direction) << "\n";
+            sun.position = sunspline.getPosition();
         } 
+        if(suncolorspline.active)
+        {
+            sun.color = suncolorspline.getPosition();
+        }
         if(ambspline.active)
         {
-            dirLight.ambient = ambspline.getPosition();
-            cout << to_string(dirLight.ambient) << "\n";
+            sun.dirLight.ambient = ambspline.getPosition();
+        }
+        if(diffspline.active)
+        {
+            sun.dirLight.diffuse = diffspline.getPosition();
+        }
+        if(particlespline.active)
+        {
+            if(emitters.size() > 0)
+            {
+                emitters[0].startColor = vec4(particlespline.getPosition(), 1.0f);
+                emitters[0].endColor = vec4(particlespline.getPosition(), 1.0f);
+            }
+        }
+        if(terrainspline.active)
+        {
+	    terrain.top = terrainspline.getPosition();
         }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        sun.updateLight();
 
-        mat4 projection = perspective(radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
-        mat4 view = camera.GetViewMatrix();
-        mat4 model;
-
-        frustum.ExtractVFPlanes(projection, view);
-
-        m.DrawAllModels(&objects, &lights, &dirLight, &fog, &frustum);
- 
-        // Render Skybox
-        if (drawSkybox)
+        // SHADOW STUFF
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
         {
-            skybox.Draw(m.shaders.skyboxShader);
+            far_plane = 800.0f;
+            gDONTCULL = true;
+
+            if(!sunrising && camera.Position.z < 60.0f)
+            {
+                float sunriseTimer = 30.0f;
+
+                sunspline.init(sun.position, vec3(sun.position.x, 200.0f, sun.position.z), sunriseTimer);
+                sunspline.active = true;
+                suncolorspline.init(sun.color, vec3(20.0f, 20.0f, 0.1f), sunriseTimer);
+                suncolorspline.active = true;
+                ambspline.init(sun.dirLight.ambient, vec3(0.3f, 0.3f, 0.01f), sunriseTimer);
+                ambspline.active = true;
+                diffspline.init(sun.dirLight.diffuse, vec3(0.5f, 0.5f, 0.01f), sunriseTimer);
+                diffspline.active = true;
+                shadowspline.init(shadowAmount, 1.0f, sunriseTimer);
+                shadowspline.active = true;
+                
+                streetMusic.startSound();
+
+                volumespline.init(walk.volume, 0.0f, 10.0f);
+                volumespline.active = true;
+
+                desertAmb.volume = 0.1f;
+                sunrising = true;
+            }
+
+            if(!exposingOut && camera.Position.z < -70.0f)
+            {
+                exposurespline.init(exposure, -0.5f, 5.0f);
+                exposurespline.active = true;
+                exposingOut = true;
+            }
+
+            if(exposure < -0.1)
+            {
+                lvl.LoadLevel("../levels/credit.txt", &objects, &lights,
+                              &sun, &emitters, &fog, &skybox, &terrain, &bound);
+                exposure = 1.0f;
+            }
         }
-        // Render Light Positions (DEBUG)
-        m.shaders.lightShader.bind();
+
+        static float counter1 = 0;
+        static float counter2 = 0;
+        static float counter3 = 0;
+
+        if (strcmp(lvl.currentLevel.c_str(), "../levels/opening.txt") == 0)
         {
-            m.shaders.lightShader.setMat4("projection", projection);
-            m.shaders.lightShader.setMat4("view", view);
+            camera.Position = vec3(0.0f, 0.0f, 0.0f);
 
-            model = mat4(1.0f);
-            m.shaders.lightShader.setMat4("model", model);
+            counter1 += 50.0f * deltaTime;
 
+            exposure = 2.0f;
+
+            if(counter1 >= 157)
+            {
+                counter1 = 157;
+                counter2 += 50.0f * deltaTime;
+                if(counter2 > 157) 
+                {
+                    counter2 = 157;
+                    counter3 += 50.0f * deltaTime;
+                    if(counter3 > 157)
+                    {
+                        counter3 = 157;
+                    }
+                }
+            }
+
+            fogAmb.startSound();
+        }
+
+        if (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
+        {
+            camera.Position = vec3(0.0f, 0.0f, 0.0f);
+
+            counter1 += 50.0f * deltaTime;
+            streetMusic.stopSound();
+            exposure = 2.0f;
+
+            if(counter1 >= 157)
+            {
+                counter1 = 157;
+                counter2 += 50.0f * deltaTime;
+                if(counter2 > 157) 
+                {
+                    counter2 = 157;
+                    counter3 += 50.0f * deltaTime;
+                    if(counter3 > 157)
+                    {
+                        counter3 = 157;
+                    }
+                }
+            }
+
+            if(completedGame(&discoveredNotes))
+            {
+                EVA.startSound();
+            }
+            else
+            {
+                sadMusic.startSound();
+            }
+        }
+
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
+        {
+            forestMusic1.stopSound();
+            forestMusic2.stopSound();
+
+	    far_plane = 800.0f;
+	    shadow_frustum = 226.0f;
+
+            if(!sunsetting && discoveredNotes[0])
+            {
+                float sunsetTimer = 30.0f;
+
+                sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer * 3);
+                sunspline.active = true;
+                suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer);
+                suncolorspline.active = true;
+                ambspline.init(sun.dirLight.ambient, vec3(0.1f, 0.1f, 0.1f), sunsetTimer);
+                ambspline.active = true;
+                diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer * 3);
+                diffspline.active = true;
+                exposurespline.init(exposure, 0.2f, sunsetTimer);
+                exposurespline.active = true;
+                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
+                skyboxspline.active = true;
+                shadowspline.init(shadowAmount, 0.0f, sunsetTimer);
+                shadowspline.active = true;
+                particlespline.init(vec3(emitters[0].endColor.x, emitters[0].endColor.y, emitters[0].endColor.z), vec3(0.0f), sunsetTimer);
+                particlespline.active = true;
+                terrainspline.init(terrain.top, vec3(1.0f), sunsetTimer);
+                terrainspline.active = true;
+
+                desertMusic.startSound();
+
+                emitters.push_back(Emitter("../resources/models/particle/part.png", 10000, vec3(0, 50, 0), 500.0f, 3.0f, 7.0f, vec3(0, 0, 0), 8.424f, 0.0f, vec4(1, 1, 1, 1), vec4(1, 1, 1, 1), 0.424f, 0.0f));
+
+                sunsetting = true;
+            }
+        }
+
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+        {
+            counter1 = 0;
+            counter2 = 0;
+            counter3 = 0;
+            if(!forestBeginning && discoveredCount > 0)
+            {
+                forestMusic1.startSound();
+                forestBeginning = true;
+            }
+            if(!forestContinuing && discoveredCount > 4)
+            {
+                forestMusic1.stopSound();
+                forestMusic2.startSound();
+                forestContinuing = true;
+            }
+        }
+
+        if(toggleRenderEffects || EditorMode == MOVEMENT)
+        {
+            // Render Depth Map to its own FBO
+            // -------------------------------------------------------------------
+            glm::mat4 lightProjection, lightView;
+            glm::mat4 lightSpaceMatrix;
+            lightProjection = glm::ortho(-shadow_frustum, shadow_frustum, -shadow_frustum, shadow_frustum, near_plane, far_plane);
+            lightView = glm::lookAt(vec3(sun.position.x, sun.position.y + sun.scale_factor, sun.position.z), 
+                    glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+            lightSpaceMatrix = lightProjection * lightView;
+            // render scene from light's point of view
+            m.shaders.depthShader.bind();
+            {
+                m.shaders.depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+                m.shaders.depthShader.setBool("isT", false);
+
+                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+                glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+                glClear(GL_DEPTH_BUFFER_BIT);
+
+                m.DrawAllModels(m.shaders.depthShader, &objects, &lights, &sun.dirLight, &fog, &frustum);
+
+                m.shaders.depthShader.setBool("isT", true);
+                // // Render Terrain
+                // if (drawTerrain)
+                // {
+                //     terrain.Draw(m.shaders.depthShader, &lights, &sun.dirLight, &fog);
+                // }
+            }
+            m.shaders.depthShader.unbind();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            // Let's start drawing actual geometry.
+            // =====================================
+            glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+            glEnable(GL_DEPTH_TEST);
+
+            // reset viewport for actual Drawing.
+            glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+            mat4 projection = camera.GetProjectionMatrix();
+            mat4 view = camera.GetViewMatrix();
+            mat4 model;
+
+            frustum.ExtractVFPlanes(projection, view);
+
+            m.shaders.shadowShader.bind();
+            {
+                m.shaders.shadowShader.setMat4("projection", projection);
+                m.shaders.shadowShader.setMat4("view", view);
+                m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+                m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+                m.shaders.shadowShader.setBool("isT", false);
+                m.shaders.shadowShader.setFloat("shadowAmount", shadowAmount);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, depthMap);
+                m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
+                    &sun.dirLight, &fog, &frustum);
+            }
+            m.shaders.shadowShader.unbind();
+
+            // NOTE(alex): Some reason this needs to be rebound to work? Who fucking knows.
+            m.shaders.shadowShader.bind();
+            {
+                m.shaders.shadowShader.setMat4("projection", projection);
+                m.shaders.shadowShader.setMat4("view", view);
+                m.shaders.shadowShader.setVec3("viewPos", camera.Position);
+                m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+                m.shaders.shadowShader.setBool("isT", false);
+                m.shaders.shadowShader.setFloat("shadowAmount", shadowAmount);
+
+                // Render Terrain
+                if (drawTerrain && 
+                    (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") != 0))
+                {
+                    m.shaders.shadowShader.setBool("isT", true);
+                    terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
+                }
+            }
+            m.shaders.shadowShader.unbind();
+
+            // render Depth map to quad for visual debugging
+            // ---------------------------------------------
+            m.shaders.debugShader.bind();
+            m.shaders.debugShader.setFloat("near_plane", near_plane);
+            m.shaders.debugShader.setFloat("far_plane", far_plane);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+            if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+            {
+                renderQuad();
+            }
+
+            // Render Skybox
+            if (drawSkybox)
+            {
+                skybox.Draw(m.shaders.skyboxShader, skyboxMaskAmount);
+            }
+
+            // Render Sun
+            sun.Draw(m.shaders.sunShader);
+
+            // Render Point Lights
             if (drawPointLights)
             {
-                for (int i = 0; i < lights.size(); ++i)
+                m.shaders.lightShader.bind();
                 {
-                    model = mat4(1.0f);
-                    model = scale(model, vec3(0.5f, 0.5f, 0.5f));
-                    model = translate(model, lights[i].position);
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.cube.Draw(m.shaders.lightShader);
+                    m.shaders.lightShader.setMat4("projection", projection);
+                    m.shaders.lightShader.setMat4("view", view);
+                    vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
+
+                    for (int i = 0; i < lights.size(); ++i)
+                    {
+                        if(selectedLight == i)
+                        {
+                            m.shaders.lightShader.setVec3("lightColor", selectedColor);
+                        }
+                        else
+                        {
+                            m.shaders.lightShader.setVec3("lightColor", lights[i].color);
+                        }
+                        model = mat4(1.0f);
+                        float z_adj = lights[i].position.z;
+                        if (lights[i].position.x < 0) z_adj -= 0.05f;
+                        else z_adj += 0.1f;
+                        model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
+                        model = scale(model, vec3(0.15f, 0.075f, 0.075f));
+                        m.shaders.lightShader.setMat4("model", model);
+                        m.models.cube.Draw(m.shaders.lightShader);
+                    }
+                }
+            }
+            m.shaders.lightShader.unbind();
+
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0) {
+                water.Draw(m.shaders.waterShader, deltaTime);
+                if(underwater && camera.Position.y > (water.height)) {
+                    forestAmb.updateSound();
+                    fire.updateSound();
                 }
             }
 
-            if (drawBoundingSpheres)
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
+                bound.height = 25.0f;
+                forestAmb.stopSound();
+                fire.stopSound();
+                desertAmb.updateSound();
+            }
+
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
+                water.height = -18.5f;
+                water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
+                water.Draw(m.shaders.waterShader, deltaTime);
+                desertAmb.stopSound();
+                desertMusic.stopSound();
+            }
+            if(drawParticles)
             {
+                bound.height = -7.0f;
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
+                    bound.height = -35.0f;
+                    fog_offset = 40.0f;
+                }
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
+                    bound.height = 25.0f;
+                }
+                for (int i = 0; i < emitters.size(); ++i)
+                {
+                    emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
+                }
+            }
+
+            // Credits Rendering
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
+            {
+                credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+                credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+                credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+            }
+
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/opening.txt") == 0)
+            {
+                opening1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+                opening2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+                opening3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+            }
+
+            // Render Note
+            if(checkInteraction)
+            {
+                float minDistance = FLT_MAX;
+                interactingObject = 0;
                 for (int i = 0; i < objects.size(); ++i)
                 {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].view_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
+                    // Ray collision detection.
+                    vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
+                    float rSquared = objects[i].selection_radius * objects[i].selection_radius;
+                    float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
+
+                    if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
+                        continue;                        // No collision.
+
+                    vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
+
+                    float aSquared = dot(a, a);
+
+                    if (aSquared > rSquared) // If our closest approach is outside the sphere:
+                        continue;            // No collision.
+
+                    if(length(p) < minDistance)
+                    {
+                        if(EditorMode == MOVEMENT)
+                        {
+                            if(length(p) < 10.0f)
+                            {
+                                minDistance = length(p);
+                                interactingObject = i;
+                            }
+                        }
+                        else
+                        {
+                            minDistance = length(p);
+                            selectedObject = i;
+                        }
+                    }
+                }
+                if(objects[interactingObject].interactible)
+                {
+                    drawNote = true;
+                    selectedNote = objects[interactingObject].noteNum;
+                    discoveredNotes[selectedNote] = true;
+		    if(selectedNote < 16)
+		    {
+			discoveredCount++;
+		    }
+                    if(objects[interactingObject].disappearing)
+                    {
+                        objects.erase(objects.begin() + interactingObject);
+                        sounds[2]->startSound();
+                    }
+                    else
+                    {
+                        fspline.init(camera.Zoom, 20.0f, 0.5f);
+                        fspline.active = true;
+
+                        // vec3 pointVec = camera.Position - objects[interactingObject].position;
+                        // float rot = dot(vec2(pointVec.x, pointVec.z), vec2(0, 1));
+                        // rotspline.init(0.0f, rot, 2.5f);
+                        // rotspline.active = true;
+
+                        sounds[objects[interactingObject].sound]->startSound();
+                    }
+                }
+                checkInteraction = false;
+            }
+
+            if(drawNote)
+            {
+                notes[selectedNote].Update(&fspline);
+                notes[selectedNote].Draw(m.shaders.noteShader);
+            }
+
+            if(drawCollection)
+            {
+                int xInd = 0;
+                int yInd = 0;
+                for(int i = 0; i < notes.size(); ++i)
+                {
+                    xInd = i / 4;
+                    yInd = i % 4;
+                    if(discoveredNotes[i]) // Draw only discovered notes.
+                    {
+                        notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
+                    }
                 }
             }
 
-            if (drawCollisionSpheres)
+            cursor.Draw(m.shaders.cursorShader);
+
+
+            // FRAMEBUFFER Render Normal scene plus bright portions
+            // ----------------------------------------------------------------
+            glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+            glEnable(GL_DEPTH_TEST);
+          
+            bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
+
+            // FBO Time!
+            // blur bright fragments with two-pass Gaussian Blur 
+            bool horizontal = true, first_iteration = true;
+            unsigned int amount = 10;
+            m.shaders.blurShader.bind();
             {
+                for (unsigned int i = 0; i < amount; i++)
+                {
+                    glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+                    m.shaders.blurShader.setInt("horizontal", horizontal);
+
+                    glActiveTexture(GL_TEXTURE0);
+                    // bind texture of other framebuffer (or scene if first iteration)
+                    glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]
+                                                                 : pingpongColorbuffers[!horizontal]);
+                    renderQuad();
+                    horizontal = !horizontal;
+                    if (first_iteration)
+                        first_iteration = false;
+                }
+            }
+            m.shaders.blurShader.unbind();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);   
+
+            // Render floating point color buffer to 2D quad and 
+            // tonemap HDR colors to default framebuffer's (clamped) color range
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            m.shaders.bloomShader.bind();
+            {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+                m.shaders.bloomShader.setInt("bloom", bloom);
+                m.shaders.bloomShader.setFloat("exposure", exposure);
+                renderQuad();
+            }
+            m.shaders.bloomShader.unbind();
+        } // End of Rendering Effects code.
+
+        else
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glEnable(GL_DEPTH_TEST);
+
+            // reset viewport for actual Drawing.
+            glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+            mat4 projection = camera.GetProjectionMatrix();
+            mat4 view = camera.GetViewMatrix();
+            mat4 model;
+
+            frustum.ExtractVFPlanes(projection, view);
+
+            m.DrawAllModels(m.shaders.textureShader, &objects, &lights, &sun.dirLight,
+                &fog, &frustum);
+
+            if(drawTerrain)
+            {
+                terrain.Draw(m.shaders.terrainShader, &lights, &sun.dirLight, &fog);
+            }
+
+            // Render Skybox
+            if (drawSkybox)
+            {
+                skybox.Draw(m.shaders.skyboxShader, skyboxMaskAmount);
+            }
+
+            // Render Sun
+            sun.Draw(m.shaders.sunShader);
+
+            // Render Point Lights
+            m.shaders.lightShader.bind();
+            {
+                m.shaders.lightShader.setMat4("projection", projection);
+                m.shaders.lightShader.setMat4("view", view);
+                vec3 selectedColor = vec3(1.0f, 0.0f, 0.0f);
+
+                if (drawPointLights)
+                {
+                    for (int i = 0; i < lights.size(); ++i)
+                    {
+                        if(selectedLight == i)
+                        {
+                            m.shaders.lightShader.setVec3("lightColor", selectedColor);
+                        }
+                        else
+                        {
+                            m.shaders.lightShader.setVec3("lightColor", lights[i].color);
+                        }
+                        model = mat4(1.0f);
+                        float z_adj = lights[i].position.z;
+                        if (lights[i].position.x < 0) z_adj -= 0.05f;
+                        else z_adj += 0.1f;
+                        model = translate(model, vec3(lights[i].position.x, lights[i].position.y, z_adj));
+                        model = scale(model, vec3(0.15f, 0.075f, 0.075f));
+                        m.shaders.lightShader.setMat4("model", model);
+                        m.models.cube.Draw(m.shaders.lightShader);
+                    }
+                }
+
+                // Render Selected Objects, Bounding Spheres, etc.
+                m.shaders.lightShader.setVec3("lightColor", selectedColor);
+                if (drawBoundingSpheres)
+                {
+                    for (int i = 0; i < objects.size(); ++i)
+                    {
+                        model = mat4(1.0f);
+                        model = translate(model, objects[i].position);
+                        model = scale(model, vec3(objects[i].view_radius));
+                        m.shaders.lightShader.setMat4("model", model);
+                        m.models.sphere.Draw(m.shaders.lightShader);
+                    }
+                }
+
+                if (drawCollisionSpheres)
+                {
+                    for (int i = 0; i < objects.size(); ++i)
+                    {
+                        model = mat4(1.0f);
+                        model = translate(model, objects[i].position);
+                        model = scale(model, vec3(objects[i].collision_radius));
+                        m.shaders.lightShader.setMat4("model", model);
+                        m.models.sphere.Draw(m.shaders.lightShader);
+                    }
+                }
+
+                if (drawSelectionSpheres)
+                {
+                    for (int i = 0; i < objects.size(); ++i)
+                    {
+                        model = mat4(1.0f);
+                        model = translate(model, objects[i].position);
+                        model = scale(model, vec3(objects[i].selection_radius));
+                        m.shaders.lightShader.setMat4("model", model);
+                        m.models.sphere.Draw(m.shaders.lightShader);
+                    }
+                }
+
+                if (EditorMode == GUI)
+                {
+                    objects[selectedObject].Draw(&m.shaders.lightShader, 
+                        m.findbyId(objects[selectedObject].id).model, 
+                        m.findbyId(objects[selectedObject].id).shader_type);
+                }
+            }
+            m.shaders.lightShader.unbind();
+
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0) {
+                water.Draw(m.shaders.waterShader, deltaTime);
+            }
+
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
+                water.height = -18.5f;
+                water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
+                water.Draw(m.shaders.waterShader, deltaTime);
+            }
+
+            if(drawParticles)
+            {
+                bound.height = -7.0f;
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
+                    bound.height = -35.0f;
+                    fog_offset = 40.0f;
+                }
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
+                    bound.height = 25.0f;
+                }
+                for (int i = 0; i < emitters.size(); ++i)
+                {
+                    emitters[i].Draw(m.shaders.particleShader, 
+                                     deltaTime, 
+                                     bound.width, 
+                                     bound.height, 
+                                     fog_offset);
+                }
+            }
+
+            // Render Note
+            float minDistance = FLT_MAX;
+            if(checkInteraction)
+            {
+                interactingObject = 0;
                 for (int i = 0; i < objects.size(); ++i)
                 {
-                    model = mat4(1.0f);
-                    model = translate(model, objects[i].position);
-                    model = scale(model, vec3(objects[i].collision_radius));
-                    m.shaders.lightShader.setMat4("model", model);
-                    m.models.sphere.Draw(m.shaders.lightShader);
+                    // Ray collision detection.
+                    vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
+                    float rSquared = objects[i].selection_radius * objects[i].selection_radius;
+                    float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
+
+                    if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
+                        continue;                        // No collision.
+
+                    vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
+
+                    float aSquared = dot(a, a);
+
+                    if (aSquared > rSquared) // If our closest approach is outside the sphere:
+                        continue;            // No collision.
+
+                    if(length(p) < minDistance)
+                    {
+                        minDistance = length(p);
+                        selectedObject = i;
+                    }
                 }
+                checkInteraction = false;
             }
 
-            m.shaders.lightShader.setFloat("time", glfwGetTime() * 5);
-            objects[selectedObject].Draw(&m.shaders.lightShader, m.findbyId(objects[selectedObject].id).model, m.findbyId(objects[selectedObject].id).shader_type);
-        }
-        m.shaders.lightShader.unbind();
-        // Render Terrain
-        if (drawTerrain)
-        {
-            terrain.Draw(m.shaders.terrainShader, &lights, &dirLight, &fog);
-        }
-
-        water.Draw(m.shaders.waterShader, deltaTime);
-
-        if(drawParticles)
-        {
-            for (int i = 0; i < emitters.size(); ++i)
+            if(drawNote)
             {
-                emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height);
+                notes[selectedNote].Update(&fspline);
+                notes[selectedNote].Draw(m.shaders.noteShader);
             }
-        }
 
-        if(bound.active)
-        {
-            bound.Draw(m.shaders.transShader);
-            if(bound.counter == 314)
+            if(drawCollection)
             {
-                bound.active = false;
-            }
-            bound.counter++;
-        }
-        bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
-
-        // Render Note
-        if(checkInteraction)
-        {
-            interactingObject = 0;
-            for (int i = 0; i < objects.size(); ++i)
-            {
-                // Ray collision detection.
-                vec3 p = camera.Position - objects[i].position; // The vector pointing from us to an object.
-                float rSquared = objects[i].view_radius * objects[i].view_radius;
-                float p_d = dot(p, selectorRay); // Calculated to see if the object is behind us.
-
-                if (p_d > 0 || dot(p, p) < rSquared) // If the object is behind us or surrounding the starting point:
-                    continue;                        // No collision.
-
-                vec3 a = p - p_d * selectorRay; // Treat a as a plane passing through the object's center perpendicular to the ray.
-
-                float aSquared = dot(a, a);
-
-                if (aSquared > rSquared) // If our closest approach is outside the sphere:
-                    continue;            // No collision.
-
-                if(EditorMode == MOVEMENT && length(objects[i].position - camera.Position) < 10.0f)
+                int xInd = 0;
+                int yInd = 0;
+                for(int i = 0; i < notes.size(); ++i)
                 {
-                    interactingObject = i;
-                }
-		/*
-                else
-                {
-                    selectedObject = i;
-                }
-		*/
-            }
-            if(objects[interactingObject].interactible)
-            {
-                drawNote = true;
-                selectedNote = objects[interactingObject].noteNum;
-                discoveredNotes[selectedNote] = true;
-                if(objects[interactingObject].disappearing)
-                {
-                    objects.erase(objects.begin() + interactingObject);
-                    sounds[2]->startSound();
-                }
-                else
-                {
-                    fspline.init(camera.Zoom, 20.0f, 0.5f);
-                    fspline.active = true;
-                    sounds[objects[interactingObject].sound]->startSound();
+                    xInd = i / 4;
+                    yInd = i % 4;
+                    if(discoveredNotes[i]) // Draw only discovered notes.
+                    {
+                        notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
+                    }
                 }
             }
-            checkInteraction = false;
+
+            bound.DrawWall(m.shaders.boundaryShader, &m.models.cylinder);
         }
 
-        if(drawNote)
-        {
-            notes[selectedNote].Update(&fspline);
-            notes[selectedNote].Draw(m.shaders.noteShader);
-        }
-
-        if(drawCollection)
-        {
-            int xInd = 0;
-            int yInd = 0;
-            for(int i = 0; i < notes.size(); ++i)
-            {
-                xInd = i / 4;
-                yInd = i % 4;
-                if(discoveredNotes[i]) // Draw only discovered notes.
-                {
-                    notes[i].DrawSmall(m.shaders.noteShader, xInd, yInd);
-                }
-            }
-        }
-
-        if (EditorMode == GUI)
+        if(EditorMode == GUI)
         {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -613,27 +1495,30 @@ int main(void)
                     ImGui::SameLine();
                 }
                 ImGui::NewLine();
-                ImGui::Text("Particle = %d. Position = (%.02f %.02f %.02f)", selectedParticle, emitters[selectedParticle].startPosition.x, emitters[selectedParticle].startPosition.y, emitters[selectedParticle].startPosition.z);
+                ImGui::Text("Particle = %d. Position = (%.02f %.02f %.02f)", 
+                selectedParticle, 
+                emitters[selectedParticle].startPosition.x, 
+                emitters[selectedParticle].startPosition.y, 
+                emitters[selectedParticle].startPosition.z);
 
-                ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&emitters[selectedParticle].startPosition, -512.0f, 512.0f);
                 ImGui::SliderFloat3("Velocity", (float *)&emitters[selectedParticle].startVelocity, -50.0f, 50.0f);
                 ImGui::SliderFloat("Gravity", (float *)&emitters[selectedParticle].gravity, -100.0f, 100.0f);
                 ImGui::SliderFloat("Bottom Radius", (float *)&emitters[selectedParticle].radius, 0.0f, 10.0f);
                 ImGui::SliderFloat("Top Radius", (float *)&emitters[selectedParticle].radiusTop, 0.0f, 10.0f);
+                ImGui::SliderFloat("Height Between Rads", (float *)&emitters[selectedParticle].height, -10.0f, 10.0f);
+                ImGui::SliderFloat("Life Span", (float *)&emitters[selectedParticle].lifeSpan, 0.0f, 10.0f);
                 ImGui::ColorEdit4("Start Color", (float *)&emitters[selectedParticle].startColor);
                 ImGui::ColorEdit4("End Color", (float *)&emitters[selectedParticle].endColor);
                 ImGui::SliderFloat("Start Scale", (float *)&emitters[selectedParticle].startScale, 0.0f, 20.0f);
                 ImGui::SliderFloat("End Scale", (float *)&emitters[selectedParticle].endScale, 0.0f, 20.0f);
-                // NOTE(Alex): Broken, for some reason.
-                // ImGui::SliderInt("Amount", (int *)&emitters[selectedParticle].particleAmount, 0, 9999);
                 ImGui::SliderInt("Bug Mode", (int *)&emitters[selectedParticle].bugMode, 0, 1);
                 ImGui::SliderInt("Fog Mode", (int *)&emitters[selectedParticle].fogMode, 0, 1);
-
-
+                
                 if (ImGui::Button("Create Emitter"))
                 {
                     emitters.push_back(
-                        Emitter("../resources/models/particle/part.png", 20000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
+                        Emitter("../resources/models/particle/part.png", 10000, vec3(0, 10, 0), 0.2, 3, 7.0f, vec3(3, 10, 3), 2.0f, -9.81f, vec4(1.0f, 0.0f, 0, 1), vec4(0.0f, 0.0f, 1.0f, 1.0f), 1, 0));
                     selectedParticle = emitters.size() - 1;
                 }
                 ImGui::SameLine();
@@ -690,11 +1575,13 @@ int main(void)
                 ImGui::NewLine();
                 ImGui::Text("Light = %d. Position = (%.02f %.02f %.02f)", selectedLight, lights[selectedLight].position.x, lights[selectedLight].position.y, lights[selectedLight].position.z);
 
-                ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&lights[selectedLight].position, -512.0f, 512.0f);
 
                 ImGui::ColorEdit3("Ambient", (float *)&lights[selectedLight].ambient);
                 ImGui::ColorEdit3("Diffuse", (float *)&lights[selectedLight].diffuse);
                 ImGui::ColorEdit3("Specular", (float *)&lights[selectedLight].specular);
+
+                ImGui::SliderFloat3("Color", (float *)&lights[selectedLight].color, 0.0f, 20.0f);
 
                 ImGui::SliderFloat("Constant", (float *)&lights[selectedLight].constant, 0.0f, 1.0f);
                 ImGui::SliderFloat("Linear", (float *)&lights[selectedLight].linear, 0.0f, 1.0f);
@@ -725,24 +1612,24 @@ int main(void)
                 ImGui::End();
             }
 
-            if (showDirLightEditor)
-            {
-                ImGui::Begin("DirLight Editor");
-                ImGui::SliderFloat3("Direction", (float *)&dirLight.direction, -1.0f, 1.0f);
-
-                ImGui::ColorEdit3("Ambient", (float *)&dirLight.ambient);
-                ImGui::ColorEdit3("Diffuse", (float *)&dirLight.diffuse);
-                ImGui::ColorEdit3("Specular", (float *)&dirLight.specular);
-                ImGui::End();
-            }
-
             if (showFogEditor)
             {
                 ImGui::Begin("Fog Editor");
 
-                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 1.0f, 1000.0f);
                 ImGui::SliderFloat("Min", (float *)&fog.minDistance, 0.0f, 1000.0f);
+                ImGui::SliderFloat("Max", (float *)&fog.maxDistance, 0.0f, 1000.0f);
                 ImGui::ColorEdit3("Color", (float *)&fog.color);
+                ImGui::End();
+            }
+
+            if (showShadowEditor)
+            {
+                ImGui::Begin("Shadow Editor");
+
+                ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
+                ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
+                ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
+
                 ImGui::End();
             }
 
@@ -783,9 +1670,9 @@ int main(void)
             {
                 ImGui::Begin("Boundary Editor");
                 ImGui::ColorEdit3("Color", (float *)&bound.color);
-		ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
-		ImGui::SliderFloat("Width", (float *)&bound.width, 0.0f, 500.0f);
-		ImGui::SliderFloat("Height", (float *)&bound.height, 0.0f, 50.0f);
+                ImGui::SliderFloat("Y", (float *)&bound.boundY, -50.0f, 50.0f);
+                ImGui::SliderFloat("Width", (float *)&bound.width, 0.0f, 500.0f);
+                ImGui::SliderFloat("Height", (float *)&bound.height, 0.0f, 50.0f);
                 ImGui::End();
             }
 
@@ -837,7 +1724,7 @@ int main(void)
                     sounds[selectedSound]->reset();
                 }
 
-                ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -128.0f, 128.0f);
+                ImGui::SliderFloat3("Position", (float *)&sounds[selectedSound]->pos, -512.0f, 512.0f);
                 ImGui::SliderFloat("Volume", (float *)&sounds[selectedSound]->volume, 0.0f, 1.0f);
                 ImGui::SliderFloat("Rolloff", (float *)&sounds[selectedSound]->rolloff, 0.0f, 100.0f);
                 ImGui::SliderFloat("Min", (float *)&sounds[selectedSound]->minDistance, 0.0f, 100.0f);
@@ -845,6 +1732,23 @@ int main(void)
                 ImGui::Checkbox("Looping?", &sounds[selectedSound]->isLooping);
                 ImGui::Checkbox("Music?", &sounds[selectedSound]->isMusic);
                 ImGui::Checkbox("Has Played?", &sounds[selectedSound]->hasPlayed);
+
+                ImGui::End();
+            }
+
+            if (showSunEditor)
+            {
+                ImGui::Begin("Sun Editor");
+
+                ImGui::SliderFloat("Scale", (float *)&sun.scale_factor, 0.0f, 100.0f);
+                ImGui::SliderFloat3("Position", (float *)&sun.position, -512.0f, 512.0f);
+                ImGui::SliderFloat3("Color", (float *)&sun.color, 0.0f, 20.0f);
+
+                ImGui::SliderFloat3("Direction", (float *)&sun.dirLight.direction, -1.0f, 1.0f);
+
+                ImGui::ColorEdit3("Ambient", (float *)&sun.dirLight.ambient);
+                ImGui::ColorEdit3("Diffuse", (float *)&sun.dirLight.diffuse);
+                ImGui::ColorEdit3("Specular", (float *)&sun.dirLight.specular);
 
                 ImGui::End();
             }
@@ -858,7 +1762,7 @@ int main(void)
 
                 ImGui::Checkbox("Terrain Snap", &snapToTerrain);
 
-                if (ImGui::SliderFloat("Pos.x", (float *)&objects[selectedObject].position.x, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.x", (float *)&objects[selectedObject].position.x, -512.0f, 512.0f))
                 {
                     if (snapToTerrain)
                     {
@@ -867,11 +1771,11 @@ int main(void)
                     }
                     objects[selectedObject].UpdateModel();
                 }
-                if (ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.y", (float *)&objects[selectedObject].position.y, -512.0f, 512.0f))
                 {
                     objects[selectedObject].UpdateModel();
                 }
-                if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -128.0f, 128.0f))
+                if (ImGui::SliderFloat("Pos.z", (float *)&objects[selectedObject].position.z, -512.0f, 512.0f))
                 {
                     if (snapToTerrain)
                     {
@@ -888,7 +1792,7 @@ int main(void)
                 if (ImGui::SliderFloat("AngleZ", (float *)&objects[selectedObject].angleZ, -PI, PI))
                     objects[selectedObject].UpdateModel();
 
-                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 5.0f))
+                if (ImGui::SliderFloat("Scale", (float *)&objects[selectedObject].scaleFactor, 0.0f, 10.0f))
                 {
                     objects[selectedObject].UpdateModel();
                     objects[selectedObject].collision_radius = m.findbyId(objects[selectedObject].id).collision_radius * objects[selectedObject].scaleFactor;
@@ -899,11 +1803,15 @@ int main(void)
                 ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
                 ImGui::SameLine();
                 ImGui::Checkbox("Disappearing?", &objects[selectedObject].disappearing);
-                ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 20);
+                ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 25);
 
                 ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
 
+                if (ImGui::SliderFloat("View Radius", (float *)&objects[selectedObject].view_radius, 0.0f, 50.0f))
+                    objects[selectedObject].UpdateModel();
                 if (ImGui::SliderFloat("Collison Radius", (float *)&objects[selectedObject].collision_radius, 0.0f, 50.0f))
+                    objects[selectedObject].UpdateModel();
+                if (ImGui::SliderFloat("Selection Radius", (float *)&objects[selectedObject].selection_radius, 0.0f, 50.0f))
                     objects[selectedObject].UpdateModel();
 
                 if (ImGui::Button("Delete Object"))
@@ -930,7 +1838,7 @@ int main(void)
                                                   terrain.heightAt(camera.Position.x, camera.Position.z) + default_scale * m.findbyId(id).y_offset,
                                                   camera.Position.z),
                                              -1.6f, 0.0f, 0.0f,
-                                             vec3(1), default_view * default_scale, cr * default_scale, 
+                                             vec3(1), default_view * default_scale, cr * default_scale, default_selection,
                                              default_scale, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
@@ -941,15 +1849,76 @@ int main(void)
                     float cr = m.findbyId(id).collision_radius;
                     objects.push_back(Object(id,
                                              vec3(camera.Position.x,
-                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset + terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
                                              objects[selectedObject].angleX,
                                              objects[selectedObject].angleY,
                                              objects[selectedObject].angleZ,
-                                             vec3(1), objects[selectedObject].view_radius, objects[selectedObject].collision_radius, 
+                                             vec3(1), objects[selectedObject].view_radius, 
+                                             objects[selectedObject].collision_radius, 
+                                             objects[selectedObject].selection_radius,
                                              objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
+
+                if(ImGui::Button("Destroy all Grass"))
+                {
+                    int i = 0;
+                    while(i < objects.size())
+                    {
+                        if(objects[i].id >= 23 && objects[i].id <= 31)
+                        {
+                            objects.erase(objects.begin() + i);
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Grass Creation"))
+                {
+                    for (int i = 0; i < 4000; i++) // Grass
+                    {
+                        float grass_scale = (randFloat() * 0.2) + 0.3;
+                        for (int j = 23; j < 32; j++) // Types
+                        {
+                            int goodVal = 0;
+                            float pos_x;
+                            float pos_z;
+                            float pos_y = 0.0f;
+                            while(!goodVal)
+                            {
+                                pos_x = randCoord();
+                                pos_z = randCoord();
+                                if (snapToTerrain)
+                                {
+                                    pos_y = terrain.heightAt(pos_x, pos_z) + grass_scale * m.findbyId(j).y_offset;
+                                    if(pos_y > (water.height + 0.6))
+                                    {
+                                        goodVal = 1;
+                                    }
+                                }
+                                else
+                                {
+                                    goodVal = 1;
+                                }
+                            }
+
+                            vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                            objects.push_back(Object(j,
+                                                     pos,
+                                                     -1.6f, 0.0f, randFloat() * PI,
+                                                     vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
+                                                     0.5,
+                                                     grass_scale, false, false, 0, 1));
+                            selectedObject = objects.size() - 1;
+                        }
+                    }
+                }
+
                 if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
@@ -970,6 +1939,7 @@ int main(void)
                                                  -1.6f, 0.0f, rotY,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(0).collision_radius * scale,
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -986,6 +1956,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(1).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1002,10 +1973,11 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(2).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
-                    /* for (int i = 0; i < 30; i++) // Dead Tree
+                    for (int i = 0; i < 30; i++) // Dead Tree
                     {
                         float pos_x = randCoord();
                         float pos_z = randCoord();
@@ -1018,9 +1990,10 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(3).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
-                    }*/
+                    }
                     for (int i = 0; i < 20; i++) // Stump
                     {
                         float pos_x = randCoord();
@@ -1034,6 +2007,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(4).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1050,6 +2024,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(5).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1066,6 +2041,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(6).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1082,6 +2058,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(7).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1098,6 +2075,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(8).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1115,6 +2093,7 @@ int main(void)
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, 
                                                  m.findbyId(16).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1131,6 +2110,7 @@ int main(void)
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(17).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1147,9 +2127,68 @@ int main(void)
                                                  pos,
                                                  0.0f, 0.0f, 0.0f,
                                                  vec3(1), scale * default_view, m.findbyId(18).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
+
+                    for (int i = 0; i < 10; i++) // deer_1
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(37).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(37,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(37).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                    for (int i = 0; i < 10; i++) // deer_2
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(38).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(38,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(38).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                    for (int i = 0; i < 10; i++) // deer_1
+                    {
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float scale = randRange(0.3f, 0.7f);
+                        float rot = randRange(0.0f, 3.2f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(39).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
                     for (int i = 0; i < 4000; i++) // Grass
                     {
                         for (int j = 23; j < 32; j++) // Types
@@ -1181,15 +2220,37 @@ int main(void)
                                                      pos,
                                                      -1.6f, 0.0f, 0.0f,
                                                      vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
+                                                    default_selection,
                                                      grass_scale, false, false, 0, 1));
                             selectedObject = objects.size() - 1;
                         }
                     }
                 }
+                ImGui::SameLine();
+                if (ImGui::Button("tree3"))
+                {
+                    float pos_y = 0.0f;
+                    float pos_x = randCoordDes();
+                    float pos_z = randCoordDes();
+                    float scale = 1.0f;
+                    if (snapToTerrain)
+                        pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(2).y_offset;
+                    vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                    objects.push_back(Object(2,
+                                             pos,
+                                             -1.6f, 0.0f, 0.0f,
+                                             vec3(1), scale * default_view,
+                                             m.findbyId(2).collision_radius * scale, 
+                                             default_selection,
+                                             scale, false, false, 0, 1));
+                    selectedObject = objects.size() - 1;
+                }
 
                 ImGui::SameLine();
                 if (ImGui::Button("Desert"))
                 {
+                    float default_desert_view = 16.0f;
                     float pos_y = 0.0f;
 
                     for (int i = 0; i < 20; i++) // Formation 1
@@ -1204,8 +2265,9 @@ int main(void)
                         objects.push_back(Object(9,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view,
                                                  m.findbyId(9).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1221,8 +2283,9 @@ int main(void)
                         objects.push_back(Object(10,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(10).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1239,8 +2302,9 @@ int main(void)
                         objects.push_back(Object(11,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(11).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1256,8 +2320,9 @@ int main(void)
                         objects.push_back(Object(12,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(12).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1273,8 +2338,9 @@ int main(void)
                         objects.push_back(Object(13,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(13).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1290,8 +2356,9 @@ int main(void)
                         objects.push_back(Object(14,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(14).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1307,8 +2374,9 @@ int main(void)
                         objects.push_back(Object(15,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(15).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1325,8 +2393,9 @@ int main(void)
                         objects.push_back(Object(19,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(19).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1342,8 +2411,9 @@ int main(void)
                         objects.push_back(Object(20,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(20).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1360,8 +2430,9 @@ int main(void)
                         objects.push_back(Object(21,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(21).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
@@ -1378,97 +2449,69 @@ int main(void)
                         objects.push_back(Object(22,
                                                  pos,
                                                  -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, 
+                                                 vec3(1), scale * default_desert_view, 
                                                  m.findbyId(22).collision_radius * scale, 
+                                                 default_selection,
                                                  scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
+                    for (int i = 0; i < 30; i++) // Formation 1
+                    {
+                        float pos_x = randCoordDes();
+                        float pos_z = randCoordDes();
+                        float scale = randRange(0.3f, 0.5f);
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(40).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
 
-
-
-                    /*
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(3,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 1, 
-                                                 randFloat() * 1.5f, false, false, 0));
+                        objects.push_back(Object(40,
+                                                 pos,
+                                                 0.0f, 0.0f, 0.0f,
+                                                 vec3(1), scale * default_desert_view, 
+                                                 m.findbyId(40).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(4,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 1, 
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(19,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20, 
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(20,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20,
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    for (int i = 0; i < 10; i++)
-                    {
-                        objects.push_back(Object(21,
-                                                 vec3(randCoord(), 0.0f, randCoord()),
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), default_view, 20,
-                                                 randFloat() * 1.5f, false, false, 0));
-                        selectedObject = objects.size() - 1;
-                    }
-                    */
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Street"))
                 {
                     float powerline_view = 4.0f;
-                    float road_scale = 3.0f;
-                    float lamp_scale = 0.5f;
+                    float road_scale = 3.5f;
+                    float lamp_scale = 0.75f;
                     for (int i = 0; i < 18; i++){
                         objects.push_back(Object(32,
-                                                vec3(0,-10.9f,-128 + 15.8f * i),
+                                                vec3(-0.5f,-7.5f,-128 + 15.8f * i),
                                                 -1.5708f, 0.0f, 0.0f,
                                                 vec3(1), road_scale * default_view * 1.5f, m.findbyId(32).collision_radius * road_scale, 
+                                                 default_selection,
                                                 road_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 
                     for (int i = 0; i < 15; i++){
                         objects.push_back(Object(34,
-                                                vec3(3.5f,-7.4f,-128 + 31.6f * i),
+                                                vec3(3.2f,-3.4f,-128 + 31.6f * i),
                                                 0.0f, 3.2f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
+                                                 default_selection,
                                                 lamp_scale, false, false, 0, 1));
                         objects.push_back(Object(34,
-                                                vec3(-3.5f,-7.4f,-128 + 31.6f * i),
+                                                vec3(-4.2f,-3.4f,-128 + 31.6f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(34).collision_radius * lamp_scale, 
+                                                 default_selection,
                                                 lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
 
-                        lights.push_back(Light(vec3(2.5f,-5.4f,-128 + 31.6f * i),
-                                                vec3(0.49f,0.46f,0.38f),
+                        lights.push_back(Light(vec3(2.1f, -0.9f, -128 + 31.6f * i),
+                                                vec3(0.0f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
                                                 0.4f, 1.0f,0.09f));
-                        lights.push_back(Light(vec3(-2.5f,-5.4f,-128 + 31.6f * i),
-                                                vec3(0.49f,0.46f,0.38f),
+                        lights.push_back(Light(vec3(-3.1f, -0.9f, -128 + 31.6f * i),
+                                                vec3(0.0f),
                                                 vec3(0.45f,0.31f,0.2f),
                                                 vec3(0.35f,0.20f,0.13f),
                                                 0.4f, 1.0f,0.09f));
@@ -1476,27 +2519,116 @@ int main(void)
 
                     for (int i = 0; i < 28; i++){
                         objects.push_back(Object(35,
-                                                vec3(5.5f,-8.0f,-128 + 10.0f * i),
+                                                vec3(6.0f,-8.5f,-128 + 17.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view * 1.5, m.findbyId(35).collision_radius, 
+                                                 default_selection,
                                                 1.0f, false, false, 0, 1));
                         objects.push_back(Object(35,
-                                                vec3(-5.5f,-8.0f,-128 + 10.0f * i),
+                                                vec3(-7.0f,-8.5f,-128 + 16.0f * i),
                                                 0.0f, 0.0f, 0.0f,
-                                                vec3(1), lamp_scale * powerline_view, m.findbyId(35).collision_radius, 
+                                                vec3(1), lamp_scale * powerline_view * 1.5, m.findbyId(35).collision_radius, 
+                                                 default_selection,
                                                 1.0f, false, false, 0, 1));
                         selectedObject = objects.size() - 2;
                     }
 
                     for (int i = 0; i < 5; i++){
                         objects.push_back(Object(36,
-                                                vec3(3.5f,-8.0f,-124 + 63.2f * i),
+                                                vec3(3.2f,-4.1f,-124 + 63.2f * i),
                                                 0.0f, 0.0f, 0.0f,
                                                 vec3(1), lamp_scale * default_view, m.findbyId(36).collision_radius * lamp_scale, 
+                                                 default_selection,
                                                 lamp_scale, false, false, 0, 1));
                         selectedObject = objects.size() - 1;
                     }
 
+                    for (int i = 0; i < 15; i++){
+
+                        float pos_x = randCoord();
+                        float pos_z = randCoord();
+                        float pos_y = 0.0f;
+                        float scale = 10.0f;
+                        if (snapToTerrain)
+                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(41).y_offset;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(41,
+                                                pos,
+                                                -1.57f, 0.0f, 0.0f,
+                                                vec3(1), scale * default_view, m.findbyId(41).collision_radius * scale, 
+                                                 default_selection,
+                                                scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                    }
+
+                }
+                                if (ImGui::Button("Credit")){
+                    float pos_y = -5.0f;
+                    float pos_x, pos_z, theta = 0.0;
+                    for (int i = 0; i < 5; i++) // deer_1
+                    {
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        float scale = randRange(1.0f, 1.5f);
+                        float rot = 3.14f + theta;
+                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(37,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(37).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(0.8f, 1.0f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y-1.5, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(1.0f, 1.5f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y, pos_z);
+
+                        objects.push_back(Object(38,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(38).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                        pos_x = (10.0f) * sin(theta);
+                        pos_z = (10.0f) * cos(theta);
+                        scale = randRange(0.8f, 1.0f);
+                        rot = 3.14f + theta;
+                        pos = vec3(pos_x, pos_y-1.5, pos_z);
+
+                        objects.push_back(Object(39,
+                                                 pos,
+                                                 0.0f, rot, 0.0f,
+                                                 vec3(1), scale * default_view, m.findbyId(39).collision_radius * scale, 
+                                                 default_selection,
+                                                 scale, false, false, 0, 1));
+                        selectedObject = objects.size() - 1;
+                        theta += 6.28f / 20.f;
+
+                    }
                 }
                 ImGui::End();
             }
@@ -1511,7 +2643,7 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.SaveLevel(str, &objects, &lights, &dirLight,
+                lvl.SaveLevel(str, &objects, &lights, &sun,
                     &emitters, &fog, &skybox, &terrain, &bound);
                 cout << "Level saved: " << str << "\n";
             }
@@ -1520,7 +2652,7 @@ int main(void)
             {
                 string str = "../levels/";
                 str.append(levelName);
-                lvl.LoadLevel(str, &objects, &lights, &dirLight,
+                lvl.LoadLevel(str, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
                 cout << "Level loaded: " << str << "\n";
@@ -1535,7 +2667,7 @@ int main(void)
             ImGui::SameLine();
             if (ImGui::Button("Next"))
             {
-                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &dirLight,
+                lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
             }
@@ -1548,7 +2680,7 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Light", &showLightEditor);
             ImGui::SameLine();
-            ImGui::Checkbox("DirLight", &showDirLightEditor);
+            ImGui::Checkbox("Sun", &showSunEditor);
 
             ImGui::Checkbox("Skybox", &showSkyboxEditor);
             ImGui::SameLine();
@@ -1556,9 +2688,14 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Boundary", &showBoundaryEditor);
             ImGui::SameLine();
+
             ImGui::Checkbox("Fog", &showFogEditor);
             ImGui::SameLine();
             ImGui::Checkbox("Sound", &showSoundEditor);
+
+            ImGui::Checkbox("Shadow", &showShadowEditor);
+            ImGui::SameLine();
+
 
             ImGui::NewLine();
 
@@ -1570,9 +2707,11 @@ int main(void)
             ImGui::SameLine();
             ImGui::Checkbox("Draw Point Lights", &drawPointLights);
 
-            ImGui::Checkbox("Draw Bounding Spheres", &drawBoundingSpheres);
+            ImGui::Checkbox("View", &drawBoundingSpheres);
             ImGui::SameLine();
-            ImGui::Checkbox("Draw Collision Spheres", &drawCollisionSpheres);
+            ImGui::Checkbox("Collision", &drawCollisionSpheres);
+            ImGui::SameLine();
+            ImGui::Checkbox("Selection", &drawSelectionSpheres);
 
             ImGui::Checkbox("Draw Particles", &drawParticles);
 
@@ -1587,25 +2726,18 @@ int main(void)
             ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);
             ImGui::SliderFloat("Amount", &bobbingAmount, 0.0f, 0.2f);
 
-            if(ImGui::Button("Sunset!"))
-            {
-                sunspline.init(dirLight.direction, vec3(0.0f, 0.0f, -1.0f), 10.0f);
-                sunspline.active = true;
-                ambspline.init(dirLight.ambient, vec3(0.01f, 0.0f, 0.0f), 10.0f);
-                ambspline.active = true;
-            }
-            if(ImGui::Button("Sunrise!"))
-            {
-                sunspline.init(dirLight.direction, vec3(-0.5f, -0.2f, -0.7f), 10.0f);
-                sunspline.active = true;
-                ambspline.init(dirLight.ambient, vec3(0.4f, 0.2f, 0.2f), 10.0f);
-                ambspline.active = true;
-            }
+            ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
+            ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
+            ImGui::Checkbox("Don't Cull?", &gDONTCULL);
+            ImGui::SameLine();
+            ImGui::Checkbox("Effects", &toggleRenderEffects);
+            ImGui::SameLine();
+            ImGui::Checkbox("Bloom", &bloom);
 
             ImGui::End();
 
             ImGui::Render();
-            glViewport(0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2);
+            glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
@@ -1623,6 +2755,19 @@ int main(void)
     glfwTerminate();
 
     return 0;
+}
+
+bool completedGame(vector<bool> *checks)
+{
+    bool check = true;
+    for(int i = 0; i < checks->size(); ++i)
+    {
+        if(!checks->at(i))
+        {
+            check = false;
+        }
+    }
+    return check;
 }
 
 float objectDis(vec3 curPos, vec3 objectPos)
@@ -1647,48 +2792,54 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-
-    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
-        drawCollection = true;
-
     if(!drawNote)
     {
-        if(strcmp(levelName, "street.txt") == 0) {
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+        {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(FORWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
-            {
-                camera.ProcessKeyboard(BACKWARD, deltaTime);
-            }
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(BACKWARD, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
             {
                 camera.ProcessKeyboard(FORWARD, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(BACKWARD, deltaTime);
+                }
             }
-        }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(LEFT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
             {
-                camera.ProcessKeyboard(RIGHT, deltaTime);
+                camera.ProcessKeyboard(BACKWARD, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(FORWARD, deltaTime);
+                }
             }
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        {
-            camera.ProcessKeyboard(RIGHT, deltaTime);
-            if (camera.Mode == WALK && (camera.Position.x < -road_width || camera.Position.x > road_width))
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
             {
                 camera.ProcessKeyboard(LEFT, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(RIGHT, deltaTime);
+                }
             }
-        }
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            {
+                camera.ProcessKeyboard(RIGHT, deltaTime);
+                if (camera.Mode == WALK
+                     && ((camera.Position.x < -road_width-0.5f || camera.Position.x > road_width-0.5f)
+                     || (camera.Position.z > 110.0f)))
+                {
+                    camera.ProcessKeyboard(LEFT, deltaTime);
+                }
+            }
 
         }
-        else{
+        else
+        {
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camera.ProcessKeyboard(FORWARD, deltaTime);
@@ -1724,7 +2875,8 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
         }
         
-        if (camera.Mode == WALK && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
+        if (camera.Mode == WALK && strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") != 0 
+                                && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
@@ -1765,14 +2917,41 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         firstMouse = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
         drawCollection = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
     {
         drawCollection = false;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        gSelecting = true;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE)
+    {
+        gSelecting = false;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && deleteCheck == false)
+    {
+        deleteObject = true;
+        deleteCheck = true;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && deleteCheck == true)
+    {
+        deleteCheck = false;
+    }
+
+    if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && intro)
+    {
+        intro = false;
+        loadForest = true;
     }
 
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
@@ -1809,27 +2988,27 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
-    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (gSelecting || EditorMode == MOVEMENT))
     {
         double xpos;
         double ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
         if(EditorMode == MOVEMENT)
         {
-            xpos = SCREEN_WIDTH / 2.0f;
-            ypos = SCREEN_HEIGHT / 2.0f;
+            xpos = RETINA_SCREEN_WIDTH / 2.0f;
+            ypos = RETINA_SCREEN_HEIGHT / 2.0f;
         }
 
         GLbyte color[4];
         GLfloat depth;
         GLuint index;
 
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-        glReadPixels(xpos, SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
 
-        vec4 viewport = vec4(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        vec3 wincoord = vec3(xpos, SCREEN_HEIGHT - ypos - 1, depth);
+        vec4 viewport = vec4(0, 0, RETINA_SCREEN_WIDTH, RETINA_SCREEN_HEIGHT);
+        vec3 wincoord = vec3(xpos, RETINA_SCREEN_HEIGHT - ypos - 1, depth);
         vec3 objcoord = unProject(wincoord, camera.GetViewMatrix(), camera.GetProjectionMatrix(), viewport);
 
         selectorRay = normalize(objcoord - camera.Position);    
@@ -1842,6 +3021,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             pauseNote = false;
             fspline.init(camera.Zoom, 45.0f, 0.5f);
             fspline.active = true;
+
         }
     }
 }

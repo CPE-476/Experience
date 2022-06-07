@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="index.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Experience</title>
+</head>
+
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
+    <section id="intro" class="intro-section">
+        <div class="intro">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Experience</h1>
+                    <h4>Lucas Li | Alex Hartford | Brett Hickman</h4>
+		    <p>E-mail: <a href="mailto: yli76@calpoly.edu">yli76@calpoly.edu</a> | 
+			<a href="mailto: ahartfor@calpoly.edu">alexanderhartford@gmail.com</a> | 
+			<a href="mailto: bahickma@calpoly.edu">bahickma@calpoly.edu</a> </p>
+                    <p>CPE 476 Quarter Project - Spring 2022</p>
+                    <img class="title_image" src="src/Spectrum.png" width="696" height="547"></img>
+                    <br/><br/>
+                    <a href="">Demo Video</a><br/>
+                    <a href="">Download ZIP</a>
+                    <br/>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="desc" class="desc-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="Topic">Introduction</h1>
+                    <p>
+                        Experience is a small expressive game about the process of trying to improve at something.
+                        The game involves walking through various environments which evoke feelings like those 
+                        experienced when learning something new.
+                    </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="overview" class="overview-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h1 class="Topic">Gameplay</h1>
+                    <p>
+                        The game takes place from a first-person perspective.
+                        The gameplay is as simple as walking and observing. The player can interact with their environment,
+			reading notes strewn about the environment and talking with animals.
+                    </p>
+                        
+                    <h1 class="Topic">Environment</h1>
+                    <p>
+                        The environments of the game are threefold. To travel between the environments, the player can simply
+			walk into the fog at the edge of each environment whenever they choose.
+                    </p>
+                    <h3>Forest - A new beginning!</h3>
+                    <p>
+                        At first, the player will find themselves in a quiet wood.
+			This area is intended to evoke feelings of a fresh start. Secrets are found around every corner,
+			and the world is new and interesting.
+                    </p>
+
+                    <div class="images">
+                        <img class="image" src="src/f1.png" style="width:80%"></img>
+                    </div>
+                    <div class="images">
+                        <img class="image" src="src/f2.png" style="width:80%"></img>
+                    </div>
+
+                    <h3>Desert - Arduous Journey</h3>
+                    <p>
+                        Next, the player will find themselves in a desert wasteland, with long 
+                        stretches of empty land and steep sand dunes. Bloom and Blur effects make the journey feel arduous. 
+			Deep in the desert you may find secrets, but they are few and far between, and this area evokes the
+			feeling of being overwhelmed by your task.
+                    </p>
+                    <div class="images">
+                        <img class="image" src="src/d1.png" style="width:80%"></img>
+                    </div>
+                    <div class="images">
+                        <img class="image" src="src/d2.png" style="width:80%"></img>
+                    </div>
+
+                    <h3>Street - Completion and Loneliness</h3>
+                    <p>
+                        Finally, the player will find themselves on a dark street in the middle 
+                        of the night. No stars in the sky, just loneliness. streetlamps light the path.
+			You have completed your journey, and overcome much, and have seen the fleeting beauty of the
+			journey you've traveled, but now you find yourself alone. Only you know what you have learned.
+
+                    </p>
+		    <p>
+			Nothing else to do, then, than to start a new journey!
+		    </p>
+                    <div class="images">
+                        <img class="image" src="src/s1.png" style="width:80%"></img>
+                    </div>
+                    <div class="images">
+                        <img class="image" src="src/s2.png" style="width:80%"></img>
+                    </div>
+
+                    <h1>Technical Details</h1>
+
+		    <h3>Instanced Rendering</h3>
+		    <p>
+			Models and particles are rendered using Instancing, increasing the maximum
+			render cap by a sizable margin.
+		    </p>
+
+		    <h3>Shadow Mapping</h3>
+		    <p>
+			Our game makes a first render pass to a depth buffer, which is then used later
+			in the pipeline to calculate dynamic shadows.
+		    </p>
+		    <div class="images">
+			<img class="image" src="src/shadow.png" style="width:80%"></img>
+		    </div>
+
+		    <h3>High Dynamic Range</h3>
+		    <p>
+			High Dynamic Range, in conjunction with Bloom/Blur, creates a very vibrant and lively scene.
+			We calculate excess color above the standard white maximum, and we perform gamma correction
+			to ensure that the scene fits within a certain exposure.
+		    </p>
+
+		    <h3>Bloom/Blur</h3>
+		    <p>
+			The game also uses a Bloom effect to simulate bright lights. We find bright segments (above a certain threshold),
+			and we render these to their own Framebuffer. We then perform a Gaussian Blur on that framebuffer, which we
+			merge with the original image to get our bloomed result.
+		    </p>
+		    <p> BEFORE </p>
+		    <div class="images">
+			<img class="image" src="src/before_bloomblur.png" style="width:80%"></img>
+		    </div>
+		    <p> AFTER </p>
+		    <div class="images">
+			<img class="image" src="src/after_bloomblur.png" style="width:80%"></img>
+		    </div>
+
+		    <h3>View Frustum Culling</h3>
+		    <p>
+			The game needs to be as performant as possible, especially considering the amount of models that we render.
+			For this to be feasible, we implemented View Frustum Culling. It calculates the area that can be viewed,
+			and performs spatial queries to determine if a given object should be drawn.
+		    </p>
+
+		    <h3>Distance Fog</h3>
+		    <p>
+			Our game includes distance fog to simulate depth more accurately. It can be tweaked in the editor.
+		    </p>
+
+                    <bar />
+                    <blockquote class="code">
+                        <code>
+			    <bl>
+			    // Get the data from the ring buffer<br>
+			    FloatVectorOperations::add (fftData, readBuffer.getReadPointer(0, 0), RING_BUFFER_READ_SIZE);<br>
+			    FloatVectorOperations::add (fftData2, readBuffer.getReadPointer(1, 0), RING_BUFFER_READ_SIZE);<br>
+			    <br>
+			    // Calculate FFTs<br>
+			    forwardFFT.performFrequencyOnlyForwardTransform (fftData);<br>
+			    forwardFFT.performFrequencyOnlyForwardTransform (fftData2);<br>
+			    <br>
+			    // Find the range of values produced for excluding samples<br>
+			    Range maxFFTLevel = FloatVectorOperations::findMinAndMax (fftData, fftSize / 2);<br>
+			    Range maxFFTLevel2 = FloatVectorOperations::findMinAndMax (fftData2, fftSize / 2);<br>
+			</code>
+                    </blockquote>
+
+		    <h3>Level Editor</h3>
+		    <p>
+			We achieved a rich, detailed set of environments by constructing a level editor.
+			We save files to an ASCII format and load them into our game.
+			It allows you to tweak every aspect of the levels, from particles to distance fog.
+		    </p>
+		    <div class="images">
+			<img class="image" src="src/after_cull.png" style="width:80%"></img>
+		    </div>
+		    <div class="images">
+			<img class="image" src="src/collision.png" style="width:80%"></img>
+		    </div>
+		    <div class="images">
+			<img class="image" src="src/light_editor.png" style="width:80%"></img>
+		    </div>
+ 
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="reference" class="reference-section">
+        <div class="container">
+            <div class="row">
+                <div class="Topic">
+                    <h1>References</h1>
+                    <a href="https://learnopengl.com/">LearnOpenGL: The best resource</a><br/>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

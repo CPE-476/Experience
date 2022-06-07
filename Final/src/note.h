@@ -18,7 +18,7 @@ struct Note
     unsigned int VBO, VAO, EBO;
     unsigned int noteTexture;
 
-    float vertices[32] = {
+    float vertices[20] = {
          // positions        // texture coords
          0.9f,  0.225f, 0.0f,  1.0f, 1.0f, // top right
          0.9f, -0.45f, 0.0f,   1.0f, 0.0f, // bottom right
@@ -106,6 +106,24 @@ struct Note
             mat4 transform = mat4(1.0f);
             transform = scale(transform, vec3(0.5));
             transform = translate(transform, vec3(collectionScroll + 1.0f - 2 * (float)xIndex, 1.6f - (float)yIndex, 0.0f));
+            shader.setMat4("transform", transform);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, noteTexture);
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
+        shader.unbind();
+    }
+
+    void DrawCredit(Shader &shader, float counter, float yoffset, float scl)
+    {
+        shader.bind();
+        {
+            shader.setFloat("noteTexture", noteTexture);
+            shader.setFloat("amount", sin(counter / 100.0f));
+            mat4 transform = mat4(1.0f);
+            transform = scale(transform, vec3(scl));
+            transform = translate(transform, vec3(0.0f, yoffset, 0.0f));
             shader.setMat4("transform", transform);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, noteTexture);

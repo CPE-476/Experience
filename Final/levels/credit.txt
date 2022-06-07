@@ -1,0 +1,44 @@
+COM Level saved by the Experience Level Loader
+COM By Brett Hickman, Lucas Li, and Alex Hartford
+COM Spring 2022
+
+
+COM Next Level: <NXT path>
+NXT ../levels/opening.txt
+
+COM Camera Setup: <POV pos.x pos.y pos.z>
+POV 0 0 0 
+
+COM Object: <OBJ id pos.x pos.y pos.z angleX angleY angleZ vel.x vel.y vel.z rad_v rad_c rad_s scale inter? disap? noteN sound>
+OBJ 37 5.88815 -5 -8.08267 0 5.652 0 1 1 1 1.72498 1.21993 1.21993 0 0 0 1 0 
+OBJ 39 3.1038 -6.5 -9.50613 0 5.966 0 1 1 1 1.35407 0.957618 0.957618 0 0 0 1 0 
+OBJ 38 0.0159231 -5 -9.99999 0 6.28 0 1 1 1 1.7099 1.20926 1.20926 0 0 0 1 0 
+OBJ 39 -3.07351 -6.5 -9.51596 0 6.594 0 1 1 1 1.16548 0.824243 0.824243 0 0 0 1 0 
+OBJ 37 -5.86238 -5 -8.10139 0 6.908 0 1 1 1 1.6041 1.13444 1.13444 0 0 0 1 0 
+OBJ 39 -8.07799 -6.5 -5.89458 0 7.222 0 1 1 1 1.17329 0.829769 0.829769 0 0 0 1 0 
+OBJ 38 -9.50365 -5 -3.11136 0 7.536 0 1 1 1 1.87153 1.32357 1.32357 0 0 0 1 0 
+OBJ 39 -9.99997 -6.5 -0.0238799 0 7.85 0 1 1 1 1.2993 0.918884 0.918884 0 0 0 1 0 
+OBJ 37 -9.5184 -5 3.06594 0 8.164 0 1 1 1 1.69625 1.19961 1.19961 0 0 0 1 0 
+OBJ 39 -8.10605 -6.5 5.85594 0 8.478 0 1 1 1 1.35218 0.956282 0.956282 0 0 0 1 0 
+OBJ 38 -5.90101 -5 8.07329 0 8.792 0 1 1 1 1.49742 1.059 1.059 0 0 0 1 0 
+OBJ 39 -3.11892 -6.5 9.50117 0 9.106 0 1 1 1 1.14727 0.811368 0.811368 0 0 0 1 0 
+
+COM Light: <LGT pos.x pos.y pos.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z constant linear quadratic>
+
+COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
+SUN 100 0 -180 -165 0.7 0.7 0.7 0.95 0.66 0.23 0.93 0.44 0.18 0.91 0.2 0.14 
+
+COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
+PAR ../resources/models/particle/part.png 1000 0 -2.76767 0 10 10 7 1 0 1 10 0 1 0.382353 0.382353 1 0.278431 0.278431 1 0 0 0.788 1 0 
+
+COM Fog: <FOG max min col.x col.y col.z col.a>
+FOG 203.125 57.619 0.2 0.2 0.1 0.7
+
+COM Terrain: <TER path yScale yShift amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z shine>
+TER ../resources/heightmaps/lake.png 16 7.937 0.209 0.535 0.295 0.674 0.86 0.756 0.837 0.581 0.2 
+
+COM Skybox: <SKY dir>
+SKY ../resources/skyboxes/nightsky/
+
+COM Boundary: <BND col.r, col.g, col.b>
+BND 0.5 0.5 0.2 14.602 123.894 -7 
