@@ -314,13 +314,14 @@ int main(void)
     Sound hmm = Sound("../resources/audio/hmm.wav", 1.0f, false);
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
-    Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
+    Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.3f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
     Sound forestMusic2 = Sound("../resources/audio/BGM/Forest_1_dynamic.mp3", 0.1f, true);
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.3f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
     Sound EVA = Sound("../resources/audio/congrats.wav", 1.0f, false);
+    EVA.isLooping = false;
     Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
     Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
     Sound waterWalk = Sound("../resources/audio/waterWalk.wav", 0.3f, false);
@@ -652,7 +653,12 @@ int main(void)
 		    suncolorspline.deactivate();
 		    ambspline.deactivate();
 		    diffspline.deactivate();
+
+		    camera.Yaw = -90.0f;
+		    camera.Pitch = 0.0f;
+		    camera.updateCameraVectors();
 		}
+
 
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
@@ -789,18 +795,25 @@ int main(void)
 		
 		streetMusic.startSound();
 
-		volumespline.init(walk.volume, 0.0f, 2.0f);
+		volumespline.init(walk.volume, 0.0f, 10.0f);
 		volumespline.active = true;
 
 		desertAmb.volume = 0.1f;
 		sunrising = true;
 	    }
 
-	    if(!exposingOut && camera.Position.z < -20.0f)
+	    if(!exposingOut && camera.Position.z < -60.0f)
 	    {
                 exposurespline.init(exposure, -0.5f, 5.0f);
                 exposurespline.active = true;
 		exposingOut = true;
+	    }
+
+	    if(exposure < -0.1)
+	    {
+		lvl.LoadLevel("../levels/credit.txt", &objects, &lights,
+			      &sun, &emitters, &fog, &skybox, &terrain, &bound);
+		exposure = 1.0f;
 	    }
         }
 
@@ -808,7 +821,7 @@ int main(void)
         if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
         {
 
-	    if(!sunsetting && discoveredNotes[9])
+	    if(!sunsetting && discoveredNotes[0])
 	    {
                 float sunsetTimer = 50.0f;
 
@@ -822,9 +835,9 @@ int main(void)
                 diffspline.active = true;
                 exposurespline.init(exposure, 1.0f, sunsetTimer);
                 exposurespline.active = true;
-                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
+                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer / 3.0f);
                 skyboxspline.active = true;
-                shadowspline.init(shadowAmount, 0.0f, sunsetTimer);
+                shadowspline.init(shadowAmount, 0.0f, sunsetTimer / 3.0f);
                 shadowspline.active = true;
                 particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
                 particlespline.active = true;
@@ -850,6 +863,31 @@ int main(void)
 		forestContinuing = true;
 	    }
 	}
+
+	static float counter1 = 0;
+	static float counter2 = 0;
+	static float counter3 = 0;
+	if (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
+	{
+	    counter1+=50.0f * deltaTime;
+	    streetMusic.stopSound();
+	    exposure = 2.0f;
+
+	    if(counter1 >= 157){
+		counter1 = 157;
+		counter2 += 50.0f * deltaTime;
+		if(counter2 > 157) {
+		    counter2 = 157;
+		    counter3 += 50.0f * deltaTime;
+		    if(counter3 > 157)
+			counter3 = 157;
+		}
+	    }
+	    credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+	    credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+	    credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+	}
+
 
         if(toggleRenderEffects || EditorMode == MOVEMENT)
         {
@@ -1023,27 +1061,6 @@ int main(void)
                 {
                     emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
                 }
-            }
-
-            static float counter1 = 0;
-            static float counter2 = 0;
-            static float counter3 = 0;
-            if (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0) {
-                counter1+=50.0f*deltaTime;
-
-                if(counter1 >= 157){
-                    counter1 = 157;
-                    counter2+=50.0f*deltaTime;
-                    if(counter2 > 157){
-                        counter2 = 157;
-                        counter3+=50.0f*deltaTime;
-                        if(counter3 > 157)
-                            counter3 = 157;
-                    }
-                }
-                credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
-                credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
-                credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
             }
 
             // Render Note
