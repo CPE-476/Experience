@@ -262,8 +262,8 @@ struct Manager
         Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
         Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
         Lookup[42] = {42, &this->models.barrier, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
-        Lookup[44] = {44, &this->models.andre, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
-        Lookup[45] = {45, &this->models.skull, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[43] = {43, &this->models.andre, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[44] = {44, &this->models.skull, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()
