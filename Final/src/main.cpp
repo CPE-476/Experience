@@ -901,7 +901,7 @@ int main(void)
 
             if(!sunsetting && discoveredNotes[0])
             {
-                float sunsetTimer = 15.0f;
+                float sunsetTimer = 30.0f;
 
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer * 3);
                 sunspline.active = true;
@@ -1181,7 +1181,10 @@ int main(void)
                     drawNote = true;
                     selectedNote = objects[interactingObject].noteNum;
                     discoveredNotes[selectedNote] = true;
-                    discoveredCount++;
+		    if(selectedNote < 16)
+		    {
+			discoveredCount++;
+		    }
                     if(objects[interactingObject].disappearing)
                     {
                         objects.erase(objects.begin() + interactingObject);

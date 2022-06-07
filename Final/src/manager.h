@@ -204,9 +204,8 @@ struct Manager
         this->models.deer_2.init("../resources/models/animals/deer2.fbx");
         this->models.fox.init("../resources/models/animals/fox.fbx");
         this->models.spider.init("../resources/models/animals/spider.fbx");
-        //this->models.skull.init("../resources/models/skull.obj");
-        //this->models.brain.init("../resources/models/brain.obj");
-        //this->models.andre.init("../resources/models/andre.obj");
+        this->models.skull.init("../resources/models/skull/skull.obj");
+        this->models.andre.init("../resources/models/andre/andre.fbx");
         this->models.pillar.init("../resources/models/environment/pillar/pillar.fbx");
         this->models.barrier.init("../resources/models/environment/blockade/RoadBlockade_01.fbx");
 
@@ -263,8 +262,8 @@ struct Manager
         Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
         Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
         Lookup[42] = {42, &this->models.barrier, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
-        //Lookup[44] = {44, &this->models.andre, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
-        //Lookup[45] = {45, &this->models.skull, &this->shaders.materialShader, MATERIAL, 0.0f, 0.2f};
+        Lookup[44] = {44, &this->models.andre, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[45] = {45, &this->models.skull, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()

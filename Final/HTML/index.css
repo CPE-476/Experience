@@ -82,7 +82,7 @@ body {
 }
 .title_image{
     padding: 5px;
-    filter: drop-shadow(5px 5px 2px #c900c9);
+    filter: drop-shadow(5px 5px 2px #c9c9c9);
 }
 
 .images{
@@ -94,5 +94,5 @@ body {
 
 .image{
     padding: 5px;
-    filter: drop-shadow(5px 5px 2px #c900c9);
+    filter: drop-shadow(5px 5px 2px #c9c9c9);
 }
