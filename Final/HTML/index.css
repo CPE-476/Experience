@@ -43,8 +43,16 @@ p {
     color:black;
 }
 
+pre {
+    padding-left: 50px;
+    font-family: Georgia, serif;
+    font-size: 1em;
+    color:grey;
+    text-shadow: #c9c9c9;
+}
+
 a {
-    color: hotpink;
+    color: #505050;
   }
 
 body {
@@ -57,9 +65,9 @@ body {
   
 
 .code{
-    background: #30003b86;
+    background: #8e8e8e;
     border: 1px solid #ddd;
-    border-left: 3px solid #c900c9;
+    border-left: 3px solid #505050;
     color: rgb(255, 255, 255);
     page-break-inside: avoid;
     font-family: monospace;
@@ -82,7 +90,7 @@ body {
 }
 .title_image{
     padding: 5px;
-    filter: drop-shadow(5px 5px 2px #c9c9c9);
+    filter: drop-shadow(10px 10px 4px #505050);
 }
 
 .images{
@@ -90,9 +98,17 @@ body {
   clear: both;
   display: table;
   text-align: center;
+  height: auto;
 }
 
 .image{
     padding: 5px;
-    filter: drop-shadow(5px 5px 2px #c9c9c9);
+    filter: drop-shadow(10px 10px 4px  #505050);
+}
+
+.imageoff{
+    position:relative; 
+    left:8rem; 
+    padding: 15px;
+    filter: drop-shadow(10px 10px 4px  #505050);
 }
