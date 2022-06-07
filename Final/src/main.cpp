@@ -32,8 +32,8 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int SCREEN_WIDTH = 1440;
-const unsigned int SCREEN_HEIGHT = 900;
+const unsigned int SCREEN_WIDTH = 2880;
+const unsigned int SCREEN_HEIGHT = 1620;
 const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
 const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
@@ -224,8 +224,8 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
-    //GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+    // GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
