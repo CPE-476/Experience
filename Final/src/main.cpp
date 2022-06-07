@@ -955,6 +955,7 @@ int main(void)
                 forestAmb.stopSound();
                 fire.stopSound();
                 desertAmb.updateSound();
+                emitters.push_back(Emitter("../resources/models/particle/part.png", 10000, vec3(0, 50, 0), 500.0f, 3.0f, 7.0f, vec3(0, 0, 0), 8.424f, 0.0f, vec4(1, 1, 1, 1), vec4(1, 1, 1, 1), 0.424f, 0.0f));
             }
 
             if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
