@@ -807,9 +807,10 @@ int main(void)
         // SHADOW STUFF
         if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
         {
+
 	    if(!sunsetting && discoveredNotes[9])
 	    {
-                float sunsetTimer = 100.0f;
+                float sunsetTimer = 50.0f;
 
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
                 sunspline.active = true;
@@ -830,7 +831,7 @@ int main(void)
 
 		desertMusic.startSound();
 
-		volumespline.active = true;
+		emitters.push_back(Emitter("../resources/models/particle/part.png", 10000, vec3(0, 50, 0), 500.0f, 3.0f, 7.0f, vec3(0, 0, 0), 8.424f, 0.0f, vec4(1, 1, 1, 1), vec4(1, 1, 1, 1), 0.424f, 0.0f));
 
 		sunsetting = true;
 	    }
@@ -999,8 +1000,6 @@ int main(void)
                 forestAmb.stopSound();
                 fire.stopSound();
                 desertAmb.updateSound();
-		forestMusic1.stopSound();
-		forestMusic2.stopSound();
             }
 
             if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
