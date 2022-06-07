@@ -48,6 +48,11 @@ struct Spline
         active = false;
     }
 
+    void deactivate()
+    {
+        active = false;
+    }
+
     void update(float deltaTime)
     {
         time += deltaTime / duration;
@@ -78,6 +83,11 @@ struct FloatSpline
         this->end = e;
         this->duration = dur;
         time = 0.0;
+        active = false;
+    }
+
+    void deactivate()
+    {
         active = false;
     }
 

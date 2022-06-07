@@ -145,6 +145,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
 FloatSpline fspline;
 FloatSpline exposurespline;
+FloatSpline volumespline;
 FloatSpline skyboxspline;
 FloatSpline shadowspline;
 
@@ -316,7 +317,7 @@ int main(void)
     Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
     Sound forestMusic2 = Sound("../resources/audio/BGM/Forest_1_dynamic.mp3", 0.1f, true);
-    Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
+    Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.3f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
     Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
@@ -645,6 +646,14 @@ int main(void)
             float dist = sqrt((abs(camera.Position.x) * abs(camera.Position.x)) + (abs(camera.Position.z) * abs(camera.Position.z)));
             if(dist > bound.width - 2)
             {
+		if(strcmp(lvl.nextLevel.c_str(), "../levels/street.txt") == 0)
+		{
+		    sunspline.deactivate();
+		    suncolorspline.deactivate();
+		    ambspline.deactivate();
+		    diffspline.deactivate();
+		}
+
                 cout << "Boundary Collision. Loading Next Level.\n";
                 lvl.LoadLevel(lvl.nextLevel, &objects, &lights, &sun,
                               &emitters, &fog, &skybox, &terrain, 
@@ -693,6 +702,7 @@ int main(void)
         // Spline
         fspline.update(deltaTime);
         exposurespline.update(deltaTime);
+        volumespline.update(deltaTime);
         skyboxspline.update(deltaTime);
         shadowspline.update(deltaTime);
 
@@ -705,6 +715,11 @@ int main(void)
         if(fspline.active)
         {
             camera.Zoom = fspline.getPosition();
+        }
+        if(volumespline.active)
+        {
+            walk.volume = volumespline.getPosition();
+	    walk.updateSound();
         }
         if(exposurespline.active)
         {
@@ -772,7 +787,12 @@ int main(void)
                 shadowspline.init(shadowAmount, 1.0f, sunriseTimer);
                 shadowspline.active = true;
 		
-		desertMusic.startSound();
+		streetMusic.startSound();
+
+		volumespline.init(walk.volume, 0.0f, 2.0f);
+		volumespline.active = true;
+
+		desertAmb.volume = 0.1f;
 		sunrising = true;
 	    }
 
@@ -808,7 +828,9 @@ int main(void)
                 particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
                 particlespline.active = true;
 
-		streetMusic.startSound();
+		desertMusic.startSound();
+
+		volumespline.active = true;
 
 		sunsetting = true;
 	    }
@@ -977,6 +999,8 @@ int main(void)
                 forestAmb.stopSound();
                 fire.stopSound();
                 desertAmb.updateSound();
+		forestMusic1.stopSound();
+		forestMusic2.stopSound();
             }
 
             if (strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
@@ -984,7 +1008,7 @@ int main(void)
                 water.color = vec4(0.15f, 0.15, 0.10f, 0.7f);
                 water.Draw(m.shaders.waterShader, deltaTime);
                 desertAmb.stopSound();
-                streetMusic.startSound();
+                desertMusic.stopSound();
             }
             static float counter1 = 0;
             static float counter2 = 0;
