@@ -32,8 +32,8 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int SCREEN_WIDTH = 1440;
-const unsigned int SCREEN_HEIGHT = 900;
+const unsigned int SCREEN_WIDTH = 1440*2;
+const unsigned int SCREEN_HEIGHT = 900*2;
 const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
 const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
@@ -325,6 +325,9 @@ int main(void)
     notes.push_back(Note("../resources/notes/box10.png"));
     discoveredNotes.push_back(false);
     //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box11.png"));
+    notes.push_back(Note("../resources/notes/box12.png"));
+    notes.push_back(Note("../resources/notes/note10.png"));
 
     Note credit1 = Note("../resources/notes/credit1.png");
     Note credit2 = Note("../resources/notes/credit2.png");
@@ -1049,21 +1052,6 @@ int main(void)
             // Render Sun
             sun.Draw(m.shaders.sunShader);
 
-            // Credits Rendering
-            if(strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
-            {
-                credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
-                credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
-                credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
-            }
-
-            if(strcmp(lvl.currentLevel.c_str(), "../levels/opening.txt") == 0)
-            {
-                opening1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
-                opening2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
-                opening3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
-            }
-
             // Render Point Lights
             if (drawPointLights)
             {
@@ -1134,6 +1122,21 @@ int main(void)
                 }
             }
 
+            // Credits Rendering
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
+            {
+                credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+                credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+                credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+            }
+
+            if(strcmp(lvl.currentLevel.c_str(), "../levels/opening.txt") == 0)
+            {
+                opening1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+                opening2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+                opening3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+            }
+
             // Render Note
             if(checkInteraction)
             {
@@ -1189,12 +1192,10 @@ int main(void)
                         fspline.init(camera.Zoom, 20.0f, 0.5f);
                         fspline.active = true;
 
-                        // static float rotObj = objects[interactingObject].angleY;
-                        // static vec2 rotVec = vec2(cos(rotObj)*0 - sin(rotObj)*1, sin(rotObj)*0 + cos(rotObj)*1);
-                        vec3 pointVec = camera.Position - objects[interactingObject].position;
-                        float rot = dot(vec2(pointVec.x, pointVec.z), vec2(0, 1));
-                        rotspline.init(0.0f, rot, 2.5f);
-                        rotspline.active = true;
+                        // vec3 pointVec = camera.Position - objects[interactingObject].position;
+                        // float rot = dot(vec2(pointVec.x, pointVec.z), vec2(0, 1));
+                        // rotspline.init(0.0f, rot, 2.5f);
+                        // rotspline.active = true;
 
                         sounds[objects[interactingObject].sound]->startSound();
                     }
@@ -1796,7 +1797,7 @@ int main(void)
                 ImGui::Checkbox("Disappearing?", &objects[selectedObject].disappearing);
                 ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 25);
 
-                ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 15);
+                ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
 
                 if (ImGui::SliderFloat("View Radius", (float *)&objects[selectedObject].view_radius, 0.0f, 50.0f))
                     objects[selectedObject].UpdateModel();
