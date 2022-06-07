@@ -300,6 +300,10 @@ int main(void)
     notes.push_back(Note("../resources/notes/box8.png"));
     discoveredNotes.push_back(false);
 
+    Note credit1 = Note("../resources/notes/credit1.png");
+    Note credit2 = Note("../resources/notes/credit2.png");
+    Note credit3 = Note("../resources/notes/credit3.png");
+
     // Sounds
     Sound whistle = Sound("../resources/audio/whistle.wav", 1.0f, false);
     Sound pickup = Sound("../resources/audio/pickup2.mp3", 1.0f, false);
@@ -960,7 +964,26 @@ int main(void)
                 desertAmb.stopSound();
                 streetMusic.startSound();
             }
+            static float counter1 = 0;
+            static float counter2 = 0;
+            static float counter3 = 0;
+            if (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0) {
+                counter1+=50.0f*deltaTime;
 
+                if(counter1 >= 157){
+                    counter1 = 157;
+                    counter2+=50.0f*deltaTime;
+                    if(counter2 > 157){
+                        counter2 = 157;
+                        counter3+=50.0f*deltaTime;
+                        if(counter3 > 157)
+                            counter3 = 157;
+                    }
+                }
+                credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+                credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+                credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+            }
             if(drawParticles)
             {
                 bound.height = -7.0f;
