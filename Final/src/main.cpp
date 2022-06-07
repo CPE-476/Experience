@@ -1178,7 +1178,10 @@ int main(void)
                     drawNote = true;
                     selectedNote = objects[interactingObject].noteNum;
                     discoveredNotes[selectedNote] = true;
-                    discoveredCount++;
+		    if(selectedNote < 16)
+		    {
+			discoveredCount++;
+		    }
                     if(objects[interactingObject].disappearing)
                     {
                         objects.erase(objects.begin() + interactingObject);
