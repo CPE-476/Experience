@@ -82,6 +82,12 @@ bool  gSelecting = false;
 bool  deleteObject = false;
 bool  deleteCheck = false;
 
+float shadowAmount = 1.0f;
+
+bool sunsetting = false;
+bool sunrising = false;
+bool exposingOut = false;
+
 enum EditorModes
 {
     MOVEMENT,
@@ -138,6 +144,7 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 FloatSpline fspline;
 FloatSpline exposurespline;
 FloatSpline skyboxspline;
+FloatSpline shadowspline;
 
 Level lvl;
 
@@ -683,6 +690,7 @@ int main(void)
         fspline.update(deltaTime);
         exposurespline.update(deltaTime);
         skyboxspline.update(deltaTime);
+        shadowspline.update(deltaTime);
 
         particlespline.update(deltaTime);
         sunspline.update(deltaTime);
@@ -701,6 +709,15 @@ int main(void)
         if(skyboxspline.active)
         {
             skyboxMaskAmount = skyboxspline.getPosition();
+        }
+        if(shadowspline.active)
+        {
+            shadowAmount = shadowspline.getPosition();
+        }
+
+        if((strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0))
+        {
+            skyboxMaskAmount = 0.0f;
         }
 
         if(sunspline.active)
@@ -730,6 +747,64 @@ int main(void)
 
         sun.updateLight();
 
+        // SHADOW STUFF
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+        {
+            far_plane = 800.0f;
+            gDONTCULL = true;
+
+	    if(!sunrising && camera.Position.z < 30.0f)
+	    {
+                float sunriseTimer = 30.0f;
+
+                sunspline.init(sun.position, vec3(sun.position.x, 160.0f, sun.position.z), sunriseTimer);
+                sunspline.active = true;
+                suncolorspline.init(sun.color, vec3(20.0f, 20.0f, 0.1f), sunriseTimer);
+                suncolorspline.active = true;
+                ambspline.init(sun.dirLight.ambient, vec3(0.3f, 0.3f, 0.01f), sunriseTimer);
+                ambspline.active = true;
+                diffspline.init(sun.dirLight.diffuse, vec3(0.5f, 0.5f, 0.01f), sunriseTimer);
+                diffspline.active = true;
+                shadowspline.init(shadowAmount, 1.0f, sunriseTimer);
+                shadowspline.active = true;
+		sunrising = true;
+	    }
+
+	    if(!exposingOut && camera.Position.z < -20.0f)
+	    {
+                exposurespline.init(exposure, -0.5f, 5.0f);
+                exposurespline.active = true;
+		exposingOut = true;
+	    }
+        }
+
+        // SHADOW STUFF
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
+        {
+	    if(!sunsetting && discoveredNotes[9])
+	    {
+                float sunsetTimer = 100.0f;
+
+                sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
+                sunspline.active = true;
+                suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer / 2.0f);
+                suncolorspline.active = true;
+                ambspline.init(sun.dirLight.ambient, vec3(0.1f, 0.1f, 0.1f), sunsetTimer);
+                ambspline.active = true;
+                diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer);
+                diffspline.active = true;
+                exposurespline.init(exposure, 1.0f, sunsetTimer);
+                exposurespline.active = true;
+                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
+                skyboxspline.active = true;
+                shadowspline.init(shadowAmount, 0.0f, sunsetTimer);
+                shadowspline.active = true;
+                particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
+                particlespline.active = true;
+
+		sunsetting = true;
+	    }
+        }
 
         if(toggleRenderEffects || EditorMode == MOVEMENT)
         {
@@ -786,6 +861,7 @@ int main(void)
                 m.shaders.shadowShader.setVec3("viewPos", camera.Position);
                 m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
                 m.shaders.shadowShader.setBool("isT", false);
+                m.shaders.shadowShader.setFloat("shadowAmount", shadowAmount);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, depthMap);
                 m.DrawAllModels(m.shaders.shadowShader, &objects, &lights, 
@@ -801,6 +877,7 @@ int main(void)
                 m.shaders.shadowShader.setVec3("viewPos", camera.Position);
                 m.shaders.shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
                 m.shaders.shadowShader.setBool("isT", false);
+                m.shaders.shadowShader.setFloat("shadowAmount", shadowAmount);
 
                 // Render Terrain
                 if (drawTerrain && 
@@ -1403,7 +1480,6 @@ int main(void)
                 ImGui::SliderFloat("near", (float *)&near_plane, -10.0f, 10.0f);
                 ImGui::SliderFloat("far", (float *)&far_plane, 0.0f, 1000.0f);
                 ImGui::SliderFloat("frustum", (float *)&shadow_frustum, 0.0f, 300.0f);
-
 
                 ImGui::End();
             }
@@ -2502,58 +2578,6 @@ int main(void)
 
             ImGui::SliderInt("Speed", &bobbingSpeed, 0, 100);
             ImGui::SliderFloat("Amount", &bobbingAmount, 0.0f, 0.2f);
-
-            if(ImGui::Button("Sunset!"))
-            {
-                float sunsetTimer = 10.0f;
-
-                sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
-                sunspline.active = true;
-                suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer);
-                suncolorspline.active = true;
-                ambspline.init(sun.dirLight.ambient, vec3(0.1f, 0.1f, 0.1f), sunsetTimer);
-                ambspline.active = true;
-                diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer);
-                diffspline.active = true;
-                exposurespline.init(exposure, 1.0f, sunsetTimer);
-                exposurespline.active = true;
-                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
-                skyboxspline.active = true;
-                particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
-                particlespline.active = true;
-            }
-            ImGui::SameLine();
-            if(ImGui::Button("Sunrise!"))
-            {
-                float sunriseTimer = 10.0f;
-                sunspline.init(sun.position, vec3(sun.position.x, 120.0f, sun.position.z), sunriseTimer);
-                sunspline.active = true;
-                suncolorspline.init(sun.color, vec3(1.0f, 10.0f, 0.1f), sunriseTimer);
-                suncolorspline.active = true;
-                ambspline.init(sun.dirLight.ambient, vec3(0.1f, 0.1f, 0.1f), sunriseTimer * 2);
-                ambspline.active = true;
-                diffspline.init(sun.dirLight.diffuse, vec3(0.5f, 0.5f, 0.2f), sunriseTimer * 2);
-                diffspline.active = true;
-                exposurespline.init(exposure, 50.0f, sunriseTimer * 4);
-                exposurespline.active = true;
-            }
-            // TODO(alex): Set Event thresholds.
-
-            if(ImGui::Button("Exposure out"))
-            {
-                exposurespline.init(exposure, 30.0f, 10.0f);
-                exposurespline.active = true;
-            }
-            if(ImGui::Button("Exposure to Normal."))
-            {
-                exposurespline.init(exposure, 1.0f, 10.0f);
-                exposurespline.active = true;
-            }
-            if(ImGui::Button("Exposure to Darkness."))
-            {
-                exposurespline.init(exposure, 0.0f, 10.0f);
-                exposurespline.active = true;
-            }
 
             ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
             ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
