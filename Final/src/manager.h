@@ -218,7 +218,7 @@ struct Manager
     {
         Lookup[0] = {0, &this->models.tree_1, &this->shaders.textureShader, TEXTURE, 0.452f, 0.55f};
         Lookup[1] = {1, &this->models.tree_2, &this->shaders.textureShader, TEXTURE, 0.412f, 1.0f};
-        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 0.85f};
+        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 0.75f};
         Lookup[3] = {3, &this->models.tree_4, &this->shaders.textureShader, TEXTURE, 0.43f, 0.85f};
         Lookup[4] = {4, &this->models.tree_5, &this->shaders.textureShader, TEXTURE, 0.2f, 0.1f};
         Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.35f};

@@ -40,7 +40,7 @@ const unsigned int TEXT_SIZE = 16;
 const float PLAYER_HEIGHT = 1.4f;
 const float default_scale = 1.0f;
 const float default_view = 1.414f;
-const float default_selection = 1.414f;
+const float default_selection = 0.5f;
 
 #include "camera.h"
 Camera camera(vec3(25.0f, 25.0f, 25.0f));
@@ -156,6 +156,8 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+bool completedGame(vector<bool> *checks);
 
 float randFloat()
 {
@@ -273,37 +275,53 @@ int main(void)
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note2.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note3.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note4.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note5.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note6.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note7.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/note8.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
 
     notes.push_back(Note("../resources/notes/box1.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box2.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/box3.png"));
+    //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box9.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box4.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box5.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box6.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
     notes.push_back(Note("../resources/notes/box7.png"));
     discoveredNotes.push_back(false);
-    notes.push_back(Note("../resources/notes/box8.png"));
+    //discoveredNotes.push_back(true);
+    notes.push_back(Note("../resources/notes/box10.png"));
     discoveredNotes.push_back(false);
+    //discoveredNotes.push_back(true);
 
     Note credit1 = Note("../resources/notes/credit1.png");
     Note credit2 = Note("../resources/notes/credit2.png");
@@ -370,8 +388,7 @@ int main(void)
     sounds.push_back(&high3); // 20
     sounds.push_back(&high4); // 21
     sounds.push_back(&underwater1); // 22
-    sounds.push_back(&underwater2); // 23
-    
+    sounds.push_back(&underwater2); // 23 
 
 
     Skybox skybox;
@@ -556,43 +573,6 @@ int main(void)
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
         {
             whistle.reset();
-        }
-
-         if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
-        {
-            desertMusic.stopSound();
-            forestMusic1.stopSound();
-            streetMusic.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_9) == GLFW_RELEASE)
-        {
-            streetMusic.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-        {
-            streetMusic.stopSound();
-            forestMusic1.stopSound();
-            desertMusic.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_8) == GLFW_RELEASE)
-        {
-            desertMusic.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
-        {
-            desertMusic.stopSound();
-            streetMusic.stopSound();
-            forestMusic1.startSound();
-        }
-        if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE)
-        {
-            forestMusic1.reset();
-        }
-        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-        {
-            desertMusic.stopSound();
-            forestMusic1.stopSound();
-            streetMusic.stopSound();
         }
 
         fogAmb.updateSound();
@@ -786,11 +766,11 @@ int main(void)
             far_plane = 800.0f;
             gDONTCULL = true;
 
-	    if(!sunrising && camera.Position.z < 30.0f)
+	    if(!sunrising && camera.Position.z < 60.0f)
 	    {
                 float sunriseTimer = 30.0f;
 
-                sunspline.init(sun.position, vec3(sun.position.x, 160.0f, sun.position.z), sunriseTimer);
+                sunspline.init(sun.position, vec3(sun.position.x, 200.0f, sun.position.z), sunriseTimer);
                 sunspline.active = true;
                 suncolorspline.init(sun.color, vec3(20.0f, 20.0f, 0.1f), sunriseTimer);
                 suncolorspline.active = true;
@@ -810,7 +790,7 @@ int main(void)
 		sunrising = true;
 	    }
 
-	    if(!exposingOut && camera.Position.z < -60.0f)
+	    if(!exposingOut && camera.Position.z < -70.0f)
 	    {
                 exposurespline.init(exposure, -0.5f, 5.0f);
                 exposurespline.active = true;
@@ -825,29 +805,30 @@ int main(void)
 	    }
         }
 
-        // SHADOW STUFF
         if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
         {
+	    forestMusic1.stopSound();
+	    forestMusic2.stopSound();
 
 	    if(!sunsetting && discoveredNotes[0])
 	    {
-                float sunsetTimer = 50.0f;
+                float sunsetTimer = 15.0f;
 
-                sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
+                sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer * 3);
                 sunspline.active = true;
-                suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer / 2.0f);
+                suncolorspline.init(sun.color, vec3(20.0f, 1.0f, 0.1f), sunsetTimer);
                 suncolorspline.active = true;
                 ambspline.init(sun.dirLight.ambient, vec3(0.1f, 0.1f, 0.1f), sunsetTimer);
                 ambspline.active = true;
-                diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer);
+                diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer * 3);
                 diffspline.active = true;
-                exposurespline.init(exposure, 1.0f, sunsetTimer);
+                exposurespline.init(exposure, 0.2f, sunsetTimer);
                 exposurespline.active = true;
-                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer / 3.0f);
+                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
                 skyboxspline.active = true;
-                shadowspline.init(shadowAmount, 0.0f, sunsetTimer / 3.0f);
+                shadowspline.init(shadowAmount, 0.0f, sunsetTimer);
                 shadowspline.active = true;
-                particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
+                particlespline.init(vec3(emitters[0].endColor.x, emitters[0].endColor.y, emitters[0].endColor.z), vec3(0.0f), sunsetTimer);
                 particlespline.active = true;
 
 		desertMusic.startSound();
@@ -879,7 +860,7 @@ int main(void)
 	{
 	    camera.Position = vec3(0.0f, 0.0f, 0.0f);
 
-	    counter1+=50.0f * deltaTime;
+	    counter1 += 50.0f * deltaTime;
 	    streetMusic.stopSound();
 	    exposure = 2.0f;
 
@@ -897,11 +878,8 @@ int main(void)
 		    }
 		}
 	    }
-	    credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
-	    credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
-	    credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
 
-	    if(false)
+	    if(completedGame(&discoveredNotes))
 	    {
 		EVA.startSound();
 	    }
@@ -1014,6 +992,14 @@ int main(void)
 
             // Render Sun
             sun.Draw(m.shaders.sunShader);
+
+	    // Credits Rendering
+	    if(strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
+	    {
+		credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
+		credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
+		credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
+	    }
 
             // Render Point Lights
             if (drawPointLights)
@@ -1745,9 +1731,9 @@ int main(void)
                 ImGui::Checkbox("Interactible?", &objects[selectedObject].interactible);
                 ImGui::SameLine();
                 ImGui::Checkbox("Disappearing?", &objects[selectedObject].disappearing);
-                ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 20);
+                ImGui::SliderInt("Sound", &objects[selectedObject].sound, 0, 25);
 
-                ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 20);
+                ImGui::SliderInt("Note", &objects[selectedObject].noteNum, 0, 15);
 
                 if (ImGui::SliderFloat("View Radius", (float *)&objects[selectedObject].view_radius, 0.0f, 50.0f))
                     objects[selectedObject].UpdateModel();
@@ -1791,7 +1777,7 @@ int main(void)
                     float cr = m.findbyId(id).collision_radius;
                     objects.push_back(Object(id,
                                              vec3(camera.Position.x,
-                                                  terrain.heightAt(camera.Position.x, camera.Position.z),
+                                                  objects[selectedObject].scaleFactor * m.findbyId(objects[selectedObject].id).y_offset + terrain.heightAt(camera.Position.x, camera.Position.z),
                                                   camera.Position.z),
                                              objects[selectedObject].angleX,
                                              objects[selectedObject].angleY,
@@ -1823,7 +1809,7 @@ int main(void)
                 {
                     for (int i = 0; i < 4000; i++) // Grass
                     {
-                        float grass_scale = (randFloat() * 0.1) + 0.4;
+                        float grass_scale = (randFloat() * 0.2) + 0.3;
                         for (int j = 23; j < 32; j++) // Types
                         {
                             int goodVal = 0;
@@ -1854,7 +1840,7 @@ int main(void)
                                                      pos,
                                                      -1.6f, 0.0f, randFloat() * PI,
                                                      vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
-                                                    default_selection,
+                                                     0.5,
                                                      grass_scale, false, false, 0, 1));
                             selectedObject = objects.size() - 1;
                         }
@@ -2171,24 +2157,22 @@ int main(void)
                 ImGui::SameLine();
                 if (ImGui::Button("tree3"))
                 {
-                    float pos_y = 0.0f;
-                    for (int i = 0; i < 20; i++) // Birch Tree
-                    {
-                        float pos_x = randCoord();
-                        float pos_z = randCoord();
-                        float scale = randRange(3.5f, 4.5f);
-                        if (snapToTerrain)
-                            pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(2).y_offset;
-                        vec3 pos = vec3(pos_x, pos_y, pos_z);
+		    float pos_y = 0.0f;
+		    float pos_x = randCoordDes();
+		    float pos_z = randCoordDes();
+		    float scale = 1.0f;
+		    if (snapToTerrain)
+			pos_y = terrain.heightAt(pos_x, pos_z) + scale * m.findbyId(2).y_offset;
+		    vec3 pos = vec3(pos_x, pos_y, pos_z);
 
-                        objects.push_back(Object(2,
-                                                 pos,
-                                                 -1.6f, 0.0f, 0.0f,
-                                                 vec3(1), scale * default_view, m.findbyId(2).collision_radius * scale, 
-                                                 default_selection,
-                                                 scale, false, false, 0, 1));
-                        selectedObject = objects.size() - 1;
-                    }
+		    objects.push_back(Object(2,
+					     pos,
+					     -1.6f, 0.0f, 0.0f,
+					     vec3(1), scale * default_view,
+					     m.findbyId(2).collision_radius * scale, 
+					     default_selection,
+					     scale, false, false, 0, 1));
+		    selectedObject = objects.size() - 1;
                 }
 
                 ImGui::SameLine();
@@ -2701,6 +2685,19 @@ int main(void)
     return 0;
 }
 
+bool completedGame(vector<bool> *checks)
+{
+    bool check = true;
+    for(int i = 0; i < checks->size(); ++i)
+    {
+	if(!checks->at(i))
+	{
+	    check = false;
+	}
+    }
+    return check;
+}
+
 float objectDis(vec3 curPos, vec3 objectPos)
 {
     return sqrt(pow(curPos.x - objectPos.x, 2) + pow(curPos.z - objectPos.z, 2));
@@ -2722,10 +2719,6 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-
-    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
-        drawCollection = true;
 
     if(!drawNote)
     {
@@ -2852,12 +2845,12 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
         firstMouse = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
         drawCollection = true;
     }
 
-    if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+    if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
     {
         drawCollection = false;
     }
