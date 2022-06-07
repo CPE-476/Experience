@@ -19,6 +19,7 @@ struct Water
     GLuint TextureID;
     unsigned int textureID;
     float height = -4.6f;
+    vec4 color = vec4(0.2, 0.2, 1.0, 0.4);
 
     float partVertices[12] = {
             -0.5f, 0.0f, 0.5f,
@@ -46,6 +47,7 @@ struct Water
             shader.setMat4("projection", projection);
             shader.setMat4("view", view);
             shader.setVec3("viewPos", camera.Position);
+            shader.setVec4("color", color);
 
             mat4 model = mat4(1.0f);
             model =  translate(mat4(1.0f),  vec3(0.0f, height, 0.0f)) * scale(mat4(1.0f), 250.0f * vec3(1.0f, 1.0f, 1.0f));

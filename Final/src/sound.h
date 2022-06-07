@@ -91,6 +91,10 @@ struct Sound {
 
     void updateSound()
     {
+        ma_engine_set_volume(&engine, volume);
+        ma_sound_set_rolloff(&sound, rolloff);
+        ma_sound_set_min_distance(&sound, minDistance);
+        ma_sound_set_min_distance(&sound, maxDistance);
         startSound();
 
         ma_sound_set_position(&sound, pos.x, pos.y, pos.z);

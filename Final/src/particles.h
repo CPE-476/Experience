@@ -75,19 +75,17 @@ public:
 
     void Setup()
     {
-        vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
             float r = radius * sqrt(randFloat(0, 1));
             float theta = randFloat(0, 1) * 2.0f * M_PI;
             vec3 startPos = vec3(startPosition.x + r * cos(theta), startPosition.y, startPosition.z + r * sin(theta));
             if(particleAmount == 20000)
-                    {
-                        int width = 256;
-                        lifeSpan = randFloat(1.5f, 2.5f);
-                        startPos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
-                        //startPos = fogArray[(int)randFloat(0, 4)];
-                    }
+            {
+                int width = 256;
+                lifeSpan = randFloat(1.5f, 2.5f);
+                startPos = vec3(width/2*cos(theta), startPosition.y, width/2*sin(theta));
+            }
             vec3 vel = vec3(randFloat(-startVelocity.x, startVelocity.x), randFloat(startVelocity.y-(startVelocity.y/2), startVelocity.y), randFloat(-startVelocity.z, startVelocity.z));
             float rTop = radiusTop * sqrt(randFloat(0, 1));
             float thetaTop = randFloat(0, 1) * 2.0f * M_PI;
@@ -95,7 +93,7 @@ public:
             vec3 G = cross(vel, cross(V, vel));
             vel = (magnitude(vel)/magnitude(V)) * V;
 
-            Particles.push_back(Particle(startPos, vel, lifeSpan, startScale));
+            Particles.push_back(Particle(startPos, vel, 0, 0));
             posOffsets[i] = startPos;
             colorOffsets[i] = startColor;
             scaleOffsets[i] = startScale;
@@ -103,7 +101,7 @@ public:
         gpuSetup();
     }
 
-    void Draw(Shader &shader, float delta, int terrainWidth, float height)
+    void Draw(Shader &shader, float delta, int terrainWidth, float height, float offset)
     {
         mat4 projection = camera.GetProjectionMatrix();
         mat4 view = camera.GetViewMatrix();
@@ -126,8 +124,10 @@ public:
             model = mat4(1.0f);
             shader.setMat4("Model", model);
 
+            shader.setFloat("threshold", gBloomThreshold);
+
 	    // Where the actual draw calls are, involves instancing.
-            update(delta, terrainWidth, height);
+            update(delta, terrainWidth, height, offset);
 	}
         shader.unbind();
     } 
@@ -172,15 +172,16 @@ private:
         sort(Particles.begin(), Particles.end());
     }
 
-    void update(float delta, int width, float height)
+    void update(float delta, int width, float tHeight, float offset)
     {
         ++counter;
+        bool spawned = false;
         width = width + 10;
         vec3 fogArray[4];
         for(int i=0;i<particleAmount;i++)
         {
             if(bugMode || fogMode)
-                startPosition.y = randFloat(-7.5, height+7.5);
+                startPosition.y = randFloat(-offset, tHeight+offset);
             Particle& p = Particles[i];
             if(p.alive == 1)
             {
@@ -222,11 +223,17 @@ private:
                     colorOffsets[i] = startColor;
                 }
             }
-            else if(counter % 2 == 1)
+            else if(!spawned)
             {
                 p.alive = 1;
                 if(!fogMode)
-                    break;
+                {
+                    spawned = true;
+                }
+            }
+            else if(p.alive == 0)
+            {
+                scaleOffsets[i] = 0;
             }
             // if(fogMode)
             //     {

@@ -28,6 +28,7 @@ public:
     vec3     velocity;
     float    view_radius;
     float    collision_radius;
+    float    selection_radius;
     mat4     matrix;
 
     bool     interactible;
@@ -39,7 +40,7 @@ public:
     int      shader_type;
 
     Object (int id, vec3 pos, float agl_x, float agl_y, float agl_z, 
-            vec3 vel, float rad_v, float rad_c, float scl, bool inter, bool disap, int noteN, int snd)
+            vec3 vel, float rad_v, float rad_c, float rad_s, float scl, bool inter, bool disap, int noteN, int snd)
     {
         this->id = id;
         this->position = pos;
@@ -50,6 +51,7 @@ public:
         this->velocity = vel;
         this->view_radius = rad_v;
         this->collision_radius = rad_c;
+        this->selection_radius = rad_s;
         this->material = {vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), vec3(0.9f, 0.9f, 0.9f), 5.0f};
         UpdateModel();
         this->interactible = inter;

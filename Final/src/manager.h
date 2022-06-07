@@ -54,7 +54,16 @@ struct Shader_Container
     Shader transShader;
     Shader waterShader;
     Shader boundaryShader;
+
     Shader cursorShader;
+    Shader sunShader;
+
+    Shader blurShader;
+    Shader bloomShader;
+
+    Shader depthShader;
+    Shader shadowShader;
+    Shader debugShader;
 };
 
 struct Model_Container
@@ -63,7 +72,6 @@ struct Model_Container
     Model cylinder;
     Model cube;
     Model sphere;
-    Model skull;
 
     Model note;
 
@@ -89,16 +97,10 @@ struct Model_Container
     Model grass_7;
     Model grass_8;
     Model grass_9;
-    Model bear;
-    Model boar;
     Model deer_1;
     Model deer_2;
     Model fox;
-    Model hedgehog;
-    Model owl;
-    Model rabbit;
-    Model squirrel;
-    Model wolf;
+    Model andre;
 
     // desert
     Model rock_5;
@@ -112,12 +114,19 @@ struct Model_Container
     Model cactus_2;
     Model cactus_3;
     Model trumbleweed;
+    Model spider;
+    Model brain;
+    Model skull;
 
     // street
     Model road;
     Model street_lamp;
     Model stop;
     Model powerline;
+    Model pillar;
+    Model barrier;
+
+    Model guitar;
 };
 
 struct Manager
@@ -141,13 +150,20 @@ struct Manager
         this->shaders.transShader.init("../shaders/trans_vert.glsl", "../shaders/trans_frag.glsl");
         this->shaders.waterShader.init("../shaders/water_vert.glsl", "../shaders/water_frag.glsl");
         this->shaders.boundaryShader.init("../shaders/bound_vert.glsl", "../shaders/bound_frag.glsl");
+
         this->shaders.cursorShader.init("../shaders/curs_vert.glsl", "../shaders/curs_frag.glsl");
+        this->shaders.sunShader.init("../shaders/sun_vert.glsl", "../shaders/sun_frag.glsl");
+        this->shaders.blurShader.init("../shaders/blur_vert.glsl", "../shaders/blur_frag.glsl");
+        this->shaders.bloomShader.init("../shaders/bloom_vert.glsl", "../shaders/bloom_frag.glsl");
+
+        this->shaders.depthShader.init("../shaders/depth_vert.glsl", "../shaders/depth_frag.glsl");
+        this->shaders.shadowShader.init("../shaders/shadow_vert.glsl", "../shaders/shadow_frag.glsl");
+        this->shaders.debugShader.init("../shaders/debug_vert.glsl", "../shaders/debug_frag.glsl");
 
         stbi_set_flip_vertically_on_load(false);
         this->models.cylinder.init("../resources/testing/cylinder.obj");
         this->models.cube.init("../resources/testing/cube.obj");
-        this->models.sphere.init("../resources/testing/sphere.obj");
-        this->models.skull.init("../resources/testing/skull.obj");
+        this->models.sphere.init("../resources/testing/sphere_highres.fbx");
         this->models.tree_1.init("../resources/models/trees/tree_1.fbx");
         this->models.tree_2.init("../resources/models/trees/tree_2.fbx");
         this->models.tree_3.init("../resources/models/trees/tree_3.fbx");
@@ -180,21 +196,20 @@ struct Manager
         this->models.grass_7.init("../resources/models/grass/grass_7.fbx");
         this->models.grass_8.init("../resources/models/grass/grass_8.fbx");
         this->models.grass_9.init("../resources/models/grass/grass_9.fbx");
-        this->models.road.init("../resources/models/environment/road/road.fbx");
+        this->models.road.init("../resources/models/environment/road/road_2.fbx");
         this->models.street_lamp.init("../resources/models/environment/street_light/single_street_light.obj");
         this->models.powerline.init("../resources/models/environment/powerline/wooden_telephone_pole.obj");
         this->models.stop.init("../resources/models/environment/stop/traffic_sign_stop.obj");
-        // this->models.bear.init("../resources/models/animals/bear.fbx");
-        // this->models.boar.init("../resources/models/animals/boar.fbx");
-        // this->models.deer_1.init("../resources/models/animals/deer_1.fbx");
-        // this->models.deer_2.init("../resources/models/animals/deer_2.fbx");
-        // this->models.fox.init("../resources/models/animals/fox.fbx");
-        // this->models.hedgehog.init("../resources/models/animals/hedhog.fbx");
-        // this->models.owl.init("../resources/models/animals/owl.fbx");
-        // this->models.rabbit.init("../resources/models/animals/rabbit.fbx");
-        // this->models.squirrel.init("../resources/models/animals/squirrel.fbx");
-        // this->models.wolf.init("../resources/models/animals/wolf.fbx");
+        this->models.deer_1.init("../resources/models/animals/deer1.fbx");
+        this->models.deer_2.init("../resources/models/animals/deer2.fbx");
+        this->models.fox.init("../resources/models/animals/fox.fbx");
+        this->models.spider.init("../resources/models/animals/spider.fbx");
+        this->models.skull.init("../resources/models/skull/skull.obj");
+        this->models.andre.init("../resources/models/andre/andre.fbx");
+        this->models.pillar.init("../resources/models/environment/pillar/pillar.fbx");
+        this->models.barrier.init("../resources/models/environment/blockade/RoadBlockade_01.fbx");
 
+        this->models.guitar.init("../resources/models/guitar/source/Survival_BackPack_2/Survival_BackPack_2.fbx");
 
         this->models.note.init("../resources/models/environment/note/scroll2.fbx");
 
@@ -206,13 +221,13 @@ struct Manager
     {
         Lookup[0] = {0, &this->models.tree_1, &this->shaders.textureShader, TEXTURE, 0.452f, 0.55f};
         Lookup[1] = {1, &this->models.tree_2, &this->shaders.textureShader, TEXTURE, 0.412f, 1.0f};
-        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 1.3f};
+        Lookup[2] = {2, &this->models.tree_3, &this->shaders.textureShader, TEXTURE, 0.5f, 0.75f};
         Lookup[3] = {3, &this->models.tree_4, &this->shaders.textureShader, TEXTURE, 0.43f, 0.85f};
         Lookup[4] = {4, &this->models.tree_5, &this->shaders.textureShader, TEXTURE, 0.2f, 0.1f};
-        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.55f};
-        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f, 0.55f};
-        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f, 0.55f};
-        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.0f, 0.55f};
+        Lookup[5] = {5, &this->models.rock_1, &this->shaders.textureShader, TEXTURE, 1.0f, 0.35f};
+        Lookup[6] = {6, &this->models.rock_2, &this->shaders.textureShader, TEXTURE, 1.1f, 0.35f};
+        Lookup[7] = {7, &this->models.rock_3, &this->shaders.textureShader, TEXTURE, 1.1f, 0.35f};
+        Lookup[8] = {8, &this->models.rock_4, &this->shaders.textureShader, TEXTURE, 1.0f, 0.35f};
         Lookup[9] = {9, &this->models.rock_5, &this->shaders.textureShader, TEXTURE, 2.1f, 0.85f};
         Lookup[10] = {10, &this->models.rock_6, &this->shaders.textureShader, TEXTURE, 1.3f, 0.5f};
         Lookup[11] = {11, &this->models.rock_7, &this->shaders.textureShader, TEXTURE, 3.43f, 0.85f};
@@ -241,16 +256,14 @@ struct Manager
         Lookup[34] = {34, &this->models.street_lamp, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
         Lookup[35] = {35, &this->models.powerline, &this->shaders.textureShader, TEXTURE, 0.0f, 6.0f};
         Lookup[36] = {36, &this->models.stop, &this->shaders.textureShader, TEXTURE, 0.0f, 1.0f};
-        // Lookup[34] = {34, &this->models.bear, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[35] = {35, &this->models.boar, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[36] = {36, &this->models.deer_1, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[37] = {37, &this->models.deer_2, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[38] = {38, &this->models.fox, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[39] = {39, &this->models.hedgehog, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[40] = {40, &this->models.owl, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[41] = {41, &this->models.rabbit, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[42] = {42, &this->models.squirrel, &this->shaders.materialShader, MATERIAL, 0.0f};
-        // Lookup[43] = {43, &this->models.wolf, &this->shaders.materialShader, MATERIAL, 0.0f};
+        Lookup[37] = {37, &this->models.deer_1, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
+        Lookup[38] = {38, &this->models.deer_2, &this->shaders.textureShader, TEXTURE, 1.0f, 1.0f};
+        Lookup[39] = {39, &this->models.fox, &this->shaders.textureShader, TEXTURE, 1.0f, 0.05f};
+        Lookup[40] = {40, &this->models.spider, &this->shaders.textureShader, TEXTURE, 1.0f, 0.5f};
+        Lookup[41] = {41, &this->models.pillar, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[42] = {42, &this->models.barrier, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[43] = {43, &this->models.andre, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
+        Lookup[44] = {44, &this->models.skull, &this->shaders.textureShader, TEXTURE, 0.0f, 0.2f};
     }
 
     void genInstanceBuffers()
@@ -267,7 +280,7 @@ struct Manager
         }
     }
 
-    void DrawAllModels(vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog, Frustum *frustum)
+    void DrawAllModels(Shader &shader, vector<Object> *objects, vector<Light> *lights, DirLight *dirLight, FogSystem *fog, Frustum *frustum)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -280,9 +293,10 @@ struct Manager
             vector<mat4> modelMatrices;
             for(int objInd = 0; objInd < objects->size(); ++objInd)
             {
-                if(objects->at(objInd).id == entry.ID && !frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius))
+                if(objects->at(objInd).id == entry.ID && 
+                        (!frustum->ViewFrustCull(objects->at(objInd).position, objects->at(objInd).view_radius) || gDONTCULL))
                 {
-		            drawnObjects++;
+                    drawnObjects++;
                     modelMatrices.push_back(objects->at(objInd).matrix);
                 }
             }
@@ -311,33 +325,35 @@ struct Manager
             }
 
             // Drawing
-            shaders.textureShader.bind();
+            shader.bind();
             {
                 mat4 projection = camera.GetProjectionMatrix();
                 mat4 view = camera.GetViewMatrix();
-                shaders.textureShader.setMat4("projection", projection);
-                shaders.textureShader.setMat4("view", view);
-                shaders.textureShader.setVec3("viewPos", camera.Position);
+                shader.setMat4("projection", projection);
+                shader.setMat4("view", view);
+                shader.setVec3("viewPos", camera.Position);
 
-                shaders.textureShader.setInt("texture_diffuse1", 0);
+                shader.setInt("texture_diffuse1", 0);
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, entry.model->textures_loaded[0].id);
 
-                shaders.textureShader.setFloat("maxFogDistance", fog->maxDistance);
-                shaders.textureShader.setFloat("minFogDistance", fog->minDistance);
-                shaders.textureShader.setVec4("fogColor", fog->color);
+                shader.setFloat("maxFogDistance", fog->maxDistance);
+                shader.setFloat("minFogDistance", fog->minDistance);
+                shader.setVec4("fogColor", fog->color);
 
-                dirLight->Render(shaders.textureShader);
+                dirLight->Render(shader);
 
-                shaders.textureShader.setInt("size", lights->size());
+                shader.setInt("size", lights->size());
                 for (int i = 0; i < lights->size(); ++i)
                 {
-                    lights->at(i).Render(shaders.textureShader, i);
+                    lights->at(i).Render(shader, i);
                 }
+
+                shaders.textureShader.setFloat("threshold", gBloomThreshold);
 
                 for(int i = 0; i < entry.model->meshes.size(); i++)
                 {
-                    entry.model->meshes[i].SetTextureParams(shaders.textureShader);
+                    //entry.model->meshes[i].SetTextureParams(shader);
                     glBindVertexArray(entry.model->meshes[i].VAO);
 
                     glDrawElementsInstanced(GL_TRIANGLES, 
@@ -348,7 +364,7 @@ struct Manager
                 }
                 glActiveTexture(GL_TEXTURE0);
             }
-            shaders.textureShader.unbind();
+            shader.unbind();
         }
     }
 
