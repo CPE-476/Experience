@@ -308,7 +308,7 @@ int main(void)
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
-    Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
+    Sound EVA = Sound("../resources/audio/congrats.wav", 1.0f, false);
     Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
     Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
     Sound waterWalk = Sound("../resources/audio/waterWalk.wav", 0.3f, false);
