@@ -315,6 +315,7 @@ int main(void)
     Sound rock = Sound("../resources/audio/desert.wav", vec3(25, 0, 0), 1.0f, 5.0f, 2.0f, 50.0f, true, false);
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
     Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.3f, true);
+    Sound sadMusic = Sound("../resources/audio/BGM/street.mp3", 0.3f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
     Sound forestMusic2 = Sound("../resources/audio/BGM/Forest_1_dynamic.mp3", 0.1f, true);
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.3f, true);
@@ -630,7 +631,6 @@ int main(void)
                 underwater = false;
             }
         }
-            
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -869,25 +869,39 @@ int main(void)
 	static float counter3 = 0;
 	if (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0)
 	{
+	    camera.Position = vec3(0.0f, 0.0f, 0.0f);
+
 	    counter1+=50.0f * deltaTime;
 	    streetMusic.stopSound();
 	    exposure = 2.0f;
 
-	    if(counter1 >= 157){
+	    if(counter1 >= 157)
+	    {
 		counter1 = 157;
 		counter2 += 50.0f * deltaTime;
-		if(counter2 > 157) {
+		if(counter2 > 157) 
+		{
 		    counter2 = 157;
 		    counter3 += 50.0f * deltaTime;
 		    if(counter3 > 157)
+		    {
 			counter3 = 157;
+		    }
 		}
 	    }
 	    credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
 	    credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
 	    credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
-	}
 
+	    if(false)
+	    {
+		EVA.startSound();
+	    }
+	    else
+	    {
+		sadMusic.startSound();
+	    }
+	}
 
         if(toggleRenderEffects || EditorMode == MOVEMENT)
         {
@@ -2782,7 +2796,8 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
 
         }
         
-        if (camera.Mode == WALK && strcmp(lvl.nextLevel.c_str(), "../levels/forest.txt") != 0 && (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
+        if (camera.Mode == WALK && strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") != 0 
+				&& (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || 
                                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
@@ -2798,11 +2813,6 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
             glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE)
         {
             ma_sound_stop(&sounds->at(0)->sound);
-        }
-
-        if (camera.Mode == WALK && strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") == 0) {
-            camera.Position = vec3(0.0f, 0.0f, 0.0f);
-            ma_sound_start(&sounds->at(8)->sound);
         }
     }
 
@@ -2860,12 +2870,10 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
     }
 
 
-
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)

@@ -1,6 +1,6 @@
 # Blender v3.1.2 OBJ File: 'scull lp.blend'
 # www.blender.org
-mtllib skull.mtl
+
 o Cube.001
 v 0.454092 -0.784585 0.352818
 v 0.533594 -0.667802 0.069911
