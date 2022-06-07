@@ -377,6 +377,8 @@ int main(void)
     Sound underwater1 = Sound("../resources/audio/Talking/underwater.wav", 1.0f, false);
     Sound underwater2 = Sound("../resources/audio/Talking/underwater2.wav", 1.0f, false);
 
+    Sound laugh = Sound("../resources/audio/laugh.wav", 1.0f, false);
+
     sounds.push_back(&walk); // 0
     sounds.push_back(&whistle); // 1
     sounds.push_back(&pickup); // 2
@@ -401,6 +403,7 @@ int main(void)
     sounds.push_back(&high4); // 21
     sounds.push_back(&underwater1); // 22
     sounds.push_back(&underwater2); // 23 
+    sounds.push_back(&laugh); // 24
 
 
     Skybox skybox;
