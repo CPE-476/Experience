@@ -582,41 +582,41 @@ int main(void)
 
         fogAmb.updateSound();
 
-	bool underwater = true;
-	if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
-	{
-	    if(camera.Position.y < (water.height + PLAYER_HEIGHT))
-	    {
-		sounds[0]->stopSound();
-		sounds[0] = &waterWalk;
-		camera.Slow = true;
-	    }
-	    else
-	    {
-		sounds[0]->stopSound();
-		camera.Slow = false;
-		sounds[0] = &walk;
-	    }
+        bool underwater = true;
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+        {
+            if(camera.Position.y < (water.height + PLAYER_HEIGHT))
+            {
+                sounds[0]->stopSound();
+                sounds[0] = &waterWalk;
+                camera.Slow = true;
+            }
+            else
+            {
+                sounds[0]->stopSound();
+                camera.Slow = false;
+                sounds[0] = &walk;
+            }
 
-	    static vec3 oldAmb = sun.dirLight.ambient;
-	    static vec3 oldDif = sun.dirLight.diffuse;
-	    if(camera.Position.y < (water.height) && underwater)
-	    {
-		sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
-		sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
-		forestAmb.stopSound();
-		fire.stopSound();
-		underwater = true;
-	    }
-	    else if(underwater && camera.Position.y > (water.height))
-	    {
-		sun.dirLight.ambient = oldAmb;
-		sun.dirLight.diffuse = oldDif;
-		//forestAmb.startSound();
-		//fire.startSound();
-		underwater = false;
-	    }
-	}
+            static vec3 oldAmb = sun.dirLight.ambient;
+            static vec3 oldDif = sun.dirLight.diffuse;
+            if(camera.Position.y < (water.height) && underwater)
+            {
+                sun.dirLight.ambient = vec3(0.1, 0.2, 0.9);
+                sun.dirLight.diffuse = vec3(0.2, 0.1, 0.9);
+                forestAmb.stopSound();
+                fire.stopSound();
+                underwater = true;
+            }
+            else if(underwater && camera.Position.y > (water.height))
+            {
+                sun.dirLight.ambient = oldAmb;
+                sun.dirLight.diffuse = oldDif;
+                //forestAmb.startSound();
+                //fire.startSound();
+                underwater = false;
+            }
+        }
             
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -639,52 +639,52 @@ int main(void)
                               &emitters, &fog, &skybox, &terrain, 
                               &bound);
 
-		// Transitions!
-		if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
-		{
-		    exposure = 50.0f;
-		    exposurespline.init(exposure, 2.0f, 5.0f);
-		    exposurespline.active = true;
-		}
-		else if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
-		{
-		    exposure = 0.0f;
-		    exposurespline.init(exposure, 0.4f, 10.0f);
-		    exposurespline.active = true;
-		}
+                // Transitions!
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0)
+                {
+                    exposure = 50.0f;
+                    exposurespline.init(exposure, 2.0f, 5.0f);
+                    exposurespline.active = true;
+                }
+                else if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
+                {
+                    exposure = 0.0f;
+                    exposurespline.init(exposure, 0.4f, 10.0f);
+                    exposurespline.active = true;
+                }
             }
             if(dist > bound.width - 50)
-	    {
+            {
                 fogAmb.volume = (dist-(bound.width-50))/(bound.width-50);
-	    }
+            }
             else
-	    {
+            {
                 fogAmb.volume = 0.0f;
-	    }
+            }
 
-	    if(dist > bound.width - 20.0f)
-	    {
-		if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
-		{
-		    exposure = 1 + ((dist - (bound.width - 20.0f)) / (bound.width- 20.0f)) * 10.0f;
-		}
-	    }
+            if(dist > bound.width - 20.0f)
+            {
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+                {
+                    exposure = 1 + ((dist - (bound.width - 20.0f)) / (bound.width- 20.0f)) * 10.0f;
+                }
+            }
 
             camera.Position.y = terrain.heightAt(camera.Position.x, camera.Position.z) + PLAYER_HEIGHT + bobbingAmount * sin((float)bobbingCounter / (float)bobbingSpeed);
         }
 
-	if(deleteObject)
-	{ 
-	    objects.erase(objects.begin() + selectedObject);
-	    deleteObject = false;
-	}
+        if(deleteObject)
+        { 
+            objects.erase(objects.begin() + selectedObject);
+            deleteObject = false;
+        }
 
         // Spline
         fspline.update(deltaTime);
-	exposurespline.update(deltaTime);
-	skyboxspline.update(deltaTime);
+        exposurespline.update(deltaTime);
+        skyboxspline.update(deltaTime);
 
-	particlespline.update(deltaTime);
+        particlespline.update(deltaTime);
         sunspline.update(deltaTime);
         suncolorspline.update(deltaTime);
         ambspline.update(deltaTime);
@@ -694,23 +694,23 @@ int main(void)
         {
             camera.Zoom = fspline.getPosition();
         }
-	if(exposurespline.active)
-	{
-	    exposure = exposurespline.getPosition();
-	}
-	if(skyboxspline.active)
-	{
-	    skyboxMaskAmount = skyboxspline.getPosition();
-	}
+        if(exposurespline.active)
+        {
+            exposure = exposurespline.getPosition();
+        }
+        if(skyboxspline.active)
+        {
+            skyboxMaskAmount = skyboxspline.getPosition();
+        }
 
         if(sunspline.active)
         {
             sun.position = sunspline.getPosition();
         } 
-	if(suncolorspline.active)
-	{
-	    sun.color = suncolorspline.getPosition();
-	}
+        if(suncolorspline.active)
+        {
+            sun.color = suncolorspline.getPosition();
+        }
         if(ambspline.active)
         {
             sun.dirLight.ambient = ambspline.getPosition();
@@ -721,11 +721,11 @@ int main(void)
         }
         if(particlespline.active)
         {
-	    if(emitters.size() > 0)
-	    {
-		emitters[0].startColor = vec4(particlespline.getPosition(), 1.0f);
-		emitters[0].endColor = vec4(particlespline.getPosition(), 1.0f);
-	    }
+            if(emitters.size() > 0)
+            {
+                emitters[0].startColor = vec4(particlespline.getPosition(), 1.0f);
+                emitters[0].endColor = vec4(particlespline.getPosition(), 1.0f);
+            }
         }
 
         sun.updateLight();
@@ -804,7 +804,7 @@ int main(void)
 
                 // Render Terrain
                 if (drawTerrain && 
-		    (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") != 0))
+                    (strcmp(lvl.currentLevel.c_str(), "../levels/credit.txt") != 0))
                 {
                     m.shaders.shadowShader.setBool("isT", true);
                     terrain.Draw(m.shaders.shadowShader, &lights, &sun.dirLight, &fog);
@@ -949,11 +949,11 @@ int main(void)
                     {
                         if(EditorMode == MOVEMENT)
                         {
-			    if(length(p) < 10.0f)
-			    {
-				minDistance = length(p);
-				interactingObject = i;
-			    }
+                            if(length(p) < 10.0f)
+                            {
+                                minDistance = length(p);
+                                interactingObject = i;
+                            }
                         }
                         else
                         {
@@ -1159,8 +1159,8 @@ int main(void)
                 if (EditorMode == GUI)
                 {
                     objects[selectedObject].Draw(&m.shaders.lightShader, 
-			m.findbyId(objects[selectedObject].id).model, 
-			m.findbyId(objects[selectedObject].id).shader_type);
+                        m.findbyId(objects[selectedObject].id).model, 
+                        m.findbyId(objects[selectedObject].id).shader_type);
                 }
             }
             m.shaders.lightShader.unbind();
@@ -1188,10 +1188,10 @@ int main(void)
                 for (int i = 0; i < emitters.size(); ++i)
                 {
                     emitters[i].Draw(m.shaders.particleShader, 
-				     deltaTime, 
-				     bound.width, 
-				     bound.height, 
-				     fog_offset);
+                                     deltaTime, 
+                                     bound.width, 
+                                     bound.height, 
+                                     fog_offset);
                 }
             }
 
@@ -1629,13 +1629,71 @@ int main(void)
                                              objects[selectedObject].angleY,
                                              objects[selectedObject].angleZ,
                                              vec3(1), objects[selectedObject].view_radius, 
-					     objects[selectedObject].collision_radius, 
-					     objects[selectedObject].selection_radius,
+                                             objects[selectedObject].collision_radius, 
+                                             objects[selectedObject].selection_radius,
                                              objects[selectedObject].scaleFactor, false, false, 0, 1));
                     selectedObject = objects.size() - 1;
                 }
 
-if (ImGui::Button("Forest"))
+                if(ImGui::Button("Destroy all Grass"))
+                {
+                    int i = 0;
+                    while(i < objects.size())
+                    {
+                        if(objects[i].id >= 23 && objects[i].id <= 31)
+                        {
+                            objects.erase(objects.begin() + i);
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Grass Creation"))
+                {
+                    for (int i = 0; i < 4000; i++) // Grass
+                    {
+                        float grass_scale = (randFloat() * 0.1) + 0.4;
+                        for (int j = 23; j < 32; j++) // Types
+                        {
+                            int goodVal = 0;
+                            float pos_x;
+                            float pos_z;
+                            float pos_y = 0.0f;
+                            while(!goodVal)
+                            {
+                                pos_x = randCoord();
+                                pos_z = randCoord();
+                                if (snapToTerrain)
+                                {
+                                    pos_y = terrain.heightAt(pos_x, pos_z) + grass_scale * m.findbyId(j).y_offset;
+                                    if(pos_y > (water.height + 0.6))
+                                    {
+                                        goodVal = 1;
+                                    }
+                                }
+                                else
+                                {
+                                    goodVal = 1;
+                                }
+                            }
+
+                            vec3 pos = vec3(pos_x, pos_y, pos_z);
+
+                            objects.push_back(Object(j,
+                                                     pos,
+                                                     -1.6f, 0.0f, randFloat() * PI,
+                                                     vec3(1), default_view * grass_scale, m.findbyId(j).collision_radius * grass_scale, 
+                                                    default_selection,
+                                                     grass_scale, false, false, 0, 1));
+                            selectedObject = objects.size() - 1;
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Forest"))
                 {
                     float pos_y = 0.0f;
                     float grass_scale = (randFloat() * 0.5) + 0.03;
@@ -1968,7 +2026,7 @@ if (ImGui::Button("Forest"))
                 ImGui::SameLine();
                 if (ImGui::Button("Desert"))
                 {
-		    float default_desert_view = 16.0f;
+                    float default_desert_view = 16.0f;
                     float pos_y = 0.0f;
 
                     for (int i = 0; i < 20; i++) // Formation 1
@@ -2446,7 +2504,7 @@ if (ImGui::Button("Forest"))
 
             if(ImGui::Button("Sunset!"))
             {
-		float sunsetTimer = 10.0f;
+                float sunsetTimer = 10.0f;
 
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer);
                 sunspline.active = true;
@@ -2456,17 +2514,17 @@ if (ImGui::Button("Forest"))
                 ambspline.active = true;
                 diffspline.init(sun.dirLight.diffuse, vec3(0.0f, 0.0f, 0.0f), sunsetTimer);
                 diffspline.active = true;
-		exposurespline.init(exposure, 1.0f, sunsetTimer);
-		exposurespline.active = true;
-		skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
-		skyboxspline.active = true;
-		particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
-		particlespline.active = true;
+                exposurespline.init(exposure, 1.0f, sunsetTimer);
+                exposurespline.active = true;
+                skyboxspline.init(skyboxMaskAmount, 1.0f, sunsetTimer);
+                skyboxspline.active = true;
+                particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
+                particlespline.active = true;
             }
             ImGui::SameLine();
             if(ImGui::Button("Sunrise!"))
             {
-		float sunriseTimer = 10.0f;
+                float sunriseTimer = 10.0f;
                 sunspline.init(sun.position, vec3(sun.position.x, 120.0f, sun.position.z), sunriseTimer);
                 sunspline.active = true;
                 suncolorspline.init(sun.color, vec3(1.0f, 10.0f, 0.1f), sunriseTimer);
@@ -2475,26 +2533,26 @@ if (ImGui::Button("Forest"))
                 ambspline.active = true;
                 diffspline.init(sun.dirLight.diffuse, vec3(0.5f, 0.5f, 0.2f), sunriseTimer * 2);
                 diffspline.active = true;
-		exposurespline.init(exposure, 50.0f, sunriseTimer * 4);
-		exposurespline.active = true;
+                exposurespline.init(exposure, 50.0f, sunriseTimer * 4);
+                exposurespline.active = true;
             }
-	    // TODO(alex): Set Event thresholds.
+            // TODO(alex): Set Event thresholds.
 
-	    if(ImGui::Button("Exposure out"))
-	    {
+            if(ImGui::Button("Exposure out"))
+            {
                 exposurespline.init(exposure, 30.0f, 10.0f);
                 exposurespline.active = true;
-	    }
-	    if(ImGui::Button("Exposure to Normal."))
-	    {
+            }
+            if(ImGui::Button("Exposure to Normal."))
+            {
                 exposurespline.init(exposure, 1.0f, 10.0f);
                 exposurespline.active = true;
-	    }
-	    if(ImGui::Button("Exposure to Darkness."))
-	    {
+            }
+            if(ImGui::Button("Exposure to Darkness."))
+            {
                 exposurespline.init(exposure, 0.0f, 10.0f);
                 exposurespline.active = true;
-	    }
+            }
 
             ImGui::SliderFloat("Exposure", &exposure, 0.0f, 50.0f);
             ImGui::SliderFloat("Bloom Threshold", &gBloomThreshold, 0.0f, 1.0f);
@@ -2705,12 +2763,12 @@ void processInput(GLFWwindow *window, vector<Object> *objects, vector<Sound *> *
     if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && deleteCheck == false)
     {
         deleteObject = true;
-	deleteCheck = true;
+        deleteCheck = true;
     }
 
     if(glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE && deleteCheck == true)
     {
-	deleteCheck = false;
+        deleteCheck = false;
     }
 
 
