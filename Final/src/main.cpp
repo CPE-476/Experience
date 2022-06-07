@@ -320,7 +320,7 @@ int main(void)
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.3f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
-    Sound EVA = Sound("../resources/audio/EVA おめでとう最終話.mp3", 1.0f, false);
+    Sound EVA = Sound("../resources/audio/congrats.wav", 1.0f, false);
     Sound fire = Sound("../resources/audio/fire.mp3", vec3(-13.6, -3.799, 10.2), 1.0f, 7.0f, 1.0f, 10.0f, true, false);
     Sound whisper = Sound("../resources/audio/whisper.wav", 1.0f, false);
     Sound waterWalk = Sound("../resources/audio/waterWalk.wav", 0.3f, false);
@@ -1010,6 +1010,22 @@ int main(void)
                 desertAmb.stopSound();
                 desertMusic.stopSound();
             }
+            if(drawParticles)
+            {
+                bound.height = -7.0f;
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
+                    bound.height = -35.0f;
+                    fog_offset = 40.0f;
+                }
+                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
+                    bound.height = 25.0f;
+                }
+                for (int i = 0; i < emitters.size(); ++i)
+                {
+                    emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
+                }
+            }
+
             static float counter1 = 0;
             static float counter2 = 0;
             static float counter3 = 0;
@@ -1029,21 +1045,6 @@ int main(void)
                 credit1.DrawCredit(m.shaders.noteShader, counter1, 1.0f, 0.5f);
                 credit2.DrawCredit(m.shaders.noteShader, counter2, 0.5f, 0.4f);
                 credit3.DrawCredit(m.shaders.noteShader, counter3, -0.2f, 1.0f);
-            }
-            if(drawParticles)
-            {
-                bound.height = -7.0f;
-                if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0) {
-                    bound.height = -35.0f;
-                    fog_offset = 40.0f;
-                }
-                if(strcmp(lvl.currentLevel.c_str(), "../levels/desert.txt") == 0) {
-                    bound.height = 25.0f;
-                }
-                for (int i = 0; i < emitters.size(); ++i)
-                {
-                    emitters[i].Draw(m.shaders.particleShader, deltaTime, bound.width, bound.height, fog_offset);
-                }
             }
 
             // Render Note
