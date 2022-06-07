@@ -84,6 +84,8 @@ bool  deleteCheck = false;
 
 float shadowAmount = 1.0f;
 
+bool forestBeginning = false;
+bool forestContinuing = false;
 bool sunsetting = false;
 bool sunrising = false;
 bool exposingOut = false;
@@ -264,6 +266,7 @@ int main(void)
     vector<Sound *> sounds;
     vector<Note>    notes;
     vector<bool>    discoveredNotes;
+    int discoveredCount = 0;
 
     // Notes
     notes.push_back(Note("../resources/notes/note1.png"));
@@ -312,6 +315,7 @@ int main(void)
     Sound music = Sound("../resources/audio/BGM/愛にできることはまだあるかい.mp3", 0.1f, true);
     Sound streetMusic = Sound("../resources/audio/BGM/Sunrise.mp3", 0.1f, true);
     Sound forestMusic1 = Sound("../resources/audio/BGM/Forest_1_calm.mp3", 0.1f, true);
+    Sound forestMusic2 = Sound("../resources/audio/BGM/Forest_1_dynamic.mp3", 0.1f, true);
     Sound desertMusic = Sound("../resources/audio/BGM/Desert.mp3", 0.1f, true);
     Sound alert = Sound("../resources/audio/alert.wav", 1.0f, false);
     Sound walk = Sound("../resources/audio/step.wav", 0.3f, false);
@@ -767,6 +771,8 @@ int main(void)
                 diffspline.active = true;
                 shadowspline.init(shadowAmount, 1.0f, sunriseTimer);
                 shadowspline.active = true;
+		
+		desertMusic.startSound();
 		sunrising = true;
 	    }
 
@@ -802,9 +808,25 @@ int main(void)
                 particlespline.init(vec3(emitters[0].startColor.x, emitters[0].startColor.y, emitters[0].startColor.z), vec3(0.0f), sunsetTimer);
                 particlespline.active = true;
 
+		streetMusic.startSound();
+
 		sunsetting = true;
 	    }
         }
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/forest.txt") == 0)
+        {
+	    if(!forestBeginning && discoveredCount > 0)
+	    {
+		forestMusic1.startSound();
+		forestBeginning = true;
+	    }
+	    if(!forestContinuing && discoveredCount > 4)
+	    {
+		forestMusic1.stopSound();
+		forestMusic2.startSound();
+		forestContinuing = true;
+	    }
+	}
 
         if(toggleRenderEffects || EditorMode == MOVEMENT)
         {
@@ -1044,6 +1066,7 @@ int main(void)
                     drawNote = true;
                     selectedNote = objects[interactingObject].noteNum;
                     discoveredNotes[selectedNote] = true;
+		    discoveredCount++;
                     if(objects[interactingObject].disappearing)
                     {
                         objects.erase(objects.begin() + interactingObject);
