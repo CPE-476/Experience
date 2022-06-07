@@ -898,7 +898,7 @@ int main(void)
 
             if(!sunsetting && discoveredNotes[0])
             {
-                float sunsetTimer = 15.0f;
+                float sunsetTimer = 30.0f;
 
                 sunspline.init(sun.position, vec3(sun.position.x, -80.0f, sun.position.z), sunsetTimer * 3);
                 sunspline.active = true;

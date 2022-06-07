@@ -76,19 +76,6 @@
 			and the world is new and interesting.
                     </p>
 
-                    <blockquote class="code">
-                        <code>
-                        // Setup Audio Source <br>
-                        audioTransportSource.prepareToPlay (samplesPerBlockExpected, sampleRate);<br>
-                        // Setup Ring Buffer of GLfloat's for the visualizer to use<br>
-                        // Uses two channels<br>
-                        ringBuffer = new RingBuffer (2, samplesPerBlockExpected * 10);<br>
-                        </code>
-                    </blockquote>
-
-                    <p>
-                        Rendering the Forest:
-                    </p>
                     <div class="images">
                         <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
                     </div>
@@ -100,9 +87,6 @@
 			Deep in the desert you may find secrets, but they are few and far between, and this area evokes the
 			feeling of being overwhelmed by your task.
                     </p>
-                    <p>
-                        Rendering the Desert:
-                    </p>
                     <div class="images">
                         <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
                     </div>
@@ -110,9 +94,19 @@
                     <h3>Street - Completion and Loneliness</h3>
                     <p>
                         Finally, the player will find themselves on a dark street in the middle 
-                        of the night. No stars in the sky, just loneliness. We’ll use Bloom to 
-                        achieve the look of a lone streetlamp lighting the path.
+                        of the night. No stars in the sky, just loneliness. streetlamps light the path.
+			You have completed your journey, and overcome much, and have seen the fleeting beauty of the
+			journey you've traveled, but now you find yourself alone. Only you know what you have learned.
+
                     </p>
+		    <p>
+			Nothing else to do, then, than to start a new journey!
+		    </p>
+                    <div class="images">
+                        <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
+                    </div>
+                    <h3></h3>
+                    <bar />
                     <blockquote class="code">
                         <code>
                         <bl>
@@ -129,14 +123,6 @@
                         Range maxFFTLevel2 = FloatVectorOperations::findMinAndMax (fftData2, fftSize / 2);<br>
                     </code>
                     </blockquote>
-                    <p>
-                        Rendering the Street:
-                    </p>
-                    <div class="images">
-                        <img class="image" src="src/osc_not_running.png" style="width:80%"></img>
-                    </div>
-                    <h3></h3>
-                    <bar />
                 </div>
             </div>
         </div>
