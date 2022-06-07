@@ -1130,11 +1130,9 @@ int main(void)
                         // static vec2 rotVec = vec2(cos(rotObj)*0 - sin(rotObj)*1, sin(rotObj)*0 + cos(rotObj)*1);
                         vec3 pointVec = camera.Position - objects[interactingObject].position;
                         float rot = dot(vec2(pointVec.x, pointVec.z), vec2(0, 1));
-                        rotspline.init(0.0f, rot, 0.5f);
+                        rotspline.init(0.0f, rot, 2.5f);
                         rotspline.active = true;
 
-                        objects[interactingObject].angleY = origRot;
-                        
                         sounds[objects[interactingObject].sound]->startSound();
                     }
                 }
