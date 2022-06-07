@@ -170,11 +170,11 @@ LGT 2.1 -0.9 314.4 0 0 0 0.9 0.62 0.4 0.35 0.2 0.13 0.4 1 0.09
 LGT -3.1 -0.9 314.4 0 0 0 0.9 0.62 0.4 0.35 0.2 0.13 0.4 1 0.09 
 
 COM Sun: <SUN scl pos.x pos.y pos.z col.r col.g col.b dir.x dir.y dir.z amb.x amb.y amb.z dif.x dif.y dif.z spec.x spec.y spec.z>
-SUN 50 -2 -85.0069 -512 5.352 0.563 0.278 0.00187327 0.00124885 0.000624424 0.93 0.44 0.18 0.91 0.2 0.14 
+SUN 50 -2 -85.0069 -512 5.352 0.563 0.278 0.00187327 0.00124885 0.000624424 0 0 0 0.91 0.2 0.14 
 
 COM Emitter: <PAR path partAmt pos.x pos.y pos.z rad1 rad2 height vel.x vel.y vel.z life grav startCol.x startCol.y startCol.z startCol.a endCol.x endCol.y endCol.z endCol.a startScl endScl Bugmode Fogmode>
-PAR ../resources/models/particle/part.png 20000 0 -3.36433 0 0.2 3.883 7 9 0 9 1.74022 -2.128 0.22549 0.22549 0.22549 0.4 0.0980392 0.0980392 0.0980392 1 14 8 0 1 
-PAR ../resources/models/particle/part.png 10000 0 -19.7662 0 100 10 75 -0.394 0.394 -1.969 9.808 -0.719 0.426471 0.374453 0.131704 1 1 0 0 1 0.48 0 1 0 
+PAR ../resources/models/particle/part.png 20000 0 -23.4928 0 0.2 3.883 7 9 0 9 1.93165 -2.128 0.22549 0.22549 0.22549 0.4 0.0980392 0.0980392 0.0980392 1 14 8 0 1 
+PAR ../resources/models/particle/part.png 10000 0 -12.9703 0 100 10 75 -0.394 0.394 -1.969 9.808 -0.719 0.426471 0.374453 0.131704 1 1 0 0 1 0.48 0 1 0 
 
 COM Fog: <FOG max min col.x col.y col.z col.a>
 FOG 322.222 116.667 0 0 0 0.7
