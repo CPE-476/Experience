@@ -32,8 +32,8 @@ using namespace glm;
 #define PI 3.14159265
 
 // NOTE(Alex): Global State!
-const unsigned int SCREEN_WIDTH = 1440*2;
-const unsigned int SCREEN_HEIGHT = 900*2;
+const unsigned int SCREEN_WIDTH = 1440;
+const unsigned int SCREEN_HEIGHT = 900;
 const unsigned int RETINA_SCREEN_WIDTH = SCREEN_WIDTH / 2;
 const unsigned int RETINA_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 const unsigned int TEXT_SIZE = 16;
@@ -224,8 +224,8 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", NULL, NULL);
+    //GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Experience", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window.\n";
@@ -328,6 +328,8 @@ int main(void)
     notes.push_back(Note("../resources/notes/box11.png"));
     notes.push_back(Note("../resources/notes/box12.png"));
     notes.push_back(Note("../resources/notes/note10.png"));
+    notes.push_back(Note("../resources/notes/box13.png"));
+
 
     Note credit1 = Note("../resources/notes/credit1.png");
     Note credit2 = Note("../resources/notes/credit2.png");
@@ -375,6 +377,8 @@ int main(void)
     Sound underwater1 = Sound("../resources/audio/Talking/underwater.wav", 1.0f, false);
     Sound underwater2 = Sound("../resources/audio/Talking/underwater2.wav", 1.0f, false);
 
+    Sound laugh = Sound("../resources/audio/laugh.wav", 1.0f, false);
+
     sounds.push_back(&walk); // 0
     sounds.push_back(&whistle); // 1
     sounds.push_back(&pickup); // 2
@@ -399,6 +403,7 @@ int main(void)
     sounds.push_back(&high4); // 21
     sounds.push_back(&underwater1); // 22
     sounds.push_back(&underwater2); // 23 
+    sounds.push_back(&laugh); // 24
 
 
     Skybox skybox;
