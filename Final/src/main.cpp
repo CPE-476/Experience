@@ -734,7 +734,7 @@ int main(void)
             shadowAmount = shadowspline.getPosition();
         }
 
-        if((strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0))
+        if(strcmp(lvl.currentLevel.c_str(), "../levels/street.txt") == 0)
         {
             skyboxMaskAmount = 0.0f;
         }
