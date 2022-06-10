@@ -65,13 +65,13 @@ Overview             |  POV
 Next, the player will find themselves in a desert wasteland, with long stretches of empty land and steep sand dunes. Bloom and Blur effects make the journey feel arduous. Deep in the desert you may find secrets, but they are few and far between, and this area evokes the feeling of being overwhelmed by your task.
 Overview             |  POV
 :-------------------------:|:-------------------------:
-![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/d1.png?raw=true)  |  ![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/d2.png?raw=true)
+![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/d2.png?raw=true)  |  ![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/d1.png?raw=true)
 
 #### Street - Completion and Loneliness
 Finally, the player will find themselves on a dark street in the middle of the night. No stars in the sky, just loneliness. streetlamps light the path. You have completed your journey, and overcome much, and have seen the fleeting beauty of the journey you've traveled, but now you find yourself alone. Only you know what you have learned.
 Overview             |  POV
 :-------------------------:|:-------------------------:
-![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/s1.png?raw=true)  |  ![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/s2.png?raw=true)
+![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/s2.png?raw=true)  |  ![](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/s1.png?raw=true)
 
 Nothing else to do, then, than to start a new journey!
 
