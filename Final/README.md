@@ -47,7 +47,7 @@ A game in 10 weeks.
 ### Introduction
 Experience is a small expressive game about the process of trying to improve at something.
 The game involves walking through various environments which evoke feelings like those experienced when learning something new.
-![Preview](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/f2.png?raw=true)
+[![Game Preview](https://github.com/CPE-476/Experience/blob/main/Final/HTML/src/exp_cover.png?raw=true)](https://www.youtube.com/watch?v=9Me2BgbvU00)
 
 ### Gameplay
 The game takes place from a first-person perspective. The gameplay is as simple as walking and observing. The player can interact with their environment, reading notes strewn about the environment and talking with animals.
