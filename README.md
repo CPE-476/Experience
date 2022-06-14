@@ -41,7 +41,16 @@
 </details>
 
 # Experience
-A game in 10 weeks.
+### Final
+* A game in 10 weeks.
+### Sample Workshops
+* View Frustum Culling
+* Framebuffer Object
+* Deferred Shading
+* Shadow Rendering
+* Normal Mapping
+* Text Rendering
+
 
 ## About The Project
 ### Introduction
