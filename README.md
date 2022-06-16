@@ -131,7 +131,7 @@ Before             |  After
 ```c++
 bool ViewFrustCull(vec3 center, float radius)
 {
-    float dist;<br>
+    float dist;
     for(int i=0; i < 6; i++){
         dist = DistToPlane(planes[i].x, planes[i].y, planes[i].z, planes[i].w, center);
         if(dist < 0 && fabs(dist) > radius){
